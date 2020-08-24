@@ -1,0 +1,27 @@
+*{
+    padding: 0;
+    margin: 0;
+}
+
+html, body {
+    height: 100%;
+}
+.flexContButton {
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.flexContButton button {
+    background-color: blueviolet;
+
+    cursor: pointer;
+}
+
+
+.flexContButton input, button {
+    padding: 1vh;
+    border: black;
+    border: solid;
+}
