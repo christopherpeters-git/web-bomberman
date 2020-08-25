@@ -8,11 +8,11 @@
 </head>
 <body>
     <div class="flexContUpload">
-        <form action="http://localhost:80/upload" enctype="multipart/form-data" method="post">
+        <form>
             <input type="file"
                id="avatar" name="imageFile"
                accept="image/png, image/jpeg">
-            <button type="submit">Upload</button>
+            <button onclick="postUploadImageRequest()">Upload</button>
         </form>
     </div>
 

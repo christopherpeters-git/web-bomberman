@@ -35,14 +35,9 @@ func main() {
 func handleUploadImage(w http.ResponseWriter, r *http.Request) {
 	log.Println("Upload started...")
 	//Parsing ??? Maxsize = 10mb
-	err := r.ParseMultipartForm(10 << 20)
-
-	if err != nil {
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
 		log.Println("Parsing failed: " + err.Error())
 	}
-	//idk if needed ¯\_(ツ)_/¯
-	err = nil
-
 	//Retrieve
 	file, handler, err := r.FormFile("imageFile")
 	if err != nil {
