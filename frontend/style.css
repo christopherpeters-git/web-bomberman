@@ -6,22 +6,21 @@
 html, body {
     height: 100%;
 }
-.flexContButton {
-    height: 100%;
+.flexContUpload {
     display: flex;
-    justify-content: center;
-    align-items: center;
+    flex-direction: column;
+    width: 20%;
 }
 
-.flexContButton button {
-    background-color: blueviolet;
-
+.flexContUpload input {
+    background-color: #000000;
+    color: white;
     cursor: pointer;
-}
-
-
-.flexContButton input, button {
     padding: 1vh;
-    border: black;
-    border: solid;
+    border: solid black;
+
 }
+
+
+
+
