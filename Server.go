@@ -38,7 +38,7 @@ func handleUploadImage(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
 		log.Println("Parsing failed: " + err.Error())
 	}
-	//Retrieve
+	//Retrieving
 	file, handler, err := r.FormFile("imageFile")
 	if err != nil {
 		log.Println("Retrieving failed: " + err.Error())
@@ -48,10 +48,10 @@ func handleUploadImage(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("Uploaded File: ", handler.Filename)
 	log.Println("File size: ", handler.Size)
-	//What is MIME Header?
 	log.Println("MIME Header: ", handler.Header)
 
-	//write to temp
+	//Writing
+	//TO-DO: Change TempFile func
 	tempFile, err := ioutil.TempFile("temp-images", "upload-*.png")
 	if err != nil {
 		log.Println("Writing failed: " + err.Error())
