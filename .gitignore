@@ -16,6 +16,6 @@
 
 .idea/
 build/
-temp-images/*
+
 *.log
 
