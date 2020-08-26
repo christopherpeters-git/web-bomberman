@@ -1,13 +1,29 @@
 package main
 
 import (
+	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
-	_ "github.com/gorilla/websocket"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 )
+
+//database
+const (
+	DB_USERNAME = "test"
+	DB_PASSWORD = "test123"
+	DB_URL      = "connectolai.de:3306"
+	DB_NAME     = "testdb"
+)
+
+//handler url's
+const (
+	POST_SAVEPICTURE = "/uploadImage"
+	WEBSOCKET_TEST   = "/ws-test/"
+)
+
+var db *sql.DB
 
 func main() {
 	//Creates a log file
@@ -21,15 +37,29 @@ func main() {
 
 	http.Handle("/", http.FileServer(http.Dir("frontend/")))
 
-	//handlers
-	http.HandleFunc("/fetchNumber", handleGetFetchNumber)
-	http.HandleFunc("/upload", handleUploadImage)
+	db, err = sql.Open("mysql", DB_NAME+":"+DB_PASSWORD+"@tcp("+DB_URL+")/"+DB_NAME)
+	if err != nil {
+		log.Fatal("Database connection failed: " + err.Error())
+	}
+	defer db.Close()
 
+	//handlers
+	http.HandleFunc(POST_SAVEPICTURE, handleUploadImage)
+	http.HandleFunc(WEBSOCKET_TEST, handleWebsocketEndpoint)
 	log.Println("Server started...")
 	err = http.ListenAndServe(":80", nil)
 	if err != nil {
 		log.Fatal("Starting Server failed: " + err.Error())
 	}
+}
+
+func handleWebsocketEndpoint(w http.ResponseWriter, r *http.Request) {
+	log.Println("websocket started...")
+	if err := StartWebSocketConnection(w, r); err != nil {
+		log.Println(err.Error())
+		return
+	}
+	log.Println("websocket connected...")
 }
 
 func handleUploadImage(w http.ResponseWriter, r *http.Request) {
@@ -68,20 +98,4 @@ func handleUploadImage(w http.ResponseWriter, r *http.Request) {
 	tempFile.Write(fileBytes)
 
 	log.Println(w, "Successfully Uploaded!")
-}
-
-func handleGetFetchNumber(w http.ResponseWriter, r *http.Request) {
-	log.Println("started fetch number request...")
-	query := r.URL.Query()
-	number := query["number"][0]
-	if number == "" {
-		http.Error(w, "empty input", http.StatusBadRequest)
-		log.Println("error: empty input!")
-		return
-	}
-
-	log.Println("incoming number is: " + number)
-
-	w.Write([]byte(number))
-	log.Println("answered fetch number request successfully")
 }
