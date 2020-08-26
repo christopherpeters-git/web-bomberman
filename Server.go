@@ -3,6 +3,7 @@ package main
 import (
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/gorilla/websocket"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -19,13 +20,54 @@ func main() {
 	log.SetOutput(f)
 
 	http.Handle("/", http.FileServer(http.Dir("frontend/")))
+
 	//handlers
 	http.HandleFunc("/fetchNumber", handleGetFetchNumber)
+	http.HandleFunc("/upload", handleUploadImage)
+
 	log.Println("Server started...")
 	err = http.ListenAndServe(":80", nil)
 	if err != nil {
 		log.Fatal("Starting Server failed: " + err.Error())
 	}
+}
+
+func handleUploadImage(w http.ResponseWriter, r *http.Request) {
+	log.Println("Upload started...")
+	//Parsing ??? Maxsize = 10mb
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		log.Println("Parsing failed: " + err.Error())
+	}
+	//Retrieving
+	file, handler, err := r.FormFile("imageFile")
+	if err != nil {
+		log.Println("Retrieving failed: " + err.Error())
+		return
+	}
+	defer file.Close()
+
+	log.Println("Uploaded File: ", handler.Filename)
+	log.Println("File size: ", handler.Size)
+	log.Println("MIME Header: ", handler.Header)
+
+	//Writing
+	//TO-DO: Change TempFile func
+	tempFile, err := ioutil.TempFile("temp-images", "upload-*.png")
+	if err != nil {
+		log.Println("Writing failed: " + err.Error())
+		return
+	}
+
+	defer tempFile.Close()
+
+	fileBytes, err := ioutil.ReadAll(file)
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	tempFile.Write(fileBytes)
+
+	log.Println(w, "Successfully Uploaded!")
 }
 
 func handleGetFetchNumber(w http.ResponseWriter, r *http.Request) {

@@ -9,18 +9,21 @@ function createAjaxRequest(){
 }
 
 
-function GetFetchNumberRequest(){
-    const inputNumber = document.querySelector("#inputNumber").value;
+function postUploadImageRequest(){
+    const inputFile = document.querySelector("#avatar").files[0];
     const request = createAjaxRequest();
+    const formData = new FormData();
+    formData.append("imageFile", inputFile);
     request.onreadystatechange = function(){
         if(this.readyState === 4){
             if(this.status === 200){
-                alert("Response: " + this.responseText);
+
             }else{
                 alert("failed: " +  this.status);
             }
         }
     }
-    request.open("GET","/fetchNumber?number="+inputNumber,true);
-    request.send();
+    request.setRequestHeader("Content-Type", "multipart/form-data")
+    request.open("POST","/upload",true);
+    request.send(formData);
 }
