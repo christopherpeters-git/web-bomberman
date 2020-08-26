@@ -3,11 +3,24 @@ package main
 import (
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
-	_ "github.com/gorilla/websocket"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+)
+
+//database
+const (
+	DB_USERNAME = "root"
+	DB_PASSWORD = "soe2020"
+	DB_URL      = "localhost:3306"
+	DB_NAME     = "krass"
+)
+
+//handler url's
+const (
+	POST_SAVEPICTURE = "/uploadImage"
+	WEBSOCKET_TEST   = "/ws-test/"
 )
 
 var db *sql.DB
@@ -24,7 +37,7 @@ func main() {
 
 	http.Handle("/", http.FileServer(http.Dir("frontend/")))
 
-	db, err = sql.Open("mysql", DB_USERNAME+":"+DB_PASSWORD+"@tcp("+DB_URL+")/"+DB_NAME)
+	db, err = sql.Open("mysql", DB_NAME+":"+DB_PASSWORD+"@tcp("+DB_URL+")/"+DB_NAME)
 	if err != nil {
 		log.Fatal("Database connection failed: " + err.Error())
 	}
@@ -32,12 +45,21 @@ func main() {
 
 	//handlers
 	http.HandleFunc(POST_SAVEPICTURE, handleUploadImage)
-
+	http.HandleFunc(WEBSOCKET_TEST, handleWebsocketEndpoint)
 	log.Println("Server started...")
 	err = http.ListenAndServe(":80", nil)
 	if err != nil {
 		log.Fatal("Starting Server failed: " + err.Error())
 	}
+}
+
+func handleWebsocketEndpoint(w http.ResponseWriter, r *http.Request) {
+	log.Println("websocket started...")
+	if err := StartWebSocketConnection(w, r); err != nil {
+		log.Println(err.Error())
+		return
+	}
+	log.Println("websocket connected...")
 }
 
 func handleUploadImage(w http.ResponseWriter, r *http.Request) {
