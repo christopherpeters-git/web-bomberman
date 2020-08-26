@@ -26,3 +26,7 @@ function postUploadImageRequest(){
     request.open("POST","/uploadImage",true);
     request.send(formData);
 }
+
+function openWelcome() {
+    window.location.href="/welcome.html";
+}

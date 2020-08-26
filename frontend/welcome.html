@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="js/welcome.js"></script>
+    <link type="text/css" rel="stylesheet" href="css/welcome.css">
+    <title>Welcome</title>
+</head>
+<body onload="initWelcome()">
+<div id="slideshow">
+<div class="slideshow-container" style="display: block">
+
+    <!-- Full-width images with number and caption text -->
+    <div class="mySlides fade" style="display: block">
+        <img src="media/img1.JPG" style="width:100%">
+        <div class="text">Tutorial 1</div>
+    </div>
+
+    <div class="mySlides fade">
+        <img src="media/img2.JPG" style="width:100%">
+        <div class="text">Tutorial 2</div>
+    </div>
+
+    <div class="mySlides fade">
+        <img src="media/img3.JPG" style="width:100%">
+        <div class="text">Tutorial 3</div>
+    </div>
+
+    <!-- Next and previous buttons -->
+    <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
+    <a class="next" onclick="plusSlides(1)">&#10095;</a>
+</div>
+<br>
+
+<!-- The dots/circles -->
+<div style="text-align:center">
+    <span class="dot" onclick="currentSlide(1)"></span>
+    <span class="dot" onclick="currentSlide(2)"></span>
+    <span class="dot" onclick="currentSlide(3)"></span>
+</div>
+</div>
+
+<button style="width: auto" onclick="toggleSlideshow()">Toggle Slideshow</button>
+
+<div id="Login_Screen" style="visibility: visible">
+    <div class="tab">
+        <button id="defaultOpener" class="tablinks" onclick="openTab(event, 'login')">Login</button>
+        <button class="tablinks" onclick="openTab(event, 'register')">Registrieren</button>
+    </div>
+<div id="login" class="tabcontent">
+   <div class="container">
+       <label for="usernameLogin"><b>Username</b></label>
+       <input type="text" id="usernameLogin" placeholder="Enter Username" required>
+       <label for="passwordLogin"><b>Password</b></label>
+       <input type="password" id="passwordLogin" placeholder="Enter Password" required>
+       <button onclick="sendPostLoginRequest()" id="loginBtn">Login</button>
+   </div>
+</div>
+<div id="register" class="tabcontent">
+    <div class="container">
+        <label for="usernameRegister"><b>Username</b></label>
+        <input type="text" id="usernameRegister" placeholder="Enter Username" required>
+        <label for="passwordRegister"><b>Password</b></label>
+        <input type="password" id="passwordRegister" placeholder="Enter Password" required>
+        <button onclick="sendPostRegisterRequest()" id="registerBtn">Register</button>
+    </div>
+</div>
+</div>
+
+</body>
+</html>

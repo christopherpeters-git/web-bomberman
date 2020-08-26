@@ -92,3 +92,98 @@
     from {opacity: .4}
     to {opacity: 1}
 }
+
+/* ##################### Für Login/Registrieren #################################### */
+
+
+input[type=text], input[type=password] {
+    width: 100%;
+    padding: 12px 20px;
+
+    display: inline-block;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+
+}
+
+button {
+    background-color: #313131;
+    color: white;
+    padding: 14px 20px;
+    margin: 8px 0;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+}
+
+button:hover {
+    opacity: 0.8;
+}
+
+
+
+.container {
+    padding: 16px;
+}
+
+span.psw {
+    float: right;
+    padding-top: 16px;
+}
+
+/* Change styles for span and cancel button on extra small screens */
+@media screen and (max-width: 400px) {
+    span.psw {
+        display: block;
+        float: none;
+    }
+    #Login_Screen{
+        width: 40%;
+        margin-left: 40%;
+    }
+    #fav_btn{
+        width: 100%;
+    }
+    #logout_btn{
+        width: 100%;
+    }
+    .Dropdown-content{
+        width: 100%;
+    }
+}
+
+
+.tab {
+    overflow: hidden;
+    background-image: url("../media/img1.JPG");
+}
+
+/* Style the buttons that are used to open the tab content */
+.tab button {
+    background-color: inherit;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    transition: 0.3s;
+    width: 50%;
+}
+
+/* Change background color of buttons on hover */
+.tab button:hover {
+    background-color: #ddd;
+}
+
+/* Create an active/current tablink class */
+.tab button.active {
+    background-color: #ccc;
+}
+
+/* Style the tab content */
+.tabcontent {
+    display: none;
+    padding: 6px 12px;
+    border: 1px solid black;
+    border-top: none;
+}
