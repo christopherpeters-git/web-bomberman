@@ -11,10 +11,10 @@ import (
 
 //database
 const (
-	DB_USERNAME = "root"
-	DB_PASSWORD = "soe2020"
-	DB_URL      = "localhost:3306"
-	DB_NAME     = "krass"
+	DB_USERNAME = "test"
+	DB_PASSWORD = "test123"
+	DB_URL      = "connectolai.de:3306"
+	DB_NAME     = "testdb"
 )
 
 //handler url's

@@ -1,6 +1,4 @@
-CREATE DATABASE krass;
-
-USE krass;
+USE testdb;
 
 CREATE TABLE users (
     Id int NOT NULL AUTO_INCREMENT,
