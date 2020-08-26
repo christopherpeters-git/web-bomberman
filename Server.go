@@ -37,7 +37,7 @@ func main() {
 
 	http.Handle("/", http.FileServer(http.Dir("frontend/")))
 
-	db, err = sql.Open("mysql", DB_NAME+":"+DB_PASSWORD+"@tcp("+DB_URL+")/"+DB_NAME)
+	db, err = sql.Open("mysql", DB_USERNAME+":"+DB_PASSWORD+"@tcp("+DB_URL+")/"+DB_NAME)
 	if err != nil {
 		log.Fatal("Database connection failed: " + err.Error())
 	}
