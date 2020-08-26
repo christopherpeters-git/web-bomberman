@@ -20,7 +20,13 @@ html, body {
     border: solid black;
 
 }
+.canvasFlexCont {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
 
-
-
-
+#matchfield {
+    border: 1px dotted #333;
+}
