@@ -19,16 +19,16 @@ window.onkeydown = function (event) {
 
     if (keyPr === 39 && x <= 460) {
         x = x + 20; //right arrow add 20
-        console.log("RIGHT")
+       // console.log("RIGHT")
     } else if (keyPr === 37 && x > 10) {
         x = x - 20; //left arrow subtract 20
-        console.log("LEFT")
+       // console.log("LEFT")
     } else if (keyPr === 38 && y > 10) {
         y = y - 20; //top arrow subtract 20
-        console.log("TOP")
+       // console.log("TOP")
     } else if (keyPr === 40 && y <= 460) {
         y = y + 20; //down arrow add 20
-        console.log("DOWN")
+       // console.log("DOWN")
     }
 
 
