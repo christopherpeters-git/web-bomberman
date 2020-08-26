@@ -23,6 +23,6 @@ function postUploadImageRequest(){
             }
         }
     }
-    request.open("POST","/upload",true);
+    request.open("POST","/uploadImage",true);
     request.send(formData);
 }

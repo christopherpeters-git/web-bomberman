@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/gorilla/websocket"
 	"io/ioutil"
@@ -8,6 +9,8 @@ import (
 	"net/http"
 	"os"
 )
+
+var db *sql.DB
 
 func main() {
 	//Creates a log file
@@ -21,9 +24,14 @@ func main() {
 
 	http.Handle("/", http.FileServer(http.Dir("frontend/")))
 
+	db, err = sql.Open("mysql", DB_USERNAME+":"+DB_PASSWORD+"@tcp("+DB_URL+")/"+DB_NAME)
+	if err != nil {
+		log.Fatal("Database connection failed: " + err.Error())
+	}
+	defer db.Close()
+
 	//handlers
-	http.HandleFunc("/fetchNumber", handleGetFetchNumber)
-	http.HandleFunc("/upload", handleUploadImage)
+	http.HandleFunc(POST_SAVEPICTURE, handleUploadImage)
 
 	log.Println("Server started...")
 	err = http.ListenAndServe(":80", nil)
@@ -68,20 +76,4 @@ func handleUploadImage(w http.ResponseWriter, r *http.Request) {
 	tempFile.Write(fileBytes)
 
 	log.Println(w, "Successfully Uploaded!")
-}
-
-func handleGetFetchNumber(w http.ResponseWriter, r *http.Request) {
-	log.Println("started fetch number request...")
-	query := r.URL.Query()
-	number := query["number"][0]
-	if number == "" {
-		http.Error(w, "empty input", http.StatusBadRequest)
-		log.Println("error: empty input!")
-		return
-	}
-
-	log.Println("incoming number is: " + number)
-
-	w.Write([]byte(number))
-	log.Println("answered fetch number request successfully")
 }
