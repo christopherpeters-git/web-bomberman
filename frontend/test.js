@@ -23,7 +23,6 @@ function postUploadImageRequest(){
             }
         }
     }
-    request.setRequestHeader("Content-Type", "multipart/form-data")
     request.open("POST","/upload",true);
     request.send(formData);
 }
