@@ -19,8 +19,9 @@ const (
 
 //handler url's
 const (
-	POST_SAVEPICTURE = "/uploadImage"
-	WEBSOCKET_TEST   = "/ws-test/"
+	POST_SAVEPICTURE             = "/uploadImage"
+	WEBSOCKET_TEST               = "/ws-test/"
+	GET_FETCH_ACTIVE_CONNECTIONS = "/fetchConnections/"
 )
 
 var db *sql.DB
@@ -46,6 +47,7 @@ func main() {
 	//handlers
 	http.HandleFunc(POST_SAVEPICTURE, handleUploadImage)
 	http.HandleFunc(WEBSOCKET_TEST, handleWebsocketEndpoint)
+	http.HandleFunc(GET_FETCH_ACTIVE_CONNECTIONS, handleFetchActiveConnections)
 	log.Println("Server started...")
 	err = http.ListenAndServe(":80", nil)
 	if err != nil {
@@ -53,13 +55,16 @@ func main() {
 	}
 }
 
+func handleFetchActiveConnections(w http.ResponseWriter, r *http.Request) {
+	log.Println("handling fetch active connections request started...")
+	w.Write([]byte(AllConnectionsAsString()))
+	log.Println("handling fetch active connections request ended...")
+}
+
 func handleWebsocketEndpoint(w http.ResponseWriter, r *http.Request) {
-	log.Println("websocket started...")
-	if err := StartWebSocketConnection(w, r); err != nil {
-		log.Println(err.Error())
-		return
-	}
-	log.Println("websocket connected...")
+	log.Println("handling websocket started...")
+	StartWebSocketConnection(w, r, db)
+	log.Println("handling websocket ended...")
 }
 
 func handleUploadImage(w http.ResponseWriter, r *http.Request) {
