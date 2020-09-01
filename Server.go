@@ -44,6 +44,8 @@ func main() {
 	}
 	defer db.Close()
 
+	go UpdateClients()
+
 	//handlers
 	http.HandleFunc(POST_SAVEPICTURE, handleUploadImage)
 	http.HandleFunc(WEBSOCKET_TEST, handleWebsocketEndpoint)

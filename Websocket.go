@@ -18,6 +18,7 @@ var upgrader = websocket.Upgrader{
 }
 
 func StartWebSocketConnection(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	//Check if db connection is available
 	if err := db.Ping(); err != nil {
 		http.Error(w, global.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
 		log.Println(err)

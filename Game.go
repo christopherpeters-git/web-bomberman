@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"github.com/gorilla/websocket"
 	"log"
 	"time"
@@ -22,7 +23,7 @@ func NewSession(user *User, character *Character, connection *websocket.Conn, co
 
 //Returns the string representation of the connection
 func (r *Session) String() string {
-	return "Session: { " + r.User.String() + "|" + r.Connection.RemoteAddr().String() + "|" + r.ConnectionStarted.String() + "}"
+	return "Session: { " + r.User.String() + "|" + r.Character.String() + "|" + r.Connection.RemoteAddr().String() + "|" + r.ConnectionStarted.String() + "}"
 }
 
 //Prints every active connection
@@ -46,19 +47,55 @@ func StartPlayerLoop(session *Session) {
 //interaction loop
 func playerWebsocketLoop(session *Session) {
 	for {
-		messageType, p, err := session.Connection.ReadMessage()
+		_, p, err := session.Connection.ReadMessage()
 		if err != nil {
 			log.Println(err)
 			return
 		}
-		log.Println(p)
-		if err := session.Connection.WriteMessage(messageType, p); err != nil {
-			log.Println(err)
-			return
+		log.Println("incoming (unformatted): " + string(p))
+		switch string(p) {
+		//W
+		case "w":
+			session.Character.PositionY += 10
+			break
+		//A
+		case "a":
+			session.Character.PositionX -= 10
+			break
+		//S
+		case "s":
+			session.Character.PositionY -= 10
+			break
+		//D
+		case "d":
+			session.Character.PositionX += 10
+			break
+		default:
+			break
 		}
 	}
 }
 
-func sendNewPositionToClients() {
+func UpdateClients() {
+	for {
+		sendDataToClients()
+	}
+}
 
+func sendDataToClients() {
+	//collect data
+	sessions := make([]Session, len(connections))
+	count := 0
+	for _, v := range connections {
+		sessions[count] = *v
+		count++
+	}
+	//jsonBytes, err := json.Marshal(sessions)
+	//send data to all clients
+	for _, v := range connections {
+		if err := v.Connection.WriteMessage(websocket.TextMessage, p); err != nil {
+			log.Println(err)
+			return
+		}
+	}
 }

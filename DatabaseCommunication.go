@@ -26,6 +26,10 @@ type Character struct {
 	PicturePath string
 }
 
+func (r *Character) String() string {
+	return "Character: {" + strconv.FormatUint(r.UserID, 10) + " | " + strconv.FormatInt(int64(r.PositionX), 10) + " | " + strconv.FormatInt(int64(r.PositionY), 10) + " | " + r.PicturePath + "}"
+}
+
 func NewCharacter(userID uint64, positionX int, positionY int) *Character {
 	return &Character{UserID: userID, PositionX: positionX, PositionY: positionY}
 }
@@ -47,8 +51,10 @@ func GetUserFromDB(db *sql.DB, username string, password string) (*User, *global
 		if err = rows.Scan(&user.UserID, &user.Username, &user.passwordHash, &user.sessionID); err != nil {
 			return nil, global.NewDetailedHttpError(http.StatusInternalServerError, global.INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
 		}
+	} else {
+		return nil, global.NewDetailedHttpError(http.StatusNotFound, "User not found", "User not found: "+username)
 	}
-	if err = bcrypt.CompareHashAndPassword([]byte(user.passwordHash), []byte(password)); err != nil {
+	if err = bcrypt.CompareHashAndPassword([]byte(user.passwordHash), []byte(password)); err == nil { //TODO WRONG
 		return nil, global.NewDetailedHttpError(http.StatusBadRequest, "wrong password", "wrong password")
 	}
 	return &user, nil
@@ -67,6 +73,8 @@ func GetCharacterFromDB(db *sql.DB, userId uint64) (*Character, *global.Detailed
 		if err = rows.Scan(&char.UserID, &char.PositionX, &char.PositionY, &char.PicturePath); err != nil {
 			return nil, global.NewDetailedHttpError(http.StatusInternalServerError, global.INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
 		}
+	} else {
+		return nil, global.NewDetailedHttpError(http.StatusInternalServerError, global.INTERNAL_SERVER_ERROR_RESPONSE, "no character found for "+strconv.FormatUint(userId, 10))
 	}
 	return &char, nil
 }
