@@ -51,7 +51,7 @@ func main() {
 	http.HandleFunc(WEBSOCKET_TEST, handleWebsocketEndpoint)
 	http.HandleFunc(GET_FETCH_ACTIVE_CONNECTIONS, handleFetchActiveConnections)
 	log.Println("Server started...")
-	err = http.ListenAndServe(":100", nil)
+	err = http.ListenAndServe(":2100", nil)
 	if err != nil {
 		log.Fatal("Starting Server failed: " + err.Error())
 	}
