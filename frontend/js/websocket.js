@@ -16,10 +16,10 @@ socket.onerror = (error) => {
     console.log("Connection failed: " + error)
 }
 
-// socket.onmessage = (ev) => {
-//     testContainer.innerHTML = ev.data;
-//     console.log(ev.data);
-// }
+socket.onmessage = (ev) => {
+    testContainer.innerHTML = ev.data;
+    console.log(ev.data);
+}
 
 
 document.addEventListener( 'keydown', handleKeyPress, false );
