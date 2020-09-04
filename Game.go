@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"github.com/gorilla/websocket"
 	"log"
 	"time"
@@ -92,10 +91,10 @@ func sendDataToClients() {
 	}
 	//jsonBytes, err := json.Marshal(sessions)
 	//send data to all clients
-	for _, v := range connections {
-		if err := v.Connection.WriteMessage(websocket.TextMessage, p); err != nil {
-			log.Println(err)
-			return
-		}
-	}
+	//for _, v := range connections {
+	//	if err := v.Connection.WriteMessage(websocket.TextMessage, p); err != nil {
+	//		log.Println(err)
+	//		return
+	//	}
+	//}
 }

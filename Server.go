@@ -44,14 +44,14 @@ func main() {
 	}
 	defer db.Close()
 
-	go UpdateClients()
+	//go UpdateClients()
 
 	//handlers
 	http.HandleFunc(POST_SAVEPICTURE, handleUploadImage)
 	http.HandleFunc(WEBSOCKET_TEST, handleWebsocketEndpoint)
 	http.HandleFunc(GET_FETCH_ACTIVE_CONNECTIONS, handleFetchActiveConnections)
 	log.Println("Server started...")
-	err = http.ListenAndServe(":80", nil)
+	err = http.ListenAndServe(":100", nil)
 	if err != nil {
 		log.Fatal("Starting Server failed: " + err.Error())
 	}
