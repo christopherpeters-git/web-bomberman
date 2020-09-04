@@ -1,22 +1,41 @@
 package main
 
 import (
+	"encoding/json"
 	"github.com/gorilla/websocket"
 	"log"
+	"strconv"
 	"time"
 )
 
 var connections = make(map[uint64]*Session, 0)
 
+var ticker = time.NewTicker(5 * time.Millisecond)
+
+type Bomberman struct {
+	UserID         uint64
+	PositionX      int
+	PositionY      int
+	lastBombPlaced time.Time
+}
+
+func (r *Bomberman) String() string {
+	return "Bomberman: {" + strconv.FormatUint(r.UserID, 10) + " | " + strconv.FormatInt(int64(r.PositionX), 10) + " | " + strconv.FormatInt(int64(r.PositionY), 10) + " | " + r.lastBombPlaced.String() + "}"
+}
+
+func NewBomberman(userID uint64, positionX int, positionY int) *Bomberman {
+	return &Bomberman{UserID: userID, PositionX: positionX, PositionY: positionY}
+}
+
 //Wrapper for the user
 type Session struct {
 	User              *User           //Connected user
-	Character         *Character      //Character of the connected user
+	Character         *Bomberman      //Character of the connected user
 	Connection        *websocket.Conn //Websocket connection
 	ConnectionStarted time.Time       //point when player joined
 }
 
-func NewSession(user *User, character *Character, connection *websocket.Conn, connectionStarted time.Time) *Session {
+func NewSession(user *User, character *Bomberman, connection *websocket.Conn, connectionStarted time.Time) *Session {
 	return &Session{User: user, Character: character, Connection: connection, ConnectionStarted: connectionStarted}
 }
 
@@ -76,25 +95,32 @@ func playerWebsocketLoop(session *Session) {
 }
 
 func UpdateClients() {
-	for {
-		sendDataToClients()
+	for _ = range ticker.C {
+		err := sendDataToClients()
+		if err != nil {
+			log.Println(err)
+			break
+		}
 	}
+	log.Println("Updating Clients stopped.")
 }
 
-func sendDataToClients() {
+func sendDataToClients() error {
 	//collect data
-	sessions := make([]Session, len(connections))
+	sessions := make([]Bomberman, len(connections))
 	count := 0
 	for _, v := range connections {
-		sessions[count] = *v
+		sessions[count] = *v.Character
 		count++
 	}
-	//jsonBytes, err := json.Marshal(sessions)
-	//send data to all clients
-	//for _, v := range connections {
-	//	if err := v.Connection.WriteMessage(websocket.TextMessage, p); err != nil {
-	//		log.Println(err)
-	//		return
-	//	}
-	//}
+	jsonBytes, err := json.MarshalIndent(sessions, "", " ")
+	if err != nil {
+		return err
+	}
+	for _, v := range connections {
+		if err := v.Connection.WriteMessage(websocket.TextMessage, jsonBytes); err != nil {
+			return err
+		}
+	}
+	return nil
 }
