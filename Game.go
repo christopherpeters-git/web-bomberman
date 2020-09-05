@@ -3,12 +3,19 @@ package main
 import (
 	"encoding/json"
 	"github.com/gorilla/websocket"
+	"github.com/umpc/go-sortedmap"
+
+	_ "github.com/umpc/go-sortedmap"
 	"log"
 	"strconv"
 	"time"
 )
 
-var connections = make(map[uint64]*Session, 0)
+func isGreaterThan(a interface{}, b interface{}) bool {
+	return a.(uint64) > b.(uint64)
+}
+
+var connections = sortedmap.New(10, isGreaterThan)
 
 var ticker = time.NewTicker(5 * time.Millisecond)
 
@@ -47,8 +54,17 @@ func (r *Session) String() string {
 //Prints every active connection
 func AllConnectionsAsString() string {
 	result := "Active Connections:"
-	for _, v := range connections {
-		result += v.String() + "\n"
+
+	iterCh, err := connections.IterCh()
+
+	if err != nil {
+		log.Println(err)
+		return result
+	}
+	defer iterCh.Close()
+
+	for v := range iterCh.Records() {
+		result += v.Val.(*Session).String() + "\n"
 	}
 	return result
 }
@@ -56,10 +72,11 @@ func AllConnectionsAsString() string {
 //Starts the interaction loop
 func StartPlayerLoop(session *Session) {
 	//Add the infos to the connection map
-	connections[session.User.UserID] = session
+	connections.Insert(session.User.UserID, session)
+
 	playerWebsocketLoop(session)
 	//Remove from the connection map
-	delete(connections, session.User.UserID)
+	connections.Delete(session.User.UserID)
 }
 
 //interaction loop
@@ -107,20 +124,38 @@ func UpdateClients() {
 
 func sendDataToClients() error {
 	//collect data
-	sessions := make([]Bomberman, len(connections))
+	sessions := make([]Bomberman, connections.Len())
 	count := 0
-	for _, v := range connections {
-		sessions[count] = *v.Character
+
+	iterCh, err := connections.IterCh()
+
+	if err != nil {
+		return nil
+	}
+	defer iterCh.Close()
+
+	for v := range iterCh.Records() {
+		sessions[count] = *v.Val.(*Session).Character
 		count++
 	}
+
 	jsonBytes, err := json.MarshalIndent(sessions, "", " ")
 	if err != nil {
+
 		return err
 	}
-	for _, v := range connections {
-		if err := v.Connection.WriteMessage(websocket.TextMessage, jsonBytes); err != nil {
+	iterCh, err = connections.IterCh()
+
+	if err != nil {
+		return nil
+	}
+
+	for v := range iterCh.Records() {
+		log.Print("HALLO")
+		if err := v.Val.(*Session).Connection.WriteMessage(websocket.TextMessage, jsonBytes); err != nil {
 			return err
 		}
 	}
+
 	return nil
 }

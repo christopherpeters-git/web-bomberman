@@ -18,7 +18,7 @@ var upgrader = websocket.Upgrader{
 	//Error:             nil,
 }
 
-var counter = 0
+var counter = -1
 
 var users = [][]string{{"TEST", "TEST"}, {"TEST2", "TEST2"}}
 
