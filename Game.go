@@ -70,7 +70,7 @@ func playerWebsocketLoop(session *Session) {
 			log.Println(err)
 			return
 		}
-		log.Println("incoming (unformatted): " + string(p))
+
 		switch string(p) {
 		//W
 		case "w":
