@@ -7,6 +7,17 @@ function createAjaxRequest() {
     }
     return request;
 }
+function openTab(evt, tabName) {
+    let reg = document.querySelector("#regForm");
+    let log = document.querySelector("#logForm");
+    let todo = document.querySelector("#" + tabName);
+
+    reg.style.display = "none";
+    log.style.display = "none";
+
+    todo.style.display = "initial";
+}
+
 
 function sendPostLoginRequest() {}
 
