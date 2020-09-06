@@ -1,5 +1,8 @@
-let socket = new WebSocket("ws://localhost:80/ws-test/")
+let testContainer = document.getElementById("test");
+let socket = new WebSocket("ws://localhost:2100/ws-test/")
 console.log("Attempting Websocket connection")
+
+console.log(testContainer);
 
 socket.onopen = () => {
     console.log("Connected")
@@ -12,6 +15,12 @@ socket.onclose = (event) => {
 socket.onerror = (error) => {
     console.log("Connection failed: " + error)
 }
+
+socket.onmessage = (ev) => {
+    testContainer.innerHTML = ev.data;
+    console.log(ev.data);
+}
+
 
 document.addEventListener( 'keydown', handleKeyPress, false );
 

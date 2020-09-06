@@ -44,7 +44,7 @@ func main() {
 	}
 	defer db.Close()
 
-	//go UpdateClients()
+	go UpdateClients()
 
 	//handlers
 	http.HandleFunc(POST_SAVEPICTURE, handleUploadImage)

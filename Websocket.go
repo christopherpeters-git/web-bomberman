@@ -7,6 +7,7 @@ import (
 	_ "github.com/gorilla/websocket"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -17,8 +18,14 @@ var upgrader = websocket.Upgrader{
 	//Error:             nil,
 }
 
+var counter = -1
+
+var users = [][]string{{"TEST", "TEST"}, {"TEST2", "TEST2"}}
+
 func StartWebSocketConnection(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	//Check if db connection is available
+	counter++
+	log.Println("counter: " + strconv.FormatInt(int64(counter), 10))
 	if err := db.Ping(); err != nil {
 		http.Error(w, global.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
 		log.Println(err)
@@ -30,20 +37,15 @@ func StartWebSocketConnection(w http.ResponseWriter, r *http.Request, db *sql.DB
 		return
 	}
 	//TODO read username and password?
-	user, dErr := GetUserFromDB(db, "TEST", "TEST")
+	user, dErr := GetUserFromDB(db, users[counter][0], users[counter][1])
 	if dErr != nil {
 		http.Error(w, dErr.PublicError(), dErr.Status())
 		log.Println(dErr.Error())
 		return
 	}
-	char, dErr := GetCharacterFromDB(db, user.UserID)
-	if dErr != nil {
-		log.Println(dErr.Error())
-		if err = SetNewCharacter(db, NewCharacter(user.UserID, 0, 0)); err != nil {
-			http.Error(w, global.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
-			log.Println(err)
-			return
-		}
-	}
-	StartPlayerLoop(NewSession(user, char, ws, time.Now()))
+
+	bomber := NewBomberman(user.UserID, 0, 0)
+
+	StartPlayerLoop(NewSession(user, bomber, ws, time.Now()))
+	counter--
 }
