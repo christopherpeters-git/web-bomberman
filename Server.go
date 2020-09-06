@@ -130,17 +130,18 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("passwordInput")
 
 	if !isStringLegal(username) {
-		log.Println("Parsed username contains illegal chars or is empty!")
+		log.Println("Parsed username contains illegal chars or is empty")
 		return
 	}
 	if !isStringLegal(password) {
-		log.Println("Parsed password contains illegal chars or is empty!")
+		log.Println("Parsed password contains illegal chars or is empty")
 		return
 	}
 	user, httpErr := GetUserFromDB(db, username, password)
 	if user == nil || httpErr != nil {
 		//todo print error correctly
 		log.Println("Couldnt get user from database for some reason")
+		http.Error(w, glo.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
 		return
 	}
 	userAsJson, err := json.MarshalIndent(user, "", "    ")
@@ -156,5 +157,31 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleRegister(w http.ResponseWriter, r *http.Request) {
+	log.Println("Receiving Registerrequest...")
+	err := db.Ping()
+	if err != nil {
+		http.Error(w, glo.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
+		log.Println("Database connection failed" + err.Error())
+		return
+	}
+	err = r.ParseForm()
+	if err != nil {
+		http.Error(w, glo.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
+		log.Println("Parsing Form failed for some reason" + err.Error())
+		return
+	}
+	username := r.FormValue("usernameInput")
+	password := r.FormValue("passwordInput")
+
+	if !isStringLegal(username) {
+		log.Println("Parsed username contains illegal chars or is empty")
+		http.Error(w, glo.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
+		return
+	}
+	if !isStringLegal(password) {
+		log.Println("Parsed password contains illegal chars or is empty")
+		http.Error(w, glo.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
+		return
+	}
 
 }
