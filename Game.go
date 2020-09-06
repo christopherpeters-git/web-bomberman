@@ -4,18 +4,16 @@ import (
 	"encoding/json"
 	"github.com/gorilla/websocket"
 	"github.com/umpc/go-sortedmap"
-
-	_ "github.com/umpc/go-sortedmap"
 	"log"
 	"strconv"
 	"time"
 )
 
-func isGreaterThan(a interface{}, b interface{}) bool {
-	return a.(uint64) > b.(uint64)
+func isLesserThan(a interface{}, b interface{}) bool {
+	return a.(*Session).User.UserID < b.(*Session).User.UserID
 }
 
-var connections = sortedmap.New(10, isGreaterThan)
+var connections = sortedmap.New(10, isLesserThan)
 
 var ticker = time.NewTicker(5 * time.Millisecond)
 
@@ -151,7 +149,7 @@ func sendDataToClients() error {
 	}
 
 	for v := range iterCh.Records() {
-		log.Print("HALLO")
+
 		if err := v.Val.(*Session).Connection.WriteMessage(websocket.TextMessage, jsonBytes); err != nil {
 			return err
 		}
