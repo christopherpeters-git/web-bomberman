@@ -16,25 +16,10 @@ type User struct {
 	sessionID    string
 }
 
-func NewUser(userID uint64, username string, passwordHash string, sessionID string) *User {
-	return &User{UserID: userID, Username: username, passwordHash: passwordHash, sessionID: sessionID}
-}
-
-type Character struct {
-	UserID      uint64
-	PositionX   int
-	PositionY   int
-	PicturePath string
-}
-
 const LETTER_BYTES = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789?!"
 
-func (r *Character) String() string {
-	return "Character: {" + strconv.FormatUint(r.UserID, 10) + " | " + strconv.FormatInt(int64(r.PositionX), 10) + " | " + strconv.FormatInt(int64(r.PositionY), 10) + " | " + r.PicturePath + "}"
-}
-
-func NewCharacter(userID uint64, positionX int, positionY int) *Character {
-	return &Character{UserID: userID, PositionX: positionX, PositionY: positionY}
+func NewUser(userID uint64, username string, passwordHash string, sessionID string) *User {
+	return &User{UserID: userID, Username: username, passwordHash: passwordHash, sessionID: sessionID}
 }
 
 func (r *User) String() string {
@@ -61,30 +46,6 @@ func GetUserFromDB(db *sql.DB, username string, password string) (*User, *global
 		return nil, global.NewDetailedHttpError(http.StatusBadRequest, "wrong password", "wrong password")
 	}
 	return &user, nil
-}
-
-func GetCharacterFromDB(db *sql.DB, userId uint64) (*Character, *global.DetailedHttpError) {
-	var char Character
-	if err := db.Ping(); err != nil {
-		return nil, global.NewDetailedHttpError(http.StatusInternalServerError, global.INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
-	}
-	rows, err := db.Query("select * from characters where users_id = ?", userId)
-	if err != nil {
-		return nil, global.NewDetailedHttpError(http.StatusInternalServerError, global.INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
-	}
-	if rows.Next() {
-		if err = rows.Scan(&char.UserID, &char.PositionX, &char.PositionY, &char.PicturePath); err != nil {
-			return nil, global.NewDetailedHttpError(http.StatusInternalServerError, global.INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
-		}
-	} else {
-		return nil, global.NewDetailedHttpError(http.StatusInternalServerError, global.INTERNAL_SERVER_ERROR_RESPONSE, "no character found for "+strconv.FormatUint(userId, 10))
-	}
-	return &char, nil
-}
-
-func SetNewCharacter(db *sql.DB, char *Character) error {
-	//TODO write function
-	return nil
 }
 
 func isStringLegal(str string) bool {
