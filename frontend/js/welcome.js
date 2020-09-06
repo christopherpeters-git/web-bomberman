@@ -55,17 +55,29 @@ function sendPostLoginRequest() {
     let password = document.getElementById("passwordLogin").value;
     const request = createAjaxRequest();
     //todo check for illegal chars
+    console.log(username + password);
     request.onreadystatechange = function () {
         if(4 === this.readyState) {
             alert("Login erfolgreich");
         }
     }
     request.open("POST","/login", true);
-    request.send("usernameInput="+username+"passwordInput="+password);
+    request.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+    request.send("usernameInput="+username+"&"+"passwordInput="+password);
 }
 
 function sendPostRegisterRequest() {
-
+    const username = document.getElementById("usernameRegister").value;
+    const password = document.getElementById("passwordRegister").value;
+    const request = createAjaxRequest();
+    //todo check for illegal chars
+    request.onreadystatechange = function () {
+        if (4 === this.readyState) {
+            alert("Registrierung erfolgreich");
+        }
+    }
+    request.open("POST","/register",true);
+    request.send("usernameInput="+username+"passwordInput="+password);
 }
 
 function openTab(evt, tabName)  {

@@ -6,6 +6,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 type User struct {
@@ -25,6 +26,8 @@ type Character struct {
 	PositionY   int
 	PicturePath string
 }
+
+const LETTER_BYTES = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789?!"
 
 func (r *Character) String() string {
 	return "Character: {" + strconv.FormatUint(r.UserID, 10) + " | " + strconv.FormatInt(int64(r.PositionX), 10) + " | " + strconv.FormatInt(int64(r.PositionY), 10) + " | " + r.PicturePath + "}"
@@ -82,4 +85,16 @@ func GetCharacterFromDB(db *sql.DB, userId uint64) (*Character, *global.Detailed
 func SetNewCharacter(db *sql.DB, char *Character) error {
 	//TODO write function
 	return nil
+}
+
+func isStringLegal(str string) bool {
+	if str == "" {
+		return false
+	}
+	for _, c := range str {
+		if !strings.Contains(LETTER_BYTES, strings.ToLower(string(c))) {
+			return false
+		}
+	}
+	return true
 }

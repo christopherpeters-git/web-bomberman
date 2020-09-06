@@ -1,7 +1,9 @@
 package main
 
 import (
+	glo "./global"
 	"database/sql"
+	"encoding/json"
 	_ "github.com/go-sql-driver/mysql"
 	"io/ioutil"
 	"log"
@@ -22,6 +24,8 @@ const (
 	POST_SAVEPICTURE             = "/uploadImage"
 	WEBSOCKET_TEST               = "/ws-test/"
 	GET_FETCH_ACTIVE_CONNECTIONS = "/fetchConnections/"
+	POST_LOGIN                   = "/login"
+	POST_REGISTER                = "/register"
 )
 
 var db *sql.DB
@@ -47,6 +51,7 @@ func main() {
 	//go UpdateClients()
 
 	//handlers
+	http.HandleFunc(POST_LOGIN, handleLogin)
 	http.HandleFunc(POST_SAVEPICTURE, handleUploadImage)
 	http.HandleFunc(WEBSOCKET_TEST, handleWebsocketEndpoint)
 	http.HandleFunc(GET_FETCH_ACTIVE_CONNECTIONS, handleFetchActiveConnections)
@@ -105,4 +110,51 @@ func handleUploadImage(w http.ResponseWriter, r *http.Request) {
 	tempFile.Write(fileBytes)
 
 	log.Println(w, "Successfully Uploaded!")
+}
+
+func handleLogin(w http.ResponseWriter, r *http.Request) {
+	log.Println("Receiving Loginrequest...")
+	err := db.Ping()
+	if err != nil {
+		log.Println("Database connection failed" + err.Error())
+		return
+	}
+	err = r.ParseForm()
+	if err != nil {
+		http.Error(w, glo.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
+		log.Println("Parsing Form failed for some reason" + err.Error())
+		return
+	}
+
+	username := r.FormValue("usernameInput")
+	password := r.FormValue("passwordInput")
+
+	if !isStringLegal(username) {
+		log.Println("Parsed username contains illegal chars or is empty!")
+		return
+	}
+	if !isStringLegal(password) {
+		log.Println("Parsed password contains illegal chars or is empty!")
+		return
+	}
+	user, httpErr := GetUserFromDB(db, username, password)
+	if user == nil || httpErr != nil {
+		//todo print error correctly
+		log.Println("Couldnt get user from database for some reason")
+		return
+	}
+	userAsJson, err := json.MarshalIndent(user, "", "    ")
+	if err != nil {
+		log.Println("Marshaling failed" + err.Error())
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(userAsJson)
+	log.Println("Login successfully handled")
+
+}
+
+func handleRegister(w http.ResponseWriter, r *http.Request) {
+
 }
