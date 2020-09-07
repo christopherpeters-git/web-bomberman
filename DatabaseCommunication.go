@@ -65,8 +65,10 @@ func GetUserFromSessionCookie(db *sql.DB, sessionId string) (*User, *global.Deta
 		if err = rows.Scan(&user.UserID, &user.Username, &user.passwordHash, &user.sessionID); err != nil {
 			return nil, global.NewDetailedHttpError(http.StatusInternalServerError, global.INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
 		}
+		return &user, nil
+
 	}
-	return &user, nil
+	return nil, global.NewDetailedHttpError(http.StatusNotFound, "No user found for this Session-ID", "No user found for this Session-ID")
 }
 
 func UsernameExists(db *sql.DB, username string) *global.DetailedHttpError {

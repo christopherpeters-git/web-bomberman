@@ -29,8 +29,12 @@ func StartWebSocketConnection(w http.ResponseWriter, r *http.Request, db *sql.DB
 		log.Println(err)
 		return
 	}
-	//IS THIS RIGHT???
 	cookie, err := r.Cookie(COOKIE_NAME)
+	if err != nil {
+		http.Error(w, "No Cookie found", http.StatusNotFound)
+		log.Print(err)
+		return
+	}
 
 	user, dErr := GetUserFromSessionCookie(db, cookie.Value)
 	if dErr != nil {
