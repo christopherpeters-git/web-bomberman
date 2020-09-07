@@ -81,6 +81,7 @@ function sendPostRegisterRequest() {
     request.send("usernameInput="+username+"&"+"passwordInput="+password);
 }
 
+
 function openTab(evt, tabName)  {
     // Declare all variables
     var i, tabcontent, tablinks;

@@ -21,7 +21,6 @@ socket.onmessage = (ev) => {
     console.log(ev.data);
 }
 
-
 document.addEventListener( 'keydown', handleKeyPress, false );
 
 function handleKeyPress(event){

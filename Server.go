@@ -150,7 +150,11 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 		log.Println("Marshaling failed" + err.Error())
 		return
 	}
-
+	err = PlaceCookie(w, db, username)
+	if err != nil {
+		http.Error(w, glo.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
+		log.Println(err.Error())
+	}
 	w.WriteHeader(http.StatusOK)
 	w.Write(userAsJson)
 	log.Println("Login successfully handled")
@@ -173,8 +177,6 @@ func handleRegister(w http.ResponseWriter, r *http.Request) {
 	}
 	username := r.FormValue("usernameInput")
 	password := r.FormValue("passwordInput")
-
-	log.Println(username + password)
 
 	if !IsStringLegal(username) {
 		log.Println("Parsed username contains illegal chars or is empty")
@@ -206,8 +208,31 @@ func handleRegister(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, glo.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
 		return
 	}
+	err = PlaceCookie(w, db, username)
+	if err != nil {
+		http.Error(w, glo.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
+		log.Println(err.Error())
+	}
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Neuer Account angelegt"))
 	log.Println("handle register sucessfull")
 
+}
+
+func handleCookie(w http.ResponseWriter, r *http.Request) {
+	var user User
+	httpErr := CheckCookie(r, db, &user)
+	if httpErr != nil {
+		http.Error(w, httpErr.PublicError(), httpErr.Status())
+		log.Println(httpErr.Error())
+		return
+	}
+	userAsJson, err := json.MarshalIndent(user, "", "    ")
+	if err != nil {
+		log.Println("Marshaling failed" + err.Error())
+		http.Error(w, glo.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
+		return
+	}
+	w.Write(userAsJson)
+	log.Println("cookie handled successfully")
 }

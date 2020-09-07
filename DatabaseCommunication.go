@@ -5,9 +5,11 @@ import (
 	"database/sql"
 	"golang.org/x/crypto/bcrypt"
 	"log"
+	"math/rand"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type User struct {
@@ -18,6 +20,7 @@ type User struct {
 }
 
 const LETTER_BYTES = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789?!"
+const COOKIE_NAME = "BMCookie"
 
 func NewUser(userID uint64, username string, passwordHash string, sessionID string) *User {
 	return &User{UserID: userID, Username: username, passwordHash: passwordHash, sessionID: sessionID}
@@ -76,4 +79,74 @@ func IsStringLegal(str string) bool {
 		}
 	}
 	return true
+}
+
+func PlaceCookie(w http.ResponseWriter, db *sql.DB, username string) error {
+	rows, err := db.Query("select * from users where username = ?", username)
+	if err != nil {
+		return err
+	}
+	sessionId, err := generateUniqueSessionId(db)
+	if err != nil {
+		return err
+	}
+	if rows.Next() {
+		_, err = db.Exec("UPDATE  users set Session_Id = ? where username = ?", sessionId, username)
+		if err != nil {
+			return err
+		}
+	}
+	expire := time.Now().AddDate(0, 0, 2)
+	cookie := http.Cookie{
+		Name:       COOKIE_NAME,
+		Value:      sessionId,
+		Path:       "/",
+		Domain:     "localhost",
+		Expires:    expire,
+		RawExpires: expire.Format(time.UnixDate),
+		MaxAge:     172800,
+		Secure:     false,
+		HttpOnly:   true,
+		SameSite:   http.SameSiteLaxMode,
+	}
+	http.SetCookie(w, &cookie)
+	return nil
+}
+
+func CheckCookie(r *http.Request, db *sql.DB, user *User) *global.DetailedHttpError {
+	cookie, err := r.Cookie(COOKIE_NAME)
+	if err != nil {
+		return global.NewDetailedHttpError(http.StatusNotFound, "No cookie found", err.Error())
+	}
+	rows, err := db.Query("select * from users where session_id = ?", cookie.Value)
+	if err != nil {
+		return global.NewDetailedHttpError(http.StatusNotFound, "Session_Id doesnt exists", err.Error())
+	}
+	if rows.Next() {
+		err = rows.Scan(&user.UserID, &user.Username, &user.passwordHash, &user.sessionID)
+		if err != nil {
+			return global.NewDetailedHttpError(http.StatusInternalServerError, global.INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
+		}
+	}
+	return nil
+}
+
+func generateUniqueSessionId(db *sql.DB) (string, error) {
+	sessionId := generateSessionId(255)
+	rows, err := db.Query("select session_id from users where session_id = ?", sessionId)
+	if err != nil {
+		return "", err
+	}
+	if rows.Next() {
+		return generateUniqueSessionId(db)
+	}
+	return sessionId, nil
+}
+
+func generateSessionId(n int) string {
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = LETTER_BYTES[rand.Intn(len(LETTER_BYTES))]
+	}
+	return string(b)
 }
