@@ -78,7 +78,7 @@ function sendPostRegisterRequest() {
     }
     request.open("POST","/register",true);
     request.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
-    request.send("usernameInput="+username+"passwordInput="+password);
+    request.send("usernameInput="+username+"&"+"passwordInput="+password);
 }
 
 function openTab(evt, tabName)  {

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	_ "github.com/go-sql-driver/mysql"
+	"golang.org/x/crypto/bcrypt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -51,6 +52,7 @@ func main() {
 	go UpdateClients()
 
 	//handlers
+	http.HandleFunc(POST_REGISTER, handleRegister)
 	http.HandleFunc(POST_LOGIN, handleLogin)
 	http.HandleFunc(POST_SAVEPICTURE, handleUploadImage)
 	http.HandleFunc(WEBSOCKET_TEST, handleWebsocketEndpoint)
@@ -114,12 +116,12 @@ func handleUploadImage(w http.ResponseWriter, r *http.Request) {
 
 func handleLogin(w http.ResponseWriter, r *http.Request) {
 	log.Println("Receiving Loginrequest...")
-	err := db.Ping()
-	if err != nil {
-		log.Println("Database connection failed" + err.Error())
-		return
-	}
-	err = r.ParseForm()
+	//err := db.Ping()
+	//if err != nil {
+	//	log.Println("Database connection failed" + err.Error())
+	//	return
+	//}
+	err := r.ParseForm()
 	if err != nil {
 		http.Error(w, glo.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
 		log.Println("Parsing Form failed for some reason" + err.Error())
@@ -129,19 +131,18 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 	username := r.FormValue("usernameInput")
 	password := r.FormValue("passwordInput")
 
-	if !isStringLegal(username) {
+	if !IsStringLegal(username) {
 		log.Println("Parsed username contains illegal chars or is empty")
 		return
 	}
-	if !isStringLegal(password) {
+	if !IsStringLegal(password) {
 		log.Println("Parsed password contains illegal chars or is empty")
 		return
 	}
 	user, httpErr := GetUserFromDB(db, username, password)
-	if user == nil || httpErr != nil {
-		//todo print error correctly
-		log.Println("Couldnt get user from database for some reason")
-		http.Error(w, glo.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
+	if httpErr != nil {
+		http.Error(w, httpErr.PublicError(), httpErr.Status())
+		log.Println(httpErr.Error())
 		return
 	}
 	userAsJson, err := json.MarshalIndent(user, "", "    ")
@@ -158,13 +159,13 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 
 func handleRegister(w http.ResponseWriter, r *http.Request) {
 	log.Println("Receiving Registerrequest...")
-	err := db.Ping()
-	if err != nil {
-		http.Error(w, glo.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
-		log.Println("Database connection failed" + err.Error())
-		return
-	}
-	err = r.ParseForm()
+	//err := db.Ping()
+	//if err != nil {
+	//	http.Error(w, glo.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
+	//	log.Println("Database connection failed" + err.Error())
+	//	return
+	//}
+	err := r.ParseForm()
 	if err != nil {
 		http.Error(w, glo.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
 		log.Println("Parsing Form failed for some reason" + err.Error())
@@ -173,15 +174,40 @@ func handleRegister(w http.ResponseWriter, r *http.Request) {
 	username := r.FormValue("usernameInput")
 	password := r.FormValue("passwordInput")
 
-	if !isStringLegal(username) {
+	log.Println(username + password)
+
+	if !IsStringLegal(username) {
 		log.Println("Parsed username contains illegal chars or is empty")
 		http.Error(w, glo.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
 		return
 	}
-	if !isStringLegal(password) {
+	if !IsStringLegal(password) {
 		log.Println("Parsed password contains illegal chars or is empty")
 		http.Error(w, glo.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
 		return
 	}
+	httpErr := UsernameExists(db, username)
+	if httpErr != nil {
+		http.Error(w, httpErr.PublicError(), httpErr.Status())
+		log.Println(httpErr.Error())
+		return
+	}
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
+	if err != nil {
+		log.Println("encrypting password failed" + err.Error())
+		http.Error(w, glo.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
+		return
+	}
+	log.Printf("User created: username: %s passwordhash: %s", username, string(passwordHash))
+	//Create user in database
+	_, err = db.Exec("INSERT INTO users (Username,PasswordHash)\nValues(?,?)", username, string(passwordHash))
+	if err != nil {
+		log.Println("Creating entry in database failed" + err.Error())
+		http.Error(w, glo.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Neuer Account angelegt"))
+	log.Println("handle register sucessfull")
 
 }
