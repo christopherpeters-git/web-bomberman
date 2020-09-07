@@ -116,11 +116,6 @@ func handleUploadImage(w http.ResponseWriter, r *http.Request) {
 
 func handleLogin(w http.ResponseWriter, r *http.Request) {
 	log.Println("Receiving Loginrequest...")
-	//err := db.Ping()
-	//if err != nil {
-	//	log.Println("Database connection failed" + err.Error())
-	//	return
-	//}
 	err := r.ParseForm()
 	if err != nil {
 		http.Error(w, glo.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
@@ -163,12 +158,6 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 
 func handleRegister(w http.ResponseWriter, r *http.Request) {
 	log.Println("Receiving Registerrequest...")
-	//err := db.Ping()
-	//if err != nil {
-	//	http.Error(w, glo.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
-	//	log.Println("Database connection failed" + err.Error())
-	//	return
-	//}
 	err := r.ParseForm()
 	if err != nil {
 		http.Error(w, glo.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
