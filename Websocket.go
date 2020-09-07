@@ -43,7 +43,7 @@ func StartWebSocketConnection(w http.ResponseWriter, r *http.Request, db *sql.DB
 		return
 	}
 
-	bomber := NewBomberman(user.UserID, 0, 0)
+	bomber := NewBomberman(user.UserID, 0, 0, user.Username)
 
 	StartPlayerLoop(NewSession(user, bomber, ws, time.Now()))
 
