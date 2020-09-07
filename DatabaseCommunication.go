@@ -52,6 +52,23 @@ func GetUserFromDB(db *sql.DB, username string, password string) (*User, *global
 	return &user, nil
 }
 
+func GetUserFromSessionCookie(db *sql.DB, sessionId string) (*User, *global.DetailedHttpError) {
+	var user User
+	if err := db.Ping(); err != nil {
+		return nil, global.NewDetailedHttpError(http.StatusInternalServerError, global.INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
+	}
+	rows, err := db.Query("select * from users where session_id = ?", sessionId)
+	if err != nil {
+		return nil, global.NewDetailedHttpError(http.StatusInternalServerError, global.INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
+	}
+	if rows.Next() {
+		if err = rows.Scan(&user.UserID, &user.Username, &user.passwordHash, &user.sessionID); err != nil {
+			return nil, global.NewDetailedHttpError(http.StatusInternalServerError, global.INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
+		}
+	}
+	return &user, nil
+}
+
 func UsernameExists(db *sql.DB, username string) *global.DetailedHttpError {
 	err := db.Ping()
 	if err != nil {
