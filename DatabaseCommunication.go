@@ -126,6 +126,7 @@ func PlaceCookie(w http.ResponseWriter, db *sql.DB, username string) error {
 		HttpOnly:   true,
 		SameSite:   http.SameSiteLaxMode,
 	}
+	log.Println("placed cookie successfully")
 	http.SetCookie(w, &cookie)
 	return nil
 }
