@@ -4,8 +4,10 @@ import (
 	global "./global"
 	"database/sql"
 	"golang.org/x/crypto/bcrypt"
+	"log"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 type User struct {
@@ -14,6 +16,8 @@ type User struct {
 	passwordHash string
 	sessionID    string
 }
+
+const LETTER_BYTES = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789?!"
 
 func NewUser(userID uint64, username string, passwordHash string, sessionID string) *User {
 	return &User{UserID: userID, Username: username, passwordHash: passwordHash, sessionID: sessionID}
@@ -39,8 +43,37 @@ func GetUserFromDB(db *sql.DB, username string, password string) (*User, *global
 	} else {
 		return nil, global.NewDetailedHttpError(http.StatusNotFound, "User not found", "User not found: "+username)
 	}
-	if err = bcrypt.CompareHashAndPassword([]byte(user.passwordHash), []byte(password)); err == nil { //TODO WRONG
+	if err = bcrypt.CompareHashAndPassword([]byte(user.passwordHash), []byte(password)); err != nil {
 		return nil, global.NewDetailedHttpError(http.StatusBadRequest, "wrong password", "wrong password")
 	}
 	return &user, nil
+}
+
+func UsernameExists(db *sql.DB, username string) *global.DetailedHttpError {
+	err := db.Ping()
+	if err != nil {
+		log.Println("Database connection failed" + err.Error())
+		return global.NewDetailedHttpError(http.StatusInternalServerError, global.INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
+	}
+	rows, err := db.Query("select * from users where username = ?", username)
+	if err != nil {
+		log.Println("Something went wrong on sql.Query" + err.Error())
+		return global.NewDetailedHttpError(http.StatusInternalServerError, global.INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
+	}
+	if rows.Next() {
+		return global.NewDetailedHttpError(http.StatusInternalServerError, "Username is already taken", err.Error())
+	}
+	return nil
+}
+
+func IsStringLegal(str string) bool {
+	if str == "" {
+		return false
+	}
+	for _, c := range str {
+		if !strings.Contains(LETTER_BYTES, strings.ToLower(string(c))) {
+			return false
+		}
+	}
+	return true
 }
