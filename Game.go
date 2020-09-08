@@ -21,6 +21,7 @@ type Bomberman struct {
 	UserID         uint64
 	PositionX      int
 	PositionY      int
+	Name           string
 	lastBombPlaced time.Time
 }
 
@@ -28,8 +29,8 @@ func (r *Bomberman) String() string {
 	return "Bomberman: {" + strconv.FormatUint(r.UserID, 10) + " | " + strconv.FormatInt(int64(r.PositionX), 10) + " | " + strconv.FormatInt(int64(r.PositionY), 10) + " | " + r.lastBombPlaced.String() + "}"
 }
 
-func NewBomberman(userID uint64, positionX int, positionY int) *Bomberman {
-	return &Bomberman{UserID: userID, PositionX: positionX, PositionY: positionY}
+func NewBomberman(userID uint64, positionX int, positionY int, name string) *Bomberman {
+	return &Bomberman{UserID: userID, PositionX: positionX, PositionY: positionY, Name: name}
 }
 
 //Wrapper for the user
