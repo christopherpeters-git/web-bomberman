@@ -1,31 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Krasses Webprojekt</title>
-    <script src="js/test.js"></script>
-    <link rel="stylesheet" type="text/css" href="css/style.css"/>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=, initial-scale=1.0" />
+    <link rel="stylesheet" href="/css/welcome.css" />
+    <link
+            href="https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap"
+            rel="stylesheet"
+    />
+    <script src="/js/welcome.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <title>Welcome</title>
 </head>
 <body>
-<div class="flexContUpload">
-    <input type="file"
-           id="avatar" name="imageFile"
-           accept="image/png, image/jpeg">
-    <button onclick="postUploadImageRequest()">Upload</button>
-</div>
-<div class="canvasFlexCont">
-    <div class="playerImg"><img id="testImg"
-                                src="https://n7.nextpng.com/sticker-png/890/159/sticker-png-500px-social-media-graphy-computer-icons-social-media-blue-text-photography-rectangle-thumbnail.png"
-                                alt="test"></div>
-    <div class="canvasCont">
-        <canvas id="matchfield" width="500" height="500"></canvas>
+<div class="wrapper">
+    <div class="card">
+        <div class="flexContainer">
+            <div class="slideShow">
+                <div id="slideshow">
+                    <div class="slideshow-container">
+                        <a class="prev" onclick="slideLeft()">&#10094;</a>
+                        <a class="next" onclick="slideRight()">&#10095;</a>
+                    </div>
+                </div>
+            </div>
+            <div class="login">
+                <div class="loginFlex">
+                    <div class="loginButtonFlex">
+                        <div class="loginBut">
+                            <button onclick="openTab(event, 'regForm')" class="logRegBut">
+                                Register
+                            </button>
+                        </div>
+                        <div class="loginBut">
+                            <button onclick="openTab(event, 'logForm')" class="logRegBut">
+                                Login
+                            </button>
+                        </div>
+                    </div>
+                    <div class="loginForm">
+                        <div class="logRegForm" id="logForm" style="display: none">
+                            <div class="loginFlexContainer">
+                                <h1>Login</h1>
+                                <label for="usernameLogin"><b>Username</b></label>
+                                <input
+                                        id="usernameLogin"
+                                        placeholder="Enter Username"
+                                        required
+                                />
+                                <label for="passwordLogin"><b>Password</b></label>
+                                <input
+                                        type="password"
+                                        id="passwordLogin"
+                                        placeholder="Enter Password"
+                                        required
+                                />
+                                <button onclick="sendPostLoginRequest()" id="loginBtn">
+                                    Login
+                                </button>
+                            </div>
+                        </div>
+                        <div class="logRegForm" id="regForm" style="display: none">
+                            <div class="loginFlexContainer">
+                                <h1>Register</h1>
+                                <label for="usernameRegister"><b>Username</b></label>
+                                <input
+                                        type="text"
+                                        id="usernameRegister"
+                                        placeholder="Enter Username"
+                                        required
+                                />
+                                <label for="passwordRegister"><b>Password</b></label>
+                                <input
+                                        type="password"
+                                        id="passwordRegister"
+                                        placeholder="Enter Password"
+                                        required
+                                />
+                                <button onclick="sendPostRegisterRequest()" id="loginBtn">
+                                    Register
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
-
-<div>
-    <button onclick="openWelcome()" name="Welcome" style="width: auto; height: 30px">Click for WelcomePage</button>
-</div>
-
-<script src="js/game.js"></script>
+<script src="/js/slides.js"></script>
 </body>
 </html>

@@ -20,12 +20,21 @@ function openTab(evt, tabName) {
 function sendPostLoginRequest() {
     let username = document.getElementById("usernameLogin").value;
     let password = document.getElementById("passwordLogin").value;
+    let container = document.querySelector(".loginFlexContainer");
     const request = createAjaxRequest();
     //todo check for illegal chars
     console.log(username + password);
     request.onreadystatechange = function () {
         if(4 === this.readyState) {
-            alert("Login erfolgreich");
+            container.innerHTML = "<h1> Das Hat geklappt!</h1> <h2>Du wirst nun weitergeleitet.</h2>"
+            //todo fix browser back button
+            //todo check if login was REALLY successful
+            window.setTimeout(function redirect () {
+                //-----must change link on pi-----
+                window.location = "http://localhost:2100/game.html"
+                container.innerHTML = "";
+            },2000);
+
         }
     }
     request.open("POST","/login", true);
@@ -38,6 +47,7 @@ function sendPostRegisterRequest() {
     const password = document.getElementById("passwordRegister").value;
     const request = createAjaxRequest();
     //todo check for illegal chars
+    //todo check if register was REALLY successful and redirect if so
     request.onreadystatechange = function () {
         if (4 === this.readyState) {
             alert("Registrierung erfolgreich");

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Krasses Webprojekt</title>
+    <script src="js/test.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/style.css"/>
+</head>
+<body>
+<div class="flexContUpload">
+    <input type="file"
+           id="avatar" name="imageFile"
+           accept="image/png, image/jpeg">
+    <button onclick="postUploadImageRequest()">Upload</button>
+</div>
+<div class="canvasFlexCont">
+    <div class="playerImg"><img id="testImg"
+                                src="https://n7.nextpng.com/sticker-png/890/159/sticker-png-500px-social-media-graphy-computer-icons-social-media-blue-text-photography-rectangle-thumbnail.png"
+                                alt="test"></div>
+    <div class="canvasCont">
+        <canvas id="matchfield" width="500" height="500"></canvas>
+    </div>
+</div>
+
+<div>
+    <button onclick="openWelcome()" name="Welcome" style="width: auto; height: 30px">Click for WelcomePage</button>
+</div>
+
+<script src="js/game.js"></script>
+</body>
+</html>
