@@ -1,19 +1,63 @@
-* {box-sizing:border-box}
-
-/* Slideshow container */
-.slideshow-container {
-    max-width: 1000px;
-    position: relative;
-    margin: auto;
+* {
+    padding: 0;
+    margin: 0;
+    font-family: "Josefin Sans", sans-serif;
+}
+html,
+body {
+    height: 100%;
+}
+body {
+    background-color: rgb(36, 36, 36);
+}
+.wrapper {
+    max-width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.card {
+    width: 80%;
+    height: 90%;
+    background-color: rgb(0, 0, 0);
+    box-shadow: 0 2px 6px rgba(20, 20, 20, 0.747);
+    border-radius: 6px;
+    min-width: 250px;
 }
 
-/* Hide the images by default */
-.mySlides {
-    display: none;
+.flexContainer {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* SLIDESHOW */
+
+.slideShow {
+    background-image: url("/media/img1.JPG");
+    background-size: cover;
+    flex: 3;
+    border-radius: 6px 6px 0 0;
+    height: 50%;
+    box-shadow: inset 0px 0px 40px 19px rgba(0, 0, 0, 0.75);
+    opacity: 1;
+}
+
+#slideshow {
+    height: 100%;
+}
+.slideshow-container {
+    border-radius: 6px 6px 0 0;
+    width: 100%;
+    height: 100%;
+    position: relative;
 }
 
 /* Next & previous buttons */
-.prev, .next {
+.prev,
+.next {
     cursor: pointer;
     position: absolute;
     top: 50%;
@@ -35,155 +79,133 @@
 }
 
 /* On hover, add a black background color with a little bit see-through */
-.prev:hover, .next:hover {
-    background-color: rgba(0,0,0,0.8);
+.prev:hover,
+.next:hover {
+    background-color: rgba(0, 0, 0, 0.8);
 }
 
-/* Caption text */
-.text {
-    color: #f2f2f2;
-    font-size: 15px;
-    padding: 8px 12px;
-    position: absolute;
-    bottom: 8px;
+/* LOGIN */
+
+.login {
+    color: white;
+    background-color: rgb(0, 0, 0);
+    flex: 2;
+    border-radius: 0 0 6px 6px;
+    background-image: url("/media/holz.jpg");
+    background-size: cover;
+    box-shadow: 0px 0px 13px 0px rgba(0, 0, 0, 0.75);
+    box-shadow: inset 0px 0px 13px 0px rgba(0, 0, 0, 0.75);
+}
+
+.loginFlex {
+    height: 100%;
     width: 100%;
-    text-align: center;
+    display: flex;
+    flex-direction: column;
 }
 
-/* Number text (1/3 etc) */
-.numbertext {
-    color: #f2f2f2;
-    font-size: 12px;
-    padding: 8px 12px;
-    position: absolute;
-    top: 0;
+.loginButtonFlex {
+    flex: 2;
+    display: flex;
+    height: 100%;
+    padding: 1%;
+}
+.loginBut {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    height: 100%;
 }
 
-/* The dots/bullets/indicators */
-.dot {
+.logRegBut {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgb(41, 146, 41);
+    width: 40%;
+    height: 50%;
+    padding: 4%;
     cursor: pointer;
-    height: 15px;
-    width: 15px;
-    margin: 0 2px;
-    background-color: #bbb;
-    border-radius: 50%;
-    display: inline-block;
-    transition: background-color 0.6s ease;
+    border-radius: 5px;
+    border: none;
+    color: white;
+    font-size: 30px;
+    box-shadow: 0px 0px 57px 7px rgba(0, 0, 0, 0.75);
+    min-height: 50px;
 }
 
-.active, .dot:hover {
-    background-color: #717171;
+.logRegBut:hover {
+    box-shadow: 0px 0px 50px 11px rgba(0, 0, 0, 0.75);
+    box-shadow: inset 0px 0px 35px 5px rgba(0, 0, 0, 0.75);
+}
+.logRegBut:active {
+    background-color: rgb(25, 88, 25);
+}
+.loginForm {
+    flex: 5;
+    padding-bottom: 2%;
+}
+.logRegForm {
+    height: 100%;
+}
+.loginFlexContainer {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
-/* Fading animation */
-.fade {
-    -webkit-animation-name: fade;
-    -webkit-animation-duration: 1.5s;
-    animation-name: fade;
-    animation-duration: 1.5s;
+.loginFlexContainer label {
+    width: 40%;
 }
-
-@-webkit-keyframes fade {
-    from {opacity: .4}
-    to {opacity: 1}
-}
-
-@keyframes fade {
-    from {opacity: .4}
-    to {opacity: 1}
-}
-
-/* ##################### Für Login/Registrieren #################################### */
-
-
-input[type=text], input[type=password] {
-    width: 100%;
+.loginFlexContainer input {
+    width: 40%;
     padding: 12px 20px;
-
+    margin: 8px 0;
     display: inline-block;
     border: 1px solid #ccc;
+    border-radius: 4px;
     box-sizing: border-box;
-
 }
 
-button {
-    background-color: #313131;
+.loginFlexContainer button {
+    width: 40%;
+    background-color: rgb(41, 146, 41);
     color: white;
     padding: 14px 20px;
     margin: 8px 0;
     border: none;
+    border-radius: 4px;
     cursor: pointer;
-    width: 100%;
+}
+.loginFlexContainer button:hover {
+    background-color: rgb(18, 59, 18);
 }
 
-button:hover {
-    opacity: 0.8;
-}
-
-
-
-.container {
-    padding: 16px;
-}
-
-span.psw {
-    float: right;
-    padding-top: 16px;
-}
-
-/* Change styles for span and cancel button on extra small screens */
-@media screen and (max-width: 400px) {
-    span.psw {
-        display: block;
-        float: none;
-    }
-    #Login_Screen{
-        width: 40%;
-        margin-left: 40%;
-    }
-    #fav_btn{
+@media only screen and (max-width: 950px) {
+    .card {
+        height: 100%;
         width: 100%;
     }
-    #logout_btn{
-        width: 100%;
+    .slideShow {
+        flex: 2;
     }
-    .Dropdown-content{
-        width: 100%;
+
+    .loginButtonFlex {
+        flex-direction: column;
     }
-}
 
-
-.tab {
-    overflow: hidden;
-    background-image: url("../media/img1.JPG");
-}
-
-/* Style the buttons that are used to open the tab content */
-.tab button {
-    background-color: inherit;
-    float: left;
-    border: none;
-    outline: none;
-    cursor: pointer;
-    padding: 14px 16px;
-    transition: 0.3s;
-    width: 50%;
-}
-
-/* Change background color of buttons on hover */
-.tab button:hover {
-    background-color: #ddd;
-}
-
-/* Create an active/current tablink class */
-.tab button.active {
-    background-color: #ccc;
-}
-
-/* Style the tab content */
-.tabcontent {
-    display: none;
-    padding: 6px 12px;
-    border: 1px solid black;
-    border-top: none;
+    .logRegBut {
+        width: 80%;
+        height: 70%;
+    }
+    .loginFlexContainer label {
+        width: 80%;
+    }
+    .loginFlexContainer input {
+        width: 80%;
+    }
 }

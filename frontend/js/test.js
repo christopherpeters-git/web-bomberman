@@ -28,5 +28,5 @@ function postUploadImageRequest(){
 }
 
 function openWelcome() {
-    window.location.href="/welcome.html";
+    window.location.href="/index.html";
 }

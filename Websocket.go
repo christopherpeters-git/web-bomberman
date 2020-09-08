@@ -7,7 +7,6 @@ import (
 	_ "github.com/gorilla/websocket"
 	"log"
 	"net/http"
-	"strconv"
 	"time"
 )
 
@@ -18,14 +17,8 @@ var upgrader = websocket.Upgrader{
 	//Error:             nil,
 }
 
-var counter = -1
-
-var users = [][]string{{"TEST", "TEST"}, {"TEST2", "TEST2"}}
-
 func StartWebSocketConnection(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	//Check if db connection is available
-	counter++
-	log.Println("counter: " + strconv.FormatInt(int64(counter), 10))
 	if err := db.Ping(); err != nil {
 		http.Error(w, global.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
 		log.Println(err)
@@ -36,16 +29,22 @@ func StartWebSocketConnection(w http.ResponseWriter, r *http.Request, db *sql.DB
 		log.Println(err)
 		return
 	}
-	//TODO read username and password?
-	user, dErr := GetUserFromDB(db, users[counter][0], users[counter][1])
+	cookie, err := r.Cookie(COOKIE_NAME)
+	if err != nil {
+		http.Error(w, "No Cookie found", http.StatusNotFound)
+		log.Print(err)
+		return
+	}
+
+	user, dErr := GetUserFromSessionCookie(db, cookie.Value)
 	if dErr != nil {
 		http.Error(w, dErr.PublicError(), dErr.Status())
 		log.Println(dErr.Error())
 		return
 	}
 
-	bomber := NewBomberman(user.UserID, 0, 0)
+	bomber := NewBomberman(user.UserID, 0, 0, user.Username)
 
 	StartPlayerLoop(NewSession(user, bomber, ws, time.Now()))
-	counter--
+
 }
