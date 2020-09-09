@@ -90,20 +90,20 @@ func playerWebsocketLoop(session *Session) {
 		switch string(p) {
 		//W
 		case "w":
-			session.Character.PositionY += 10
-			break
+			session.Character.PositionY -= 10
+
 		//A
 		case "a":
 			session.Character.PositionX -= 10
-			break
+
 		//S
 		case "s":
-			session.Character.PositionY -= 10
-			break
+			session.Character.PositionY += 10
+
 		//D
 		case "d":
 			session.Character.PositionX += 10
-			break
+
 		default:
 			break
 		}

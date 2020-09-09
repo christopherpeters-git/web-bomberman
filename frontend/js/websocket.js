@@ -1,7 +1,8 @@
 let testContainer = document.getElementById("test");
 const ctx = document.getElementById("matchfield").getContext("2d")
 let socket = new WebSocket("ws://localhost:2100/ws-test/")
-
+let playerChar = new Image();
+playerChar.src = "media/player1.png"
 console.log("Attempting Websocket connection")
 
 console.log(testContainer);
@@ -23,9 +24,11 @@ socket.onmessage = (ev) => {
 
     if (ctx !== null && users !== null){
         ctx.clearRect(0, 0, 500, 500);
+
         for(let i = 0; i < users.length; i++){
             ctx.fillText(users[i].Name,users[i].PositionX + 15,users[i].PositionY - 5, 100);
-            ctx.fillRect(users[i].PositionX, users[i].PositionY, 50, 50);
+            //ctx.fillRect(users[i].PositionX, users[i].PositionY, 50, 50);
+            ctx.drawImage(playerChar, users[i].PositionX, users[i].PositionY, 50, 50);
         }
     }
     testContainer.innerHTML = ev.data;
