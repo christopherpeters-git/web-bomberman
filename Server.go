@@ -13,12 +13,6 @@ import (
 )
 
 //database
-const (
-	DB_USERNAME = "test"
-	DB_PASSWORD = "test123"
-	DB_URL      = "connectolai.de:3306"
-	DB_NAME     = "testdb"
-)
 
 //handler url's
 const (
