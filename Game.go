@@ -35,7 +35,7 @@ func NewBomberman(userID uint64, positionX int, positionY int, name string) *Bom
 
 func (r *Bomberman) placeBomb() {
 	bomb := NewBomb(r)
-	gameMap.Fields[r.PositionX][r.PositionY].addBomb()
+	gameMap.Fields[r.PositionX][r.PositionY].addBomb(&bomb)
 	bomb.startBomb()
 }
 
