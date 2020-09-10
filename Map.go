@@ -1,6 +1,13 @@
 package main
 
+import (
+	"container/list"
+	"time"
+)
+
 type ItemType int
+
+var globalBombCount uint64 = -1
 
 const (
 	ItemTypeUpgrade    ItemType = 0
@@ -22,7 +29,7 @@ func NewMap(size int) Map {
 
 type Field struct {
 	Contains []FieldType
-	Player   []*Bomberman
+	Player   list.List
 }
 
 func (f *Field) addBomb(b *Bomb) {
@@ -42,13 +49,16 @@ type FieldType interface {
 }
 
 type Bomb struct {
+	ID     uint64
 	Owner  *Bomberman
 	Time   int
 	Radius int
 }
 
 func NewBomb(b *Bomberman) Bomb {
+	globalBombCount++
 	return Bomb{
+		ID:     globalBombCount,
 		Owner:  b,
 		Time:   b.bombTime,
 		Radius: b.BombRadius,
@@ -84,6 +94,7 @@ func (w *Wall) startEvent() {
 
 }
 
-func (b *Bomb) startBomb() {
+func (b *Bomb) startBomb(x int, y int) {
+	time.Sleep(time.Duration(b.Time) * time.Second)
 
 }

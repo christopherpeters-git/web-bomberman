@@ -1,6 +1,7 @@
 package main
 
 import (
+	"container/list"
 	"encoding/json"
 	"github.com/gorilla/websocket"
 	"github.com/umpc/go-sortedmap"
@@ -9,17 +10,19 @@ import (
 	"time"
 )
 
-var gameMap = NewMap(100)
-
+var GameMap = NewMap(100)
 var connections = sortedmap.New(10, isLesserThan)
-
 var ticker = time.NewTicker(5 * time.Millisecond)
+
+const FIELD_SIZE = 50
 
 type Bomberman struct {
 	UserID         uint64
 	PositionX      int
 	PositionY      int
 	Name           string
+	oldPositionX   int
+	oldPositionY   int
 	lastBombPlaced time.Time
 	BombRadius     int
 	bombTime       int
@@ -30,30 +33,39 @@ func (r *Bomberman) String() string {
 }
 
 func NewBomberman(userID uint64, positionX int, positionY int, name string) *Bomberman {
-	return &Bomberman{UserID: userID, PositionX: positionX, PositionY: positionY, Name: name}
+	return &Bomberman{
+		UserID:       userID,
+		PositionX:    positionX,
+		PositionY:    positionY,
+		oldPositionX: positionX,
+		oldPositionY: positionY,
+		Name:         name,
+		BombRadius:   3,
+		bombTime:     3,
+	}
 }
 
 func (r *Bomberman) placeBomb() {
 	bomb := NewBomb(r)
-	gameMap.Fields[r.PositionX][r.PositionY].addBomb(&bomb)
-	bomb.startBomb()
+	GameMap.Fields[r.PositionX][r.PositionY].addBomb(&bomb)
+	bomb.startBomb(r.PositionX, r.PositionY)
 }
 
 //Wrapper for the user
 type Session struct {
 	User              *User           //Connected user
-	Character         *Bomberman      //Character of the connected user
+	Bomber            *Bomberman      //Bomber of the connected user
 	Connection        *websocket.Conn //Websocket connection
 	ConnectionStarted time.Time       //point when player joined
 }
 
 func NewSession(user *User, character *Bomberman, connection *websocket.Conn, connectionStarted time.Time) *Session {
-	return &Session{User: user, Character: character, Connection: connection, ConnectionStarted: connectionStarted}
+	return &Session{User: user, Bomber: character, Connection: connection, ConnectionStarted: connectionStarted}
 }
 
 //Returns the string representation of the connection
 func (r *Session) String() string {
-	return "Session: { " + r.User.String() + "|" + r.Character.String() + "|" + r.Connection.RemoteAddr().String() + "|" + r.ConnectionStarted.String() + "}"
+	return "Session: { " + r.User.String() + "|" + r.Bomber.String() + "|" + r.Connection.RemoteAddr().String() + "|" + r.ConnectionStarted.String() + "}"
 }
 
 //Prints every active connection
@@ -96,23 +108,38 @@ func playerWebsocketLoop(session *Session) {
 		switch string(p) {
 		//W
 		case "w":
-			session.Character.PositionY -= 10
+			session.Bomber.PositionY -= 10
 
 		//A
 		case "a":
-			session.Character.PositionX -= 10
+			session.Bomber.PositionX -= 10
 
 		//S
 		case "s":
-			session.Character.PositionY += 10
+			session.Bomber.PositionY += 10
 
 		//D
 		case "d":
-			session.Character.PositionX += 10
+			session.Bomber.PositionX += 10
 
 		default:
 			break
 		}
+		checkPlayerPositioning(session)
+	}
+
+}
+func checkPlayerPositioning(session *Session) {
+	posY := session.Bomber.PositionX / FIELD_SIZE
+	posX := session.Bomber.PositionY / FIELD_SIZE
+	oldPosX := session.Bomber.oldPositionX / FIELD_SIZE
+	oldPosY := session.Bomber.oldPositionY / FIELD_SIZE
+	if posX != oldPosX {
+		GameMap.Fields[oldPosX][posY].Player.Remove(&list.Element{Value: session.Bomber})
+		GameMap.Fields[posX][posY].Player.PushBack(&list.Element{Value: session.Bomber})
+	} else if posY != oldPosY {
+		GameMap.Fields[posX][oldPosY].Player.Remove(&list.Element{Value: session.Bomber})
+		GameMap.Fields[posX][posY].Player.PushBack(&list.Element{Value: session.Bomber})
 	}
 }
 
@@ -140,7 +167,7 @@ func sendDataToClients() error {
 	defer iterCh.Close()
 
 	for v := range iterCh.Records() {
-		sessions[count] = *v.Val.(*Session).Character
+		sessions[count] = *v.Val.(*Session).Bomber
 		count++
 	}
 
