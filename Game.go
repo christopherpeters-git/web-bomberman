@@ -9,9 +9,7 @@ import (
 	"time"
 )
 
-func isLesserThan(a interface{}, b interface{}) bool {
-	return a.(*Session).User.UserID < b.(*Session).User.UserID
-}
+var gameMap = NewMap(100)
 
 var connections = sortedmap.New(10, isLesserThan)
 
@@ -23,6 +21,8 @@ type Bomberman struct {
 	PositionY      int
 	Name           string
 	lastBombPlaced time.Time
+	BombRadius     int
+	bombTime       int
 }
 
 func (r *Bomberman) String() string {
@@ -31,6 +31,12 @@ func (r *Bomberman) String() string {
 
 func NewBomberman(userID uint64, positionX int, positionY int, name string) *Bomberman {
 	return &Bomberman{UserID: userID, PositionX: positionX, PositionY: positionY, Name: name}
+}
+
+func (r *Bomberman) placeBomb() {
+	bomb := NewBomb(r)
+	gameMap.Fields[r.PositionX][r.PositionY].addBomb()
+	bomb.startBomb()
 }
 
 //Wrapper for the user
@@ -157,4 +163,8 @@ func sendDataToClients() error {
 	}
 
 	return nil
+}
+
+func isLesserThan(a interface{}, b interface{}) bool {
+	return a.(*Session).User.UserID < b.(*Session).User.UserID
 }
