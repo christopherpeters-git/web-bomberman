@@ -29,23 +29,28 @@ func NewMap(size int) Map {
 
 type Field struct {
 	Contains []FieldType
-	Player   list.List
+	Player   *list.List
 }
 
 func (f *Field) addBomb(b *Bomb) {
-	f.Contains = append(f.Contains, b)
+	if f.Contains[0] != nil {
+		f.Contains[1] = b
+	} else {
+		f.Contains[0] = b
+	}
 }
 
 func NewField() Field {
 	return Field{
-		Contains: make([]FieldType, 0),
-		Player:   make([]*Bomberman, 0),
+		Contains: make([]FieldType, 2),
+		Player:   list.New(),
 	}
 }
 
 type FieldType interface {
 	isAccessible() bool
 	startEvent()
+	isDestructable() bool
 }
 
 type Bomb struct {
@@ -94,7 +99,59 @@ func (w *Wall) startEvent() {
 
 }
 
+func (b *Bomb) isDestructable() bool {
+	return false
+}
+
+func (i *Item) isDestructable() bool {
+	return false
+}
+
+func (w *Wall) isDestructable() bool {
+	return w.Destructable
+}
+
 func (b *Bomb) startBomb(x int, y int) {
 	time.Sleep(time.Duration(b.Time) * time.Second)
+	GameMap.Fields[x][y].explosion()
+	for i := 1; i < b.Radius; i++ {
+		xPos := x + i
+		xNeg := x - i
+		yPos := y + i
+		yNeg := y - i
+		if xPos <= len(GameMap.Fields) {
+			GameMap.Fields[xPos][y].explosion()
+		}
+		if xNeg >= 0 {
+			GameMap.Fields[xNeg][y].explosion()
+		}
+		if yPos <= len(GameMap.Fields[x]) {
+			GameMap.Fields[x][yPos].explosion()
+		}
+		if yNeg >= 0 {
+			GameMap.Fields[x][yNeg].explosion()
+		}
+	}
+	if GameMap.Fields[x][y].Contains[0] == b {
+		GameMap.Fields[x][y].Contains[0] = nil
+	} else if GameMap.Fields[x][y].Contains[1] == b {
+		GameMap.Fields[x][y].Contains[1] = nil
+	}
 
+}
+
+func (f *Field) explosion() {
+	element := f.Player.Front()
+	if element != nil {
+		element.Value.(*Bomberman).isAlive = false
+		for element.Next() != nil {
+			element = element.Next()
+			element.Value.(*Bomberman).isAlive = false
+		}
+	}
+	for i := 0; i < 2; i++ {
+		if f.Contains[i].isDestructable() {
+			f.Contains[i] = nil
+		}
+	}
 }
