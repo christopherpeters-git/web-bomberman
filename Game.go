@@ -139,11 +139,11 @@ func playerWebsocketLoop(session *Session) {
 		default:
 			break
 		}
-		checkPlayerPositioning(session)
+		updatePlayerPositioning(session)
 	}
 
 }
-func checkPlayerPositioning(session *Session) {
+func updatePlayerPositioning(session *Session) {
 	posY := session.Bomber.PositionX / FIELD_SIZE
 	posX := session.Bomber.PositionY / FIELD_SIZE
 	oldPosX := session.Bomber.oldPositionX / FIELD_SIZE
@@ -178,7 +178,9 @@ func removePlayerFromList(l *list.List, b *Bomberman) {
 func (r *Bomberman) canEnter(x int, y int) bool {
 	arrayPosX := x / FIELD_SIZE
 	arrayPosY := y / FIELD_SIZE
-	return GameMap.Fields[arrayPosX][arrayPosY].Contains[0].isAccessible() && GameMap.Fields[arrayPosX][arrayPosY].Contains[1].isAccessible()
+	inBounds := arrayPosX >= 0 && arrayPosY >= 0 && arrayPosX < len(GameMap.Fields) && arrayPosY < len(GameMap.Fields[arrayPosX])
+	isAccessible := GameMap.Fields[arrayPosX][arrayPosY].Contains[0].isAccessible() && GameMap.Fields[arrayPosX][arrayPosY].Contains[1].isAccessible()
+	return inBounds && isAccessible
 }
 
 func UpdateClients() {
