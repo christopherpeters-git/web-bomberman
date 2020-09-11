@@ -50,7 +50,7 @@ func NewField() Field {
 type FieldType interface {
 	isAccessible() bool
 	startEvent()
-	isDestructable() bool
+	isDestructible() bool
 }
 
 type Bomb struct {
@@ -75,7 +75,7 @@ type Item struct {
 }
 
 type Wall struct {
-	Destructable bool
+	Destructible bool
 }
 
 func (b *Bomb) isAccessible() bool {
@@ -99,16 +99,16 @@ func (w *Wall) startEvent() {
 
 }
 
-func (b *Bomb) isDestructable() bool {
+func (b *Bomb) isDestructible() bool {
 	return false
 }
 
-func (i *Item) isDestructable() bool {
+func (i *Item) isDestructible() bool {
 	return false
 }
 
-func (w *Wall) isDestructable() bool {
-	return w.Destructable
+func (w *Wall) isDestructible() bool {
+	return w.Destructible
 }
 
 func (b *Bomb) startBomb(x int, y int) {
@@ -150,7 +150,7 @@ func (f *Field) explosion() {
 		}
 	}
 	for i := 0; i < 2; i++ {
-		if f.Contains[i].isDestructable() {
+		if f.Contains[i].isDestructible() {
 			f.Contains[i] = nil
 		}
 	}
