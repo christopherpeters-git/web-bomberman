@@ -8,6 +8,7 @@ import (
 type ItemType int
 
 var globalBombCount uint64 = -1
+var globalTestMap Map = NewMap(10)
 
 const (
 	ItemTypeUpgrade    ItemType = 0
@@ -40,6 +41,14 @@ func (f *Field) addBomb(b *Bomb) {
 	}
 }
 
+func (f *Field) addWall(w *Wall) {
+	if f.Contains[0] != nil {
+		f.Contains[1] = w
+	} else {
+		f.Contains[0] = w
+	}
+}
+
 func NewField() Field {
 	return Field{
 		Contains: make([]FieldType, 2),
@@ -60,6 +69,7 @@ type Bomb struct {
 	Radius int
 }
 
+//todo *Bomb needed?
 func NewBomb(b *Bomberman) Bomb {
 	globalBombCount++
 	return Bomb{
@@ -76,6 +86,10 @@ type Item struct {
 
 type Wall struct {
 	Destructible bool
+}
+
+func newWall(destructible bool) *Wall {
+	return &Wall{Destructible: destructible}
 }
 
 func (b *Bomb) isAccessible() bool {
@@ -154,4 +168,47 @@ func (f *Field) explosion() {
 			f.Contains[i] = nil
 		}
 	}
+}
+
+func fillTestMap(m Map) {
+	w0 := newWall(true)
+	w1 := newWall(true)
+	w2 := newWall(true)
+	w3 := newWall(true)
+	w4 := newWall(true)
+	w5 := newWall(true)
+	w6 := newWall(true)
+	w7 := newWall(true)
+	w8 := newWall(true)
+	w9 := newWall(true)
+	w10 := newWall(false)
+	w11 := newWall(false)
+	w12 := newWall(false)
+	w13 := newWall(false)
+	w14 := newWall(false)
+	w15 := newWall(false)
+	w16 := newWall(false)
+	w17 := newWall(false)
+	w18 := newWall(false)
+	w19 := newWall(false)
+	m.Fields[3][0].addWall(w0)
+	m.Fields[5][0].addWall(w1)
+	m.Fields[2][1].addWall(w10)
+	m.Fields[3][1].addWall(w11)
+	m.Fields[4][1].addWall(w12)
+	m.Fields[6][1].addWall(w13)
+	m.Fields[1][2].addWall(w14)
+	m.Fields[2][2].addWall(w2)
+	m.Fields[4][2].addWall(w15)
+	m.Fields[5][2].addWall(w3)
+	m.Fields[6][2].addWall(w16)
+	m.Fields[1][3].addWall(w4)
+	m.Fields[2][3].addWall(w5)
+	m.Fields[3][3].addWall(w6)
+	m.Fields[0][4].addWall(w7)
+	m.Fields[1][4].addWall(w17)
+	m.Fields[2][4].addWall(w8)
+	m.Fields[4][4].addWall(w9)
+	m.Fields[1][5].addWall(w18)
+	m.Fields[2][5].addWall(w19)
 }
