@@ -28,7 +28,7 @@ type Bomberman struct {
 	lastBombPlaced time.Time
 	BombRadius     int
 	bombTime       int
-	isAlive        bool
+	IsAlive        bool
 }
 
 func (r *Bomberman) String() string {
@@ -45,14 +45,15 @@ func NewBomberman(userID uint64, positionX int, positionY int, name string) *Bom
 		Name:         name,
 		BombRadius:   3,
 		bombTime:     3,
-		isAlive:      true,
+		IsAlive:      true,
 	}
 }
 
 func (r *Bomberman) placeBomb() {
+	log.Println("Bomb placed")
 	bomb := NewBomb(r)
-	GameMap.Fields[r.PositionX][r.PositionY].addBomb(&bomb)
-	bomb.startBomb(r.PositionX, r.PositionY)
+	GameMap.Fields[r.PositionX/FIELD_SIZE][r.PositionY/FIELD_SIZE].addBomb(&bomb)
+	bomb.startBomb(r.PositionX/FIELD_SIZE, r.PositionY/FIELD_SIZE)
 }
 
 //Wrapper for the user
@@ -94,6 +95,7 @@ func AllConnectionsAsString() string {
 func StartPlayerLoop(session *Session) {
 	//Add the infos to the connection map
 	connections.Insert(session.User.UserID, session)
+	FillTestMap(GameMap)
 	GameMap.Fields[0][0].Player.PushBack(session.Bomber)
 	playerWebsocketLoop(session)
 	//Remove from the connection map
@@ -134,8 +136,8 @@ func playerWebsocketLoop(session *Session) {
 				session.Bomber.PositionX += STEP_SIZE
 			}
 		//Spacebar
-		case "space":
-			go session.Bomber.placeBomb()
+		case " ":
+			session.Bomber.placeBomb()
 
 		default:
 			break
@@ -154,11 +156,11 @@ func updatePlayerPositioning(session *Session) {
 	if posX != oldPosX {
 		removePlayerFromList(GameMap.Fields[oldPosX][posY].Player, session.Bomber)
 		GameMap.Fields[posX][posY].Player.PushBack(session.Bomber)
-		log.Println(GameMap.Fields[posX][posY].Player)
+		//log.Println(GameMap.Fields[posX][posY].Player)
 	} else if posY != oldPosY {
 		removePlayerFromList(GameMap.Fields[posX][oldPosY].Player, session.Bomber)
 		GameMap.Fields[posX][posY].Player.PushBack(session.Bomber)
-		log.Println(GameMap.Fields[posX][posY].Player)
+		//log.Println(GameMap.Fields[posX][posY].Player)
 	}
 
 }
@@ -166,9 +168,9 @@ func updatePlayerPositioning(session *Session) {
 func removePlayerFromList(l *list.List, b *Bomberman) {
 	element := l.Front()
 	if element != nil {
-		log.Println(b)
-		log.Println(element.Value.(*Bomberman))
-		log.Println(element.Value.(*Bomberman).UserID == b.UserID)
+		//log.Println(b)
+		//log.Println(element.Value.(*Bomberman))
+		//log.Println(element.Value.(*Bomberman).UserID == b.UserID)
 		if element.Value.(*Bomberman).UserID == b.UserID {
 			l.Remove(element)
 			return
