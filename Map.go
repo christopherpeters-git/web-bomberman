@@ -11,7 +11,6 @@ type ItemType int
 var globalBombCount uint64 = 0
 var globalTestMap Map = NewMap(10)
 
-
 const (
 	ItemTypeUpgrade    ItemType = 0
 	ItemTypeDowngrade  ItemType = 1
@@ -25,6 +24,7 @@ type Map struct {
 func NewMap(size int) Map {
 	m := Map{Fields: make([][]Field, size)}
 	for i := 0; i < len(m.Fields); i++ {
+		m.Fields[i] = make([]Field, size)
 		for j := 0; j < len(m.Fields[i]); j++ {
 			m.Fields[i][j] = NewField()
 		}
