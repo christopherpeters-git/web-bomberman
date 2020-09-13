@@ -174,7 +174,7 @@ func (f *Field) explosion() {
 	}
 }
 
-func fillTestMap(m Map) {
+func FillTestMap(m Map) {
 	w0 := newWall(true)
 	w1 := newWall(true)
 	w2 := newWall(true)
