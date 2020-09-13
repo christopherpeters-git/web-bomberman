@@ -10,6 +10,7 @@ import (
 	"time"
 )
 
+//commit comment
 const FIELD_SIZE = 50
 const STEP_SIZE = 10
 const CANVAS_SIZE = 500
