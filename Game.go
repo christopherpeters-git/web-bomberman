@@ -10,12 +10,13 @@ import (
 	"time"
 )
 
-var GameMap = NewMap(100)
-var connections = sortedmap.New(10, isLesserThan)
-var ticker = time.NewTicker(5 * time.Millisecond)
-
 const FIELD_SIZE = 50
 const STEP_SIZE = 10
+const CANVAS_SIZE = 500
+
+var GameMap = NewMap(CANVAS_SIZE / FIELD_SIZE)
+var connections = sortedmap.New(10, isLesserThan)
+var ticker = time.NewTicker(5 * time.Millisecond)
 
 type Bomberman struct {
 	UserID         uint64
@@ -107,6 +108,9 @@ func playerWebsocketLoop(session *Session) {
 			log.Println(err)
 			return
 		}
+
+		session.Bomber.oldPositionX = session.Bomber.PositionX
+		session.Bomber.oldPositionY = session.Bomber.PositionY
 
 		switch string(p) {
 		//W

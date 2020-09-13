@@ -7,7 +7,8 @@ import (
 
 type ItemType int
 
-var globalBombCount uint64 = -1
+// -1 doesnt work
+var globalBombCount uint64 = 0
 
 const (
 	ItemTypeUpgrade    ItemType = 0
@@ -21,8 +22,11 @@ type Map struct {
 
 func NewMap(size int) Map {
 	m := Map{Fields: make([][]Field, size)}
-	for i := range m.Fields {
-		m.Fields[i] = make([]Field, size)
+
+	for i := 0; i < len(m.Fields); i++ {
+		for j := 0; j < len(m.Fields[i]); j++ {
+			m.Fields[i][j] = NewField()
+		}
 	}
 	return m
 }
