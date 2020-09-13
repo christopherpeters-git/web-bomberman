@@ -69,20 +69,24 @@ type FieldType interface {
 }
 
 type Bomb struct {
-	ID     uint64
-	Owner  *Bomberman
-	Time   int
-	Radius int
+	ID        uint64
+	Owner     *Bomberman
+	PositionX int
+	PositionY int
+	Time      int
+	Radius    int
 }
 
 //todo *Bomb needed?
 func NewBomb(b *Bomberman) Bomb {
 	globalBombCount++
 	return Bomb{
-		ID:     globalBombCount,
-		Owner:  b,
-		Time:   b.bombTime,
-		Radius: b.BombRadius,
+		ID:        globalBombCount,
+		Owner:     b,
+		PositionX: b.PositionX / FIELD_SIZE,
+		PositionY: b.PositionY / FIELD_SIZE,
+		Time:      b.bombTime,
+		Radius:    b.BombRadius,
 	}
 }
 
@@ -131,9 +135,11 @@ func (w *Wall) isDestructible() bool {
 	return w.Destructible
 }
 
-func (b *Bomb) startBomb(x int, y int) {
+func (b *Bomb) startBomb() {
 	log.Println("Starting bomb...")
 	time.Sleep(time.Duration(b.Time) * time.Second)
+	x := b.PositionX
+	y := b.PositionY
 	GameMap.Fields[x][y].explosion()
 	for i := 1; i < b.Radius; i++ {
 		xPos := x + i

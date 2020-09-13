@@ -51,8 +51,8 @@ func NewBomberman(userID uint64, positionX int, positionY int, name string) *Bom
 
 func (r *Bomberman) placeBomb() {
 	bomb := NewBomb(r)
-	GameMap.Fields[r.PositionX/FIELD_SIZE][r.PositionY/FIELD_SIZE].addBomb(&bomb)
-	bomb.startBomb(r.PositionX/FIELD_SIZE, r.PositionY/FIELD_SIZE)
+	GameMap.Fields[bomb.PositionX][bomb.PositionY].addBomb(&bomb)
+	bomb.startBomb()
 }
 
 //Wrapper for the user
@@ -119,33 +119,36 @@ func playerWebsocketLoop(session *Session) {
 		case "w":
 			if session.Bomber.canEnter(session.Bomber.PositionX, session.Bomber.PositionY-STEP_SIZE) {
 				session.Bomber.PositionY -= STEP_SIZE
+				updatePlayerPositioning(session)
 			}
 
 		//A
 		case "a":
 			if session.Bomber.canEnter(session.Bomber.PositionX-STEP_SIZE, session.Bomber.PositionY) {
 				session.Bomber.PositionX -= STEP_SIZE
+				updatePlayerPositioning(session)
 			}
 
 		//S
 		case "s":
 			if session.Bomber.canEnter(session.Bomber.PositionX, session.Bomber.PositionY+STEP_SIZE) {
 				session.Bomber.PositionY += STEP_SIZE
+				updatePlayerPositioning(session)
 			}
 
 		//D
 		case "d":
 			if session.Bomber.canEnter(session.Bomber.PositionX+STEP_SIZE, session.Bomber.PositionY) {
 				session.Bomber.PositionX += STEP_SIZE
+				updatePlayerPositioning(session)
 			}
 		//Spacebar
 		case " ":
-			session.Bomber.placeBomb()
+			go session.Bomber.placeBomb()
 
 		default:
 			break
 		}
-		updatePlayerPositioning(session)
 
 	}
 
@@ -157,15 +160,46 @@ func updatePlayerPositioning(session *Session) {
 	oldPosY := session.Bomber.oldPositionY / FIELD_SIZE
 	//Change Pushback
 	if posX != oldPosX {
-		removePlayerFromList(GameMap.Fields[oldPosX][posY].Player, session.Bomber)
-		GameMap.Fields[posX][posY].Player.PushBack(session.Bomber)
-		//log.Println(GameMap.Fields[posX][posY].Player)
+		if session.Bomber.isFieldAccessible() {
+			removePlayerFromList(GameMap.Fields[oldPosX][posY].Player, session.Bomber)
+			GameMap.Fields[posX][posY].Player.PushBack(session.Bomber)
+			//log.Println(GameMap.Fields[posX][posY].Player)
+		}
 	} else if posY != oldPosY {
-		removePlayerFromList(GameMap.Fields[posX][oldPosY].Player, session.Bomber)
-		GameMap.Fields[posX][posY].Player.PushBack(session.Bomber)
-		//log.Println(GameMap.Fields[posX][posY].Player)
+		if session.Bomber.isFieldAccessible() {
+			removePlayerFromList(GameMap.Fields[posX][oldPosY].Player, session.Bomber)
+			GameMap.Fields[posX][posY].Player.PushBack(session.Bomber)
+			//log.Println(GameMap.Fields[posX][posY].Player)
+		}
 	}
 
+}
+
+func (r *Bomberman) canEnter(x int, y int) bool {
+	arrayPosX := x / FIELD_SIZE
+	arrayPosY := y / FIELD_SIZE
+	inBounds := arrayPosX >= 0 && arrayPosY >= 0 && arrayPosX < len(GameMap.Fields) && arrayPosY < len(GameMap.Fields[arrayPosX])
+	return inBounds
+}
+
+func (b *Bomberman) isFieldAccessible() bool {
+	isAccessNull := true
+	isAccessOne := true
+	arrayPosX := b.PositionX / FIELD_SIZE
+	arrayPosY := b.PositionY / FIELD_SIZE
+	if GameMap.Fields[arrayPosX][arrayPosY].Contains[0] != nil {
+		isAccessNull = GameMap.Fields[arrayPosX][arrayPosY].Contains[0].isAccessible()
+	}
+	if GameMap.Fields[arrayPosX][arrayPosY].Contains[1] != nil {
+		isAccessOne = GameMap.Fields[arrayPosX][arrayPosY].Contains[1].isAccessible()
+	}
+
+	isAccessible := isAccessNull && isAccessOne
+	if isAccessible {
+		b.oldPositionX = b.PositionX
+		b.oldPositionY = b.PositionY
+	}
+	return isAccessible
 }
 
 func printList(list *list.List) {
@@ -202,33 +236,6 @@ func removePlayerFromList(l *list.List, b *Bomberman) {
 		}
 	}
 	log.Println("Player not found in list")
-}
-
-func (r *Bomberman) canEnter(x int, y int) bool {
-	arrayPosX := x / FIELD_SIZE
-	arrayPosY := y / FIELD_SIZE
-	inBounds := arrayPosX >= 0 && arrayPosY >= 0 && arrayPosX < len(GameMap.Fields) && arrayPosY < len(GameMap.Fields[arrayPosX])
-
-	isAccessNull := true
-	isAccessOne := true
-	if inBounds {
-		if GameMap.Fields[arrayPosX][arrayPosY].Contains[0] != nil {
-			isAccessNull = GameMap.Fields[arrayPosX][arrayPosY].Contains[0].isAccessible()
-		}
-		if GameMap.Fields[arrayPosX][arrayPosY].Contains[1] != nil {
-			isAccessOne = GameMap.Fields[arrayPosX][arrayPosY].Contains[1].isAccessible()
-		}
-	} else {
-		return false
-	}
-
-	isAccessible := isAccessNull && isAccessOne
-	if isAccessible {
-		r.oldPositionX = r.PositionX
-		r.oldPositionY = r.PositionY
-	}
-
-	return isAccessible
 }
 
 func UpdateClients() {
@@ -276,7 +283,6 @@ func sendDataToClients() error {
 			return err
 		}
 	}
-
 	return nil
 }
 
