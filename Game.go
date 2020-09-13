@@ -141,34 +141,48 @@ func playerWebsocketLoop(session *Session) {
 			break
 		}
 		updatePlayerPositioning(session)
+
 	}
 
 }
 func updatePlayerPositioning(session *Session) {
-
-	posY := session.Bomber.PositionX / FIELD_SIZE
-	posX := session.Bomber.PositionY / FIELD_SIZE
+	posX := session.Bomber.PositionX / FIELD_SIZE
+	posY := session.Bomber.PositionY / FIELD_SIZE
 	oldPosX := session.Bomber.OldPositionX / FIELD_SIZE
 	oldPosY := session.Bomber.OldPositionY / FIELD_SIZE
+	log.Printf("new: x:%d y:%d", posX, posY)
+	log.Printf("old: x:%d y:%d", oldPosX, oldPosY)
 	//Change Pushback
 	if posX != oldPosX {
 		removePlayerFromList(GameMap.Fields[oldPosX][posY].Player, session.Bomber)
 		GameMap.Fields[posX][posY].Player.PushBack(session.Bomber)
-		log.Println(GameMap.Fields[posX][posY].Player)
+		printList(GameMap.Fields[posX][posY].Player)
 	} else if posY != oldPosY {
 		removePlayerFromList(GameMap.Fields[posX][oldPosY].Player, session.Bomber)
 		GameMap.Fields[posX][posY].Player.PushBack(session.Bomber)
-		log.Println(GameMap.Fields[posX][posY].Player)
+		printList(GameMap.Fields[posX][posY].Player)
 	}
 
+}
+
+func printList(list *list.List) {
+	element := list.Front()
+	if element == nil {
+		log.Println("List is null!")
+		return
+	}
+	log.Println("List started: ")
+	log.Println(element.Value.(*Bomberman))
+	for element.Next() != nil {
+		log.Println(element.Value.(*Bomberman))
+		element = element.Next()
+	}
+	log.Println("List ended...")
 }
 
 func removePlayerFromList(l *list.List, b *Bomberman) {
 	element := l.Front()
 	if element != nil {
-		log.Println(b)
-		log.Println(element.Value.(*Bomberman))
-		log.Println(element.Value.(*Bomberman).UserID == b.UserID)
 		if element.Value.(*Bomberman).UserID == b.UserID {
 			l.Remove(element)
 			return
@@ -185,10 +199,6 @@ func removePlayerFromList(l *list.List, b *Bomberman) {
 }
 
 func (r *Bomberman) canEnter(x int, y int) bool {
-
-	r.OldPositionX = r.PositionX
-	r.OldPositionY = r.PositionY
-
 	arrayPosX := x / FIELD_SIZE
 	arrayPosY := y / FIELD_SIZE
 	inBounds := arrayPosX >= 0 && arrayPosY >= 0 && arrayPosX < len(GameMap.Fields) && arrayPosY < len(GameMap.Fields[arrayPosX])
@@ -207,6 +217,10 @@ func (r *Bomberman) canEnter(x int, y int) bool {
 	}
 
 	isAccessible := isAccessNull && isAccessOne
+	if isAccessible {
+		r.OldPositionX = r.PositionX
+		r.OldPositionY = r.PositionY
+	}
 
 	return isAccessible
 }
