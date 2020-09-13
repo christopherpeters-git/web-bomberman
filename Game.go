@@ -110,6 +110,10 @@ func playerWebsocketLoop(session *Session) {
 			return
 		}
 
+		if !session.Bomber.IsAlive {
+			return
+		}
+
 		switch string(p) {
 		//W
 		case "w":
