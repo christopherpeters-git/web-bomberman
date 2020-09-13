@@ -2,6 +2,7 @@ package main
 
 import (
 	"container/list"
+	"log"
 	"time"
 )
 
@@ -38,6 +39,7 @@ type Field struct {
 }
 
 func (f *Field) addBomb(b *Bomb) {
+	log.Println("added bomb.")
 	if f.Contains[0] != nil {
 		f.Contains[1] = b
 	} else {
@@ -130,6 +132,7 @@ func (w *Wall) isDestructible() bool {
 }
 
 func (b *Bomb) startBomb(x int, y int) {
+	log.Println("Starting bomb...")
 	time.Sleep(time.Duration(b.Time) * time.Second)
 	GameMap.Fields[x][y].explosion()
 	for i := 1; i < b.Radius; i++ {
@@ -161,17 +164,20 @@ func (b *Bomb) startBomb(x int, y int) {
 func (f *Field) explosion() {
 	element := f.Player.Front()
 	if element != nil {
-		element.Value.(*Bomberman).isAlive = false
+		element.Value.(*Bomberman).IsAlive = false
 		for element.Next() != nil {
 			element = element.Next()
-			element.Value.(*Bomberman).isAlive = false
+			element.Value.(*Bomberman).IsAlive = false
 		}
 	}
 	for i := 0; i < 2; i++ {
-		if f.Contains[i].isDestructible() {
-			f.Contains[i] = nil
+		if f.Contains[i] != nil {
+			if f.Contains[i].isDestructible() {
+				f.Contains[i] = nil
+			}
 		}
 	}
+	log.Println("Bomb exploded...")
 }
 
 func FillTestMap(m Map) {
