@@ -7,6 +7,7 @@ import (
 )
 
 type ItemType int
+type FieldObject int
 
 // -1 doesnt work
 var globalBombCount uint64 = 0
@@ -16,6 +17,12 @@ const (
 	ItemTypeUpgrade    ItemType = 0
 	ItemTypeDowngrade  ItemType = 1
 	ItemTypeShortBoost ItemType = 2
+)
+
+const (
+	FieldObjectBomb FieldObject = 0
+	FieldObjectWall FieldObject = 1
+	FieldObjectItem FieldObject = 2
 )
 
 type Map struct {
@@ -38,6 +45,13 @@ type Field struct {
 	Player   *list.List
 }
 
+func NewField() Field {
+	return Field{
+		Contains: make([]FieldType, 2),
+		Player:   list.New(),
+	}
+}
+
 func (f *Field) addBomb(b *Bomb) {
 	log.Println("added bomb.")
 	if f.Contains[0] != nil {
@@ -53,118 +67,6 @@ func (f *Field) addWall(w *Wall) {
 	} else {
 		f.Contains[0] = w
 	}
-}
-
-func NewField() Field {
-	return Field{
-		Contains: make([]FieldType, 2),
-		Player:   list.New(),
-	}
-}
-
-type FieldType interface {
-	isAccessible() bool
-	startEvent()
-	isDestructible() bool
-}
-
-type Bomb struct {
-	ID        uint64
-	Owner     *Bomberman
-	PositionX int
-	PositionY int
-	Time      int
-	Radius    int
-}
-
-//todo *Bomb needed?
-func NewBomb(b *Bomberman) Bomb {
-	globalBombCount++
-	return Bomb{
-		ID:        globalBombCount,
-		Owner:     b,
-		PositionX: b.PositionX / FIELD_SIZE,
-		PositionY: b.PositionY / FIELD_SIZE,
-		Time:      b.bombTime,
-		Radius:    b.BombRadius,
-	}
-}
-
-type Item struct {
-	Type ItemType
-}
-
-type Wall struct {
-	Destructible bool
-}
-
-func newWall(destructible bool) *Wall {
-	return &Wall{Destructible: destructible}
-}
-
-func (b *Bomb) isAccessible() bool {
-	return false
-}
-
-func (i *Item) isAccessible() bool {
-	return true
-}
-func (w *Wall) isAccessible() bool {
-	return false
-}
-
-func (b *Bomb) startEvent() {
-
-}
-func (i *Item) startEvent() {
-
-}
-func (w *Wall) startEvent() {
-
-}
-
-func (b *Bomb) isDestructible() bool {
-	return false
-}
-
-func (i *Item) isDestructible() bool {
-	return false
-}
-
-func (w *Wall) isDestructible() bool {
-	return w.Destructible
-}
-
-func (b *Bomb) startBomb() {
-	log.Println("Starting bomb...")
-	time.Sleep(time.Duration(b.Time) * time.Second)
-	x := b.PositionX
-	y := b.PositionY
-	GameMap.Fields[x][y].explosion()
-	for i := 1; i < b.Radius; i++ {
-		xPos := x + i
-		xNeg := x - i
-		yPos := y + i
-		yNeg := y - i
-		if xPos <= len(GameMap.Fields) {
-			GameMap.Fields[xPos][y].explosion()
-		}
-		if xNeg >= 0 {
-			GameMap.Fields[xNeg][y].explosion()
-		}
-		if yPos <= len(GameMap.Fields[x]) {
-			GameMap.Fields[x][yPos].explosion()
-		}
-		if yNeg >= 0 {
-			GameMap.Fields[x][yNeg].explosion()
-		}
-	}
-	if GameMap.Fields[x][y].Contains[0] == b {
-		GameMap.Fields[x][y].Contains[0] = nil
-	} else if GameMap.Fields[x][y].Contains[1] == b {
-		GameMap.Fields[x][y].Contains[1] = nil
-	}
-
 }
 
 func (f *Field) explosion() {
@@ -183,30 +85,138 @@ func (f *Field) explosion() {
 			}
 		}
 	}
-	log.Println("Bomb exploded...")
+}
+
+type FieldType interface {
+	isAccessible() bool
+	startEvent()
+	isDestructible() bool
+	getType() FieldObject
+}
+
+type Bomb struct {
+	ID        uint64
+	Owner     *Bomberman
+	PositionX int
+	PositionY int
+	Time      int
+	Radius    int
+}
+
+func NewBomb(b *Bomberman) Bomb {
+	globalBombCount++
+	return Bomb{
+		ID:        globalBombCount,
+		Owner:     b,
+		PositionX: b.PositionX / FIELD_SIZE,
+		PositionY: b.PositionY / FIELD_SIZE,
+		Time:      b.bombTime,
+		Radius:    b.BombRadius,
+	}
+}
+
+func (b *Bomb) isAccessible() bool {
+	return false
+}
+func (b *Bomb) startEvent() {
+
+}
+func (b *Bomb) isDestructible() bool {
+	return false
+}
+func (b *Bomb) getType() FieldObject {
+	return FieldObjectBomb
+}
+
+func (b *Bomb) startBomb() {
+	time.Sleep(time.Duration(b.Time) * time.Second)
+	x := b.PositionX
+	y := b.PositionY
+	GameMap.Fields[x][y].explosion()
+	for i := 1; i < b.Radius; i++ {
+		xPos := x + i
+		xNeg := x - i
+		yPos := y + i
+		yNeg := y - i
+		if xPos < len(GameMap.Fields) {
+			GameMap.Fields[xPos][y].explosion()
+		}
+		if xNeg >= 0 {
+			GameMap.Fields[xNeg][y].explosion()
+		}
+		if yPos < len(GameMap.Fields[x]) {
+			GameMap.Fields[x][yPos].explosion()
+		}
+		if yNeg >= 0 {
+			GameMap.Fields[x][yNeg].explosion()
+		}
+	}
+	if GameMap.Fields[x][y].Contains[0] == b {
+		GameMap.Fields[x][y].Contains[0] = nil
+	} else if GameMap.Fields[x][y].Contains[1] == b {
+		GameMap.Fields[x][y].Contains[1] = nil
+	}
+}
+
+type Item struct {
+	Type ItemType
+}
+
+func (i *Item) isAccessible() bool {
+	return true
+}
+func (i *Item) startEvent() {
+
+}
+func (i *Item) isDestructible() bool {
+	return false
+}
+func (i *Item) getType() FieldObject {
+	return FieldObjectItem
+}
+
+type Wall struct {
+	Destructible bool
+}
+
+func NewWall(destructible bool) *Wall {
+	return &Wall{Destructible: destructible}
+}
+
+func (w *Wall) isAccessible() bool {
+	return false
+}
+func (w *Wall) startEvent() {
+
+}
+func (w *Wall) isDestructible() bool {
+	return w.Destructible
+}
+func (w *Wall) getType() FieldObject {
+	return FieldObjectWall
 }
 
 func FillTestMap(m Map) {
-	w0 := newWall(true)
-	w1 := newWall(true)
-	w2 := newWall(true)
-	w3 := newWall(true)
-	w4 := newWall(true)
-	w5 := newWall(true)
-	w6 := newWall(true)
-	w7 := newWall(true)
-	w8 := newWall(true)
-	w9 := newWall(true)
-	w10 := newWall(false)
-	w11 := newWall(false)
-	w12 := newWall(false)
-	w13 := newWall(false)
-	w14 := newWall(false)
-	w15 := newWall(false)
-	w16 := newWall(false)
-	w17 := newWall(false)
-	w18 := newWall(false)
-	w19 := newWall(false)
+	w0 := NewWall(true)
+	w1 := NewWall(true)
+	w2 := NewWall(true)
+	w3 := NewWall(true)
+	w4 := NewWall(true)
+	w5 := NewWall(true)
+	w6 := NewWall(true)
+	w7 := NewWall(true)
+	w8 := NewWall(true)
+	w9 := NewWall(true)
+	w10 := NewWall(false)
+	w11 := NewWall(false)
+	w12 := NewWall(false)
+	w13 := NewWall(false)
+	w14 := NewWall(false)
+	w15 := NewWall(false)
+	w16 := NewWall(false)
+	w17 := NewWall(false)
+	w18 := NewWall(false)
+	w19 := NewWall(false)
 	m.Fields[3][0].addWall(w0)
 	m.Fields[5][0].addWall(w1)
 	m.Fields[2][1].addWall(w10)
