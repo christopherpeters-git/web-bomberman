@@ -40,6 +40,11 @@ type Bomberman struct {
 	IsAlive        bool
 }
 
+type ClientPackage struct {
+	Players []Bomberman
+	GameMap [][][]FieldObject
+}
+
 func (r *Bomberman) String() string {
 	return "Bomberman: {" + strconv.FormatUint(r.UserID, 10) + " | " + strconv.FormatInt(int64(r.PositionX), 10) + " | " + strconv.FormatInt(int64(r.PositionY), 10) + " | " + r.lastBombPlaced.String() + "}"
 }
@@ -103,7 +108,6 @@ func AllConnectionsAsString() string {
 func StartPlayerLoop(session *Session) {
 	//Add the infos to the connection map
 	connections.Insert(session.User.UserID, session)
-	//FillTestMap(GameMap)
 	GameMap.Fields[0][0].Player.PushBack(session.Bomber)
 	playerWebsocketLoop(session)
 	//Remove from the connection map
@@ -118,7 +122,6 @@ func playerWebsocketLoop(session *Session) {
 			log.Println(err)
 			return
 		}
-		log.Println(string(p))
 		var keys KeyInput
 		if err := json.Unmarshal(p, &keys); err != nil {
 			log.Println(err)
@@ -261,7 +264,7 @@ func UpdateClients() {
 }
 
 func sendDataToClients() error {
-	//collect data
+	//Create array from all connected Bombermen
 	sessions := make([]Bomberman, connections.Len())
 	count := 0
 
@@ -276,8 +279,27 @@ func sendDataToClients() error {
 		sessions[count] = *v.Val.(*Session).Bomber
 		count++
 	}
+	//Create map to send
+	mapToSend := make([][][]FieldObject, len(GameMap.Fields))
+	for i, _ := range GameMap.Fields {
+		mapToSend[i] = make([][]FieldObject, len(GameMap.Fields[i]))
+		for j, _ := range GameMap.Fields[i] {
+			mapToSend[i][j] = make([]FieldObject, len(GameMap.Fields[i][j].Contains))
+			for k, _ := range GameMap.Fields[i][j].Contains {
+				if GameMap.Fields[i][j].Contains[k] != nil {
+					mapToSend[i][j][k] = GameMap.Fields[i][j].Contains[k].getType()
+				}
+			}
+		}
+	}
 
-	jsonBytes, err := json.MarshalIndent(sessions, "", " ")
+	//Create ClientPackage to send to every client
+	clientPackage := ClientPackage{
+		Players: sessions,
+		GameMap: mapToSend,
+	}
+
+	jsonBytes, err := json.MarshalIndent(clientPackage, "", " ")
 	if err != nil {
 
 		return err

@@ -20,9 +20,11 @@ const (
 )
 
 const (
-	FieldObjectBomb FieldObject = 0
-	FieldObjectWall FieldObject = 1
-	FieldObjectItem FieldObject = 2
+	FieldObjectBomb          FieldObject = 1
+	FieldObjectWall          FieldObject = 2
+	FieldObjectItemUpgrade   FieldObject = 3
+	FieldObjectItemDowngrade FieldObject = 4
+	FieldObjectItemBoost     FieldObject = 5
 )
 
 type Map struct {
@@ -37,6 +39,7 @@ func NewMap(size int) Map {
 			m.Fields[i][j] = NewField()
 		}
 	}
+	FillTestMap(m)
 	return m
 }
 
@@ -159,7 +162,11 @@ func (b *Bomb) startBomb() {
 }
 
 type Item struct {
-	Type ItemType
+	Type FieldObject
+}
+
+func NewItem(t FieldObject) Item {
+	return Item{Type: t}
 }
 
 func (i *Item) isAccessible() bool {
@@ -172,7 +179,7 @@ func (i *Item) isDestructible() bool {
 	return false
 }
 func (i *Item) getType() FieldObject {
-	return FieldObjectItem
+	return i.Type
 }
 
 type Wall struct {

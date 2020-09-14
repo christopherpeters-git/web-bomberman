@@ -2,6 +2,7 @@ let testContainer = document.getElementById("test");
 const ctx = document.getElementById("matchfield").getContext("2d")
 let socket = new WebSocket("ws://localhost:2100/ws-test/")
 let playerChar = new Image();
+let ticker;
 let keyPresses = {};
 playerChar.src = "media/player1.png"
 console.log("Attempting Websocket connection")
@@ -9,6 +10,7 @@ console.log("Attempting Websocket connection")
 console.log(testContainer);
 
 socket.onopen = () => {
+    ticker = setInterval(function(){socket.send(JSON.stringify(keyPresses))}, 5);
     console.log("Connected")
 }
 
@@ -21,16 +23,15 @@ socket.onerror = (error) => {
 }
 
 socket.onmessage = (ev) => {
-    const users = JSON.parse(ev.data)
+    const incomingPackage = JSON.parse(ev.data)
 
-    if (ctx !== null && users !== null){
+    if (ctx !== null && incomingPackage !== null){
         ctx.clearRect(0, 0, 500, 500);
         drawGrid(500, 500, "matchfield");
 
-        for(let i = 0; i < users.length; i++){
-            ctx.fillText(users[i].Name,users[i].PositionX + 15,users[i].PositionY - 5, 100);
-            //ctx.fillRect(users[i].PositionX, users[i].PositionY, 50, 50);
-            ctx.drawImage(playerChar, users[i].PositionX, users[i].PositionY, 50, 50);
+        for(let i = 0; i < incomingPackage.Players.length; i++){
+            ctx.fillText(incomingPackage.Players[i].Name,incomingPackage.Players[i].PositionX + 15,incomingPackage.Players[i].PositionY - 5, 100);
+            ctx.drawImage(playerChar, incomingPackage.Players[i].PositionX, incomingPackage.Players[i].PositionY, 50, 50);
         }
     }
     testContainer.innerHTML = ev.data;
@@ -65,4 +66,3 @@ var drawGrid = function(w, h, id) {
     ctx.stroke();
 };
 
-const ticker = setInterval(function(){socket.send(JSON.stringify(keyPresses))}, 5);
