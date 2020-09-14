@@ -177,7 +177,7 @@ func updatePlayerPositioning(session *Session) {
 }
 
 func (r *Bomberman) canEnter(x int, y int) bool {
-	if x < 0 || y < 0 || x >= len(GameMap.Fields)*FIELD_SIZE || y >= len(GameMap.Fields[x/FIELD_SIZE])*FIELD_SIZE {
+	if x < 0 || y < 0 || x > (len(GameMap.Fields)-1)*FIELD_SIZE || y > (len(GameMap.Fields[x/FIELD_SIZE])-1)*FIELD_SIZE {
 		return false
 	}
 	arrayPosX := x / FIELD_SIZE
