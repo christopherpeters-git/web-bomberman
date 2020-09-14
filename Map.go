@@ -146,13 +146,13 @@ func (b *Bomb) startBomb() {
 		xNeg := x - i
 		yPos := y + i
 		yNeg := y - i
-		if xPos <= len(GameMap.Fields) {
+		if xPos < len(GameMap.Fields) {
 			GameMap.Fields[xPos][y].explosion()
 		}
 		if xNeg >= 0 {
 			GameMap.Fields[xNeg][y].explosion()
 		}
-		if yPos <= len(GameMap.Fields[x]) {
+		if yPos < len(GameMap.Fields[x]) {
 			GameMap.Fields[x][yPos].explosion()
 		}
 		if yNeg >= 0 {
@@ -183,7 +183,6 @@ func (f *Field) explosion() {
 			}
 		}
 	}
-	log.Println("Bomb exploded...")
 }
 
 func FillTestMap(m Map) {
