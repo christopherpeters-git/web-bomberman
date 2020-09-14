@@ -35,6 +35,22 @@ socket.onmessage = (ev) => {
         }
     }
     testContainer.innerHTML = ev.data;
+
+    drawElement("#FF0000",incomingPackage.GameMap, 2 )
+    drawElement("#000000",incomingPackage.GameMap, 1 )
+}
+
+function drawElement (color, map, type){
+    for (i = 0; i < map.length; i++){
+        for (j = 0; j < map[i].length; j++) {
+            for (k = 0; k < map[i][j].length; k++){
+                if (map[i][j][k] === type) {
+                    ctx.fillStyle = color;
+                    ctx.fillRect(i * 50, j * 50, 50 , 50)
+                }
+            }
+        }
+    }
 }
 
 document.addEventListener('keydown', keyDownListener, false);
@@ -47,6 +63,9 @@ function keyDownListener(event) {
 function keyUpListener(event) {
     keyPresses[event.key] = false;
 }
+
+
+
 
 var drawGrid = function(w, h, id) {
     var canvas = document.getElementById(id);
