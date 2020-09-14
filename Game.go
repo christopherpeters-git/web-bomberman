@@ -12,7 +12,7 @@ import (
 
 //commit comment
 const FIELD_SIZE = 50
-const STEP_SIZE = 10
+const STEP_SIZE = 1
 const CANVAS_SIZE = 500
 
 var GameMap = NewMap(CANVAS_SIZE / FIELD_SIZE)
