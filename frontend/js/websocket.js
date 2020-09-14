@@ -34,9 +34,16 @@ socket.onmessage = (ev) => {
             ctx.drawImage(playerChar, incomingPackage.Players[i].PositionX, incomingPackage.Players[i].PositionY, 50, 50);
         }
     }
-    testContainer.innerHTML = ev.data;
+    testContainer.innerHTML =
+        "UserID: " + incomingPackage.Players[0].UserID + "<br>"
+        + "Username: " + incomingPackage.Players[0].Name + "<br>"
+        + "X-Postion: " + incomingPackage.Players[0].PositionX + "<br>"
+        + "Y-Postion: " + incomingPackage.Players[0].PositionY + "<br>"
+        + "Spieler lebt: " + incomingPackage.Players[0].IsAlive + "<br>"
+        + "Bombenradius: " + incomingPackage.Players[0].BombRadius + "<br>" + "<br>";
 
-    drawElement("#FF0000",incomingPackage.GameMap, 2 )
+
+    drawElement("#ae1111",incomingPackage.GameMap, 2 )
     drawElement("#000000",incomingPackage.GameMap, 1 )
 }
 
