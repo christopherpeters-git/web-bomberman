@@ -24,6 +24,7 @@ socket.onmessage = (ev) => {
 
     if (ctx !== null && users !== null){
         ctx.clearRect(0, 0, 500, 500);
+        drawGrid(500, 500, "matchfield");
 
         for(let i = 0; i < users.length; i++){
             ctx.fillText(users[i].Name,users[i].PositionX + 15,users[i].PositionY - 5, 100);
@@ -47,3 +48,21 @@ function handleKeyPress(event){
     }
     socket.send(keyCode);
 }
+
+var drawGrid = function(w, h, id) {
+    var canvas = document.getElementById(id);
+    var ctx = canvas.getContext('2d');
+    ctx.canvas.width = w;
+    ctx.canvas.height = h;
+
+
+    for (x = 0; x <= w; x += 50) {
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, h);
+        for (y = 0; y <= h; y += 50) {
+            ctx.moveTo(0, y);
+            ctx.lineTo(w, y);
+        }
+    }
+    ctx.stroke();
+};
