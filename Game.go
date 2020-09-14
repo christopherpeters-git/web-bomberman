@@ -27,7 +27,6 @@ type KeyInput struct {
 	SpacePressed bool `json:" "`
 }
 
-
 type Bomberman struct {
 	UserID         uint64
 	PositionX      int
@@ -42,8 +41,9 @@ type Bomberman struct {
 }
 
 type ClientPackage struct {
-	Players []Bomberman
-	GameMap [][][]FieldObject
+	Players    []Bomberman
+	GameMap    [][][]FieldObject
+	TestPlayer [][]int
 }
 
 func (r *Bomberman) String() string {
@@ -290,10 +290,15 @@ func sendDataToClients() error {
 	}
 	//Create map to send
 	mapToSend := make([][][]FieldObject, len(GameMap.Fields))
+	testToSend := make([][]int, len(GameMap.Fields))
 	for i, _ := range GameMap.Fields {
 		mapToSend[i] = make([][]FieldObject, len(GameMap.Fields[i]))
+		testToSend[i] = make([]int, len(GameMap.Fields[i]))
 		for j, _ := range GameMap.Fields[i] {
 			mapToSend[i][j] = make([]FieldObject, len(GameMap.Fields[i][j].Contains))
+			if GameMap.Fields[i][j].Player.Front() != nil {
+				testToSend[i][j] = 1
+			}
 			for k, _ := range GameMap.Fields[i][j].Contains {
 				if GameMap.Fields[i][j].Contains[k] != nil {
 					mapToSend[i][j][k] = GameMap.Fields[i][j].Contains[k].getType()
@@ -304,8 +309,9 @@ func sendDataToClients() error {
 
 	//Create ClientPackage to send to every client
 	clientPackage := ClientPackage{
-		Players: sessions,
-		GameMap: mapToSend,
+		Players:    sessions,
+		GameMap:    mapToSend,
+		TestPlayer: testToSend,
 	}
 
 	jsonBytes, err := json.MarshalIndent(clientPackage, "", " ")

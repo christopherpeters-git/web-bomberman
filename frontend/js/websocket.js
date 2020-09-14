@@ -45,6 +45,7 @@ socket.onmessage = (ev) => {
     drawElement("#ae1111",incomingPackage.GameMap, 3 )
     drawElement("#60f542",incomingPackage.GameMap, 2 )
     drawElement("#000000",incomingPackage.GameMap, 1 )
+    drawPlayersPos(incomingPackage.TestPlayer)
 }
 
 function drawElement (color, map, type){
@@ -59,6 +60,17 @@ function drawElement (color, map, type){
         }
     }
 }
+function drawPlayersPos(playerArr) {
+    for (i = 0; i < playerArr.length; i++){
+        for (j = 0; j < playerArr[i].length; j++) {
+                if (playerArr[i][j] === 1) {
+                    ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+                    ctx.fillRect(i * 50, j * 50, 50 , 50)
+                }
+            }
+        }
+}
+
 
 document.addEventListener('keydown', keyDownListener, false);
 document.addEventListener('keyup', keyUpListener, false);
