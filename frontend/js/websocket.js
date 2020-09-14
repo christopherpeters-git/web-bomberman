@@ -2,6 +2,7 @@ let testContainer = document.getElementById("test");
 const ctx = document.getElementById("matchfield").getContext("2d")
 let socket = new WebSocket("ws://localhost:2100/ws-test/")
 let playerChar = new Image();
+let keyPresses = {};
 playerChar.src = "media/player1.png"
 console.log("Attempting Websocket connection")
 
@@ -35,18 +36,15 @@ socket.onmessage = (ev) => {
     testContainer.innerHTML = ev.data;
 }
 
-document.addEventListener( 'keydown', handleKeyPress, false );
+document.addEventListener('keydown', keyDownListener, false);
+document.addEventListener('keyup', keyUpListener, false);
 
-function handleKeyPress(event){
-    let keyCode;
-    if (event.key !== undefined) {
-        keyCode = event.key;
-    } else if (event.keyIdentifier !== undefined) {
-        keyCode = event.keyIdentifier;
-    } else if (event.keyCode !== undefined) {
-        keyCode = event.keyCode;
-    }
-    socket.send(keyCode);
+function keyDownListener(event) {
+    keyPresses[event.key] = true;
+}
+
+function keyUpListener(event) {
+    keyPresses[event.key] = false;
 }
 
 var drawGrid = function(w, h, id) {
@@ -66,3 +64,5 @@ var drawGrid = function(w, h, id) {
     }
     ctx.stroke();
 };
+
+const ticker = setInterval(function(){socket.send(JSON.stringify(keyPresses))}, 5);

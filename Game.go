@@ -19,6 +19,14 @@ var GameMap = NewMap(CANVAS_SIZE / FIELD_SIZE)
 var connections = sortedmap.New(10, isLesserThan)
 var ticker = time.NewTicker(5 * time.Millisecond)
 
+type KeyInput struct {
+	Wpressed     bool `json:"w"`
+	Spressed     bool `json:"s"`
+	Apressed     bool `json:"a"`
+	Dpressed     bool `json:"d"`
+	SpacePressed bool `json:" "`
+}
+
 type Bomberman struct {
 	UserID         uint64
 	PositionX      int
@@ -110,47 +118,46 @@ func playerWebsocketLoop(session *Session) {
 			log.Println(err)
 			return
 		}
-
+		log.Println(string(p))
+		var keys KeyInput
+		if err := json.Unmarshal(p, &keys); err != nil {
+			log.Println(err)
+			continue
+		}
 		if !session.Bomber.IsAlive {
 			return
 		}
-
-		switch string(p) {
-		//W
-		case "w":
+		if keys.Wpressed {
 			if session.Bomber.canEnter(session.Bomber.PositionX, session.Bomber.PositionY-STEP_SIZE) {
 				session.Bomber.PositionY -= STEP_SIZE
 				updatePlayerPositioning(session)
 			}
-
-		//A
-		case "a":
-			if session.Bomber.canEnter(session.Bomber.PositionX-STEP_SIZE, session.Bomber.PositionY) {
-				session.Bomber.PositionX -= STEP_SIZE
-				updatePlayerPositioning(session)
-			}
-
+		} else
 		//S
-		case "s":
+		if keys.Spressed {
 			if session.Bomber.canEnter(session.Bomber.PositionX, session.Bomber.PositionY+STEP_SIZE) {
 				session.Bomber.PositionY += STEP_SIZE
 				updatePlayerPositioning(session)
 			}
-
+		} else
+		//A
+		if keys.Apressed {
+			if session.Bomber.canEnter(session.Bomber.PositionX-STEP_SIZE, session.Bomber.PositionY) {
+				session.Bomber.PositionX -= STEP_SIZE
+				updatePlayerPositioning(session)
+			}
+		} else
 		//D
-		case "d":
+		if keys.Dpressed {
 			if session.Bomber.canEnter(session.Bomber.PositionX+STEP_SIZE, session.Bomber.PositionY) {
 				session.Bomber.PositionX += STEP_SIZE
 				updatePlayerPositioning(session)
 			}
-		//Spacebar
-		case " ":
-			go session.Bomber.placeBomb()
-
-		default:
-			break
 		}
-
+		//Spacebar
+		if keys.SpacePressed {
+			go session.Bomber.placeBomb()
+		}
 	}
 
 }
