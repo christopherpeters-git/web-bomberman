@@ -21,10 +21,11 @@ const (
 
 const (
 	FieldObjectBomb          FieldObject = 1
-	FieldObjectWall          FieldObject = 2
-	FieldObjectItemUpgrade   FieldObject = 3
-	FieldObjectItemDowngrade FieldObject = 4
-	FieldObjectItemBoost     FieldObject = 5
+	FieldObjectWeakWall      FieldObject = 2
+	FieldObjectSolidWall     FieldObject = 3
+	FieldObjectItemUpgrade   FieldObject = 4
+	FieldObjectItemDowngrade FieldObject = 5
+	FieldObjectItemBoost     FieldObject = 6
 )
 
 type Map struct {
@@ -200,7 +201,11 @@ func (w *Wall) isDestructible() bool {
 	return w.Destructible
 }
 func (w *Wall) getType() FieldObject {
-	return FieldObjectWall
+	if w.isDestructible() {
+		return FieldObjectWeakWall
+	} else {
+		return FieldObjectSolidWall
+	}
 }
 
 func FillTestMap(m Map) {

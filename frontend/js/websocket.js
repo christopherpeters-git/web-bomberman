@@ -42,8 +42,8 @@ socket.onmessage = (ev) => {
         + "Spieler lebt: " + incomingPackage.Players[0].IsAlive + "<br>"
         + "Bombenradius: " + incomingPackage.Players[0].BombRadius + "<br>" + "<br>";
 
-
-    drawElement("#ae1111",incomingPackage.GameMap, 2 )
+    drawElement("#ae1111",incomingPackage.GameMap, 3 )
+    drawElement("#60f542",incomingPackage.GameMap, 2 )
     drawElement("#000000",incomingPackage.GameMap, 1 )
 }
 

@@ -127,9 +127,9 @@ func playerWebsocketLoop(session *Session) {
 			log.Println(err)
 			continue
 		}
-		if !session.Bomber.IsAlive {
-			return
-		}
+		//if !session.Bomber.IsAlive {
+		//	return
+		//}
 		if keys.Wpressed {
 			if session.Bomber.canEnter(session.Bomber.PositionX, session.Bomber.PositionY-STEP_SIZE) {
 				session.Bomber.PositionY -= STEP_SIZE
