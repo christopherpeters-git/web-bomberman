@@ -73,7 +73,7 @@ func (f *Field) addWall(w *Wall) {
 	}
 }
 
-func (f *Field) explosion() {
+func (f *Field) explosion() bool {
 	element := f.Player.Front()
 	if element != nil {
 		element.Value.(*Bomberman).IsAlive = false
@@ -86,9 +86,12 @@ func (f *Field) explosion() {
 		if f.Contains[i] != nil {
 			if f.Contains[i].isDestructible() {
 				f.Contains[i] = nil
+			} else {
+				return true
 			}
 		}
 	}
+	return false
 }
 
 type FieldType interface {
@@ -112,8 +115,8 @@ func NewBomb(b *Bomberman) Bomb {
 	return Bomb{
 		ID:        globalBombCount,
 		Owner:     b,
-		PositionX: b.PositionX / FIELD_SIZE,
-		PositionY: b.PositionY / FIELD_SIZE,
+		PositionX: (b.PositionX + FIELD_SIZE/2) / FIELD_SIZE,
+		PositionY: (b.PositionY + FIELD_SIZE/2) / FIELD_SIZE,
 		Time:      b.bombTime,
 		Radius:    b.BombRadius,
 	}
@@ -136,6 +139,7 @@ func (b *Bomb) startBomb() {
 	time.Sleep(time.Duration(b.Time) * time.Second)
 	x := b.PositionX
 	y := b.PositionY
+	xPosHitSolidWall, xNegHitSolidWall, yPosHitSolidWall, yNegHitSolidWall := false, false, false, false
 	GameMap.Fields[x][y].explosion()
 	for i := 1; i < b.Radius; i++ {
 		xPos := x + i
@@ -143,16 +147,24 @@ func (b *Bomb) startBomb() {
 		yPos := y + i
 		yNeg := y - i
 		if xPos < len(GameMap.Fields) {
-			GameMap.Fields[xPos][y].explosion()
+			if !xPosHitSolidWall {
+				xPosHitSolidWall = GameMap.Fields[xPos][y].explosion()
+			}
 		}
 		if xNeg >= 0 {
-			GameMap.Fields[xNeg][y].explosion()
+			if !xNegHitSolidWall {
+				xNegHitSolidWall = GameMap.Fields[xNeg][y].explosion()
+			}
 		}
 		if yPos < len(GameMap.Fields[x]) {
-			GameMap.Fields[x][yPos].explosion()
+			if !yPosHitSolidWall {
+				yPosHitSolidWall = GameMap.Fields[x][yPos].explosion()
+			}
 		}
 		if yNeg >= 0 {
-			GameMap.Fields[x][yNeg].explosion()
+			if !yNegHitSolidWall {
+				yNegHitSolidWall = GameMap.Fields[x][yNeg].explosion()
+			}
 		}
 	}
 	if GameMap.Fields[x][y].Contains[0] == b {

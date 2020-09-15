@@ -12,7 +12,7 @@ import (
 
 //commit comment
 const FIELD_SIZE = 50
-const STEP_SIZE = 2
+const STEP_SIZE = 4
 const CANVAS_SIZE = 500
 
 var GameMap = NewMap(CANVAS_SIZE / FIELD_SIZE)
@@ -32,7 +32,7 @@ type Bomberman struct {
 	PositionX      int
 	PositionY      int
 	Name           string
-	oldPositionX   int
+	OldPositionX   int
 	oldPositionY   int
 	lastBombPlaced time.Time
 	BombRadius     int
@@ -55,7 +55,7 @@ func NewBomberman(userID uint64, positionX int, positionY int, name string) *Bom
 		UserID:       userID,
 		PositionX:    positionX,
 		PositionY:    positionY,
-		oldPositionX: positionX,
+		OldPositionX: positionX,
 		oldPositionY: positionY,
 		Name:         name,
 		BombRadius:   3,
@@ -132,34 +132,33 @@ func playerWebsocketLoop(session *Session) {
 		//	return
 		//}
 		if keys.Wpressed {
-			if session.Bomber.isInBounds(session.Bomber.PositionX, session.Bomber.PositionY-STEP_SIZE) {
-				if updatePlayerPositioning(session, session.Bomber.PositionX, session.Bomber.PositionY-STEP_SIZE) {
-					session.Bomber.PositionY -= STEP_SIZE
-				}
+			if session.Bomber.isMovementLegal(session.Bomber.PositionX, session.Bomber.PositionY-STEP_SIZE) {
+
+				session.Bomber.PositionY -= STEP_SIZE
+
 			}
 		} else
 		//S
 		if keys.Spressed {
-			if session.Bomber.isInBounds(session.Bomber.PositionX, session.Bomber.PositionY+STEP_SIZE) {
-				if updatePlayerPositioning(session, session.Bomber.PositionX, session.Bomber.PositionY+STEP_SIZE) {
-					session.Bomber.PositionY += STEP_SIZE
-				}
+			if session.Bomber.isMovementLegal(session.Bomber.PositionX, session.Bomber.PositionY+STEP_SIZE) {
+
+				session.Bomber.PositionY += STEP_SIZE
+
 			}
 		} else
 		//A
 		if keys.Apressed {
-			if session.Bomber.isInBounds(session.Bomber.PositionX-STEP_SIZE, session.Bomber.PositionY) {
-				if updatePlayerPositioning(session, session.Bomber.PositionX-STEP_SIZE, session.Bomber.PositionY) {
-					session.Bomber.PositionX -= STEP_SIZE
-				}
+			if session.Bomber.isMovementLegal(session.Bomber.PositionX-STEP_SIZE, session.Bomber.PositionY) {
+
+				session.Bomber.PositionX -= STEP_SIZE
+
 			}
 		} else
 		//D
 		if keys.Dpressed {
-			if session.Bomber.isInBounds(session.Bomber.PositionX+STEP_SIZE, session.Bomber.PositionY) {
-				if updatePlayerPositioning(session, session.Bomber.PositionX+STEP_SIZE, session.Bomber.PositionY) {
-					session.Bomber.PositionX += STEP_SIZE
-				}
+			if session.Bomber.isMovementLegal(session.Bomber.PositionX+STEP_SIZE, session.Bomber.PositionY) {
+				session.Bomber.PositionX += STEP_SIZE
+
 			}
 		}
 		//Spacebar
@@ -170,13 +169,13 @@ func playerWebsocketLoop(session *Session) {
 
 }
 func updatePlayerPositioning(session *Session, x int, y int) bool {
-	posX := (x + FIELD_SIZE/2) / FIELD_SIZE
-	posY := (y + FIELD_SIZE/2) / FIELD_SIZE
+	posX := x / FIELD_SIZE
+	posY := y / FIELD_SIZE
 
 	//Change Pushback
 	if session.Bomber.isFieldAccessible(x, y) {
-		oldPosX := (session.Bomber.oldPositionX + FIELD_SIZE/2) / FIELD_SIZE
-		oldPosY := (session.Bomber.oldPositionY + FIELD_SIZE/2) / FIELD_SIZE
+		oldPosX := (session.Bomber.OldPositionX) / FIELD_SIZE
+		oldPosY := (session.Bomber.oldPositionY) / FIELD_SIZE
 		if posX != oldPosX {
 			removePlayerFromList(GameMap.Fields[oldPosX][posY].Player, session.Bomber)
 			GameMap.Fields[posX][posY].Player.PushBack(session.Bomber)
@@ -191,17 +190,40 @@ func updatePlayerPositioning(session *Session, x int, y int) bool {
 	return false
 }
 
-func (r *Bomberman) isInBounds(x int, y int) bool {
+func (r *Bomberman) isMovementLegal(x int, y int) bool { //r.positionX = 50
 	if x < 0 || y < 0 || x > (len(GameMap.Fields)-1)*FIELD_SIZE || y > (len(GameMap.Fields[x/FIELD_SIZE])-1)*FIELD_SIZE {
 		return false
 	}
+	oldPosX := (r.PositionX + FIELD_SIZE/2) / FIELD_SIZE
+	oldPosY := (r.PositionY + FIELD_SIZE/2) / FIELD_SIZE
 	arrayPosX := (x + FIELD_SIZE/2) / FIELD_SIZE
 	arrayPosY := (y + FIELD_SIZE/2) / FIELD_SIZE
 	inBounds := arrayPosX >= 0 && arrayPosY >= 0 && arrayPosX < len(GameMap.Fields) && arrayPosY < len(GameMap.Fields[arrayPosX])
-	// if oldPoxX != posX
-	//if fieldAccessible {}
-	//return false
-	return inBounds
+	if inBounds {
+		if oldPosX != arrayPosX {
+			if r.isFieldAccessible(x, y) {
+				removePlayerFromList(GameMap.Fields[oldPosX][arrayPosY].Player, r)
+				GameMap.Fields[arrayPosX][arrayPosY].Player.PushBack(r)
+				return true
+			} else {
+				return false
+			}
+		} else if oldPosY != arrayPosY {
+			if r.isFieldAccessible(x, y) {
+				removePlayerFromList(GameMap.Fields[arrayPosX][oldPosY].Player, r)
+				GameMap.Fields[arrayPosX][arrayPosY].Player.PushBack(r)
+				return true
+			} else {
+				return false
+			}
+		}
+		r.OldPositionX = r.PositionX
+		r.oldPositionY = r.PositionY
+		return true
+	}
+
+	return false
+
 }
 
 func (b *Bomberman) isFieldAccessible(x int, y int) bool {
@@ -218,7 +240,7 @@ func (b *Bomberman) isFieldAccessible(x int, y int) bool {
 
 	isAccessible := isAccessNull && isAccessOne
 	if isAccessible {
-		b.oldPositionX = b.PositionX
+		b.OldPositionX = b.PositionX
 		b.oldPositionY = b.PositionY
 	}
 	return isAccessible
