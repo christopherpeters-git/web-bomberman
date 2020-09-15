@@ -10,25 +10,40 @@ import (
 	"time"
 )
 
+//commit comment
 const FIELD_SIZE = 50
-const STEP_SIZE = 10
+const STEP_SIZE = 4
 const CANVAS_SIZE = 500
 
 var GameMap = NewMap(CANVAS_SIZE / FIELD_SIZE)
 var connections = sortedmap.New(10, isLesserThan)
 var ticker = time.NewTicker(5 * time.Millisecond)
 
+type KeyInput struct {
+	Wpressed     bool `json:"w"`
+	Spressed     bool `json:"s"`
+	Apressed     bool `json:"a"`
+	Dpressed     bool `json:"d"`
+	SpacePressed bool `json:" "`
+}
+
 type Bomberman struct {
 	UserID         uint64
 	PositionX      int
 	PositionY      int
 	Name           string
-	oldPositionX   int
+	OldPositionX   int
 	oldPositionY   int
 	lastBombPlaced time.Time
 	BombRadius     int
 	bombTime       int
 	IsAlive        bool
+}
+
+type ClientPackage struct {
+	Players    []Bomberman
+	GameMap    [][][]FieldObject
+	TestPlayer [][]int
 }
 
 func (r *Bomberman) String() string {
@@ -40,7 +55,7 @@ func NewBomberman(userID uint64, positionX int, positionY int, name string) *Bom
 		UserID:       userID,
 		PositionX:    positionX,
 		PositionY:    positionY,
-		oldPositionX: positionX,
+		OldPositionX: positionX,
 		oldPositionY: positionY,
 		Name:         name,
 		BombRadius:   3,
@@ -51,8 +66,8 @@ func NewBomberman(userID uint64, positionX int, positionY int, name string) *Bom
 
 func (r *Bomberman) placeBomb() {
 	bomb := NewBomb(r)
-	GameMap.Fields[r.PositionX/FIELD_SIZE][r.PositionY/FIELD_SIZE].addBomb(&bomb)
-	bomb.startBomb(r.PositionX/FIELD_SIZE, r.PositionY/FIELD_SIZE)
+	GameMap.Fields[bomb.PositionX][bomb.PositionY].addBomb(&bomb)
+	bomb.startBomb()
 }
 
 //Wrapper for the user
@@ -94,7 +109,6 @@ func AllConnectionsAsString() string {
 func StartPlayerLoop(session *Session) {
 	//Add the infos to the connection map
 	connections.Insert(session.User.UserID, session)
-	//FillTestMap(GameMap)
 	GameMap.Fields[0][0].Player.PushBack(session.Bomber)
 	playerWebsocketLoop(session)
 	//Remove from the connection map
@@ -109,63 +123,127 @@ func playerWebsocketLoop(session *Session) {
 			log.Println(err)
 			return
 		}
-
-		if !session.Bomber.IsAlive {
-			return
+		var keys KeyInput
+		if err := json.Unmarshal(p, &keys); err != nil {
+			log.Println(err)
+			continue
 		}
+		//if !session.Bomber.IsAlive {
+		//	return
+		//}
+		if keys.Wpressed {
+			if session.Bomber.isMovementLegal(session.Bomber.PositionX, session.Bomber.PositionY-STEP_SIZE) {
 
-		switch string(p) {
-		//W
-		case "w":
-			if session.Bomber.canEnter(session.Bomber.PositionX, session.Bomber.PositionY-STEP_SIZE) {
 				session.Bomber.PositionY -= STEP_SIZE
-			}
 
-		//A
-		case "a":
-			if session.Bomber.canEnter(session.Bomber.PositionX-STEP_SIZE, session.Bomber.PositionY) {
-				session.Bomber.PositionX -= STEP_SIZE
 			}
-
+		} else
 		//S
-		case "s":
-			if session.Bomber.canEnter(session.Bomber.PositionX, session.Bomber.PositionY+STEP_SIZE) {
+		if keys.Spressed {
+			if session.Bomber.isMovementLegal(session.Bomber.PositionX, session.Bomber.PositionY+STEP_SIZE) {
+
 				session.Bomber.PositionY += STEP_SIZE
-			}
 
+			}
+		} else
+		//A
+		if keys.Apressed {
+			if session.Bomber.isMovementLegal(session.Bomber.PositionX-STEP_SIZE, session.Bomber.PositionY) {
+
+				session.Bomber.PositionX -= STEP_SIZE
+
+			}
+		} else
 		//D
-		case "d":
-			if session.Bomber.canEnter(session.Bomber.PositionX+STEP_SIZE, session.Bomber.PositionY) {
+		if keys.Dpressed {
+			if session.Bomber.isMovementLegal(session.Bomber.PositionX+STEP_SIZE, session.Bomber.PositionY) {
 				session.Bomber.PositionX += STEP_SIZE
+
 			}
-		//Spacebar
-		case " ":
-			session.Bomber.placeBomb()
-
-		default:
-			break
 		}
-		updatePlayerPositioning(session)
-
+		//Spacebar
+		if keys.SpacePressed {
+			go session.Bomber.placeBomb()
+		}
 	}
 
 }
-func updatePlayerPositioning(session *Session) {
-	posX := session.Bomber.PositionX / FIELD_SIZE
-	posY := session.Bomber.PositionY / FIELD_SIZE
-	oldPosX := session.Bomber.oldPositionX / FIELD_SIZE
-	oldPosY := session.Bomber.oldPositionY / FIELD_SIZE
+func updatePlayerPositioning(session *Session, x int, y int) bool {
+	posX := x / FIELD_SIZE
+	posY := y / FIELD_SIZE
+
 	//Change Pushback
-	if posX != oldPosX {
-		removePlayerFromList(GameMap.Fields[oldPosX][posY].Player, session.Bomber)
-		GameMap.Fields[posX][posY].Player.PushBack(session.Bomber)
-		//log.Println(GameMap.Fields[posX][posY].Player)
-	} else if posY != oldPosY {
-		removePlayerFromList(GameMap.Fields[posX][oldPosY].Player, session.Bomber)
-		GameMap.Fields[posX][posY].Player.PushBack(session.Bomber)
-		//log.Println(GameMap.Fields[posX][posY].Player)
+	if session.Bomber.isFieldAccessible(x, y) {
+		oldPosX := (session.Bomber.OldPositionX) / FIELD_SIZE
+		oldPosY := (session.Bomber.oldPositionY) / FIELD_SIZE
+		if posX != oldPosX {
+			removePlayerFromList(GameMap.Fields[oldPosX][posY].Player, session.Bomber)
+			GameMap.Fields[posX][posY].Player.PushBack(session.Bomber)
+			//log.Println(GameMap.Fields[posX][posY].Player)
+		} else if posY != oldPosY {
+			removePlayerFromList(GameMap.Fields[posX][oldPosY].Player, session.Bomber)
+			GameMap.Fields[posX][posY].Player.PushBack(session.Bomber)
+			//log.Println(GameMap.Fields[posX][posY].Player)
+		}
+		return true
+	}
+	return false
+}
+
+func (r *Bomberman) isMovementLegal(x int, y int) bool { //r.positionX = 50
+	if x < 0 || y < 0 || x > (len(GameMap.Fields)-1)*FIELD_SIZE || y > (len(GameMap.Fields[x/FIELD_SIZE])-1)*FIELD_SIZE {
+		return false
+	}
+	oldPosX := (r.PositionX + FIELD_SIZE/2) / FIELD_SIZE
+	oldPosY := (r.PositionY + FIELD_SIZE/2) / FIELD_SIZE
+	arrayPosX := (x + FIELD_SIZE/2) / FIELD_SIZE
+	arrayPosY := (y + FIELD_SIZE/2) / FIELD_SIZE
+	inBounds := arrayPosX >= 0 && arrayPosY >= 0 && arrayPosX < len(GameMap.Fields) && arrayPosY < len(GameMap.Fields[arrayPosX])
+	if inBounds {
+		if oldPosX != arrayPosX {
+			if r.isFieldAccessible(x, y) {
+				removePlayerFromList(GameMap.Fields[oldPosX][arrayPosY].Player, r)
+				GameMap.Fields[arrayPosX][arrayPosY].Player.PushBack(r)
+				return true
+			} else {
+				return false
+			}
+		} else if oldPosY != arrayPosY {
+			if r.isFieldAccessible(x, y) {
+				removePlayerFromList(GameMap.Fields[arrayPosX][oldPosY].Player, r)
+				GameMap.Fields[arrayPosX][arrayPosY].Player.PushBack(r)
+				return true
+			} else {
+				return false
+			}
+		}
+		r.OldPositionX = r.PositionX
+		r.oldPositionY = r.PositionY
+		return true
 	}
 
+	return false
+
+}
+
+func (b *Bomberman) isFieldAccessible(x int, y int) bool {
+	isAccessNull := true
+	isAccessOne := true
+	arrayPosX := (x + FIELD_SIZE/2) / FIELD_SIZE
+	arrayPosY := (y + FIELD_SIZE/2) / FIELD_SIZE
+	if GameMap.Fields[arrayPosX][arrayPosY].Contains[0] != nil {
+		isAccessNull = GameMap.Fields[arrayPosX][arrayPosY].Contains[0].isAccessible()
+	}
+	if GameMap.Fields[arrayPosX][arrayPosY].Contains[1] != nil {
+		isAccessOne = GameMap.Fields[arrayPosX][arrayPosY].Contains[1].isAccessible()
+	}
+
+	isAccessible := isAccessNull && isAccessOne
+	if isAccessible {
+		b.OldPositionX = b.PositionX
+		b.oldPositionY = b.PositionY
+	}
+	return isAccessible
 }
 
 func printList(list *list.List) {
@@ -204,33 +282,6 @@ func removePlayerFromList(l *list.List, b *Bomberman) {
 	log.Println("Player not found in list")
 }
 
-func (r *Bomberman) canEnter(x int, y int) bool {
-	arrayPosX := x / FIELD_SIZE
-	arrayPosY := y / FIELD_SIZE
-	inBounds := arrayPosX >= 0 && arrayPosY >= 0 && arrayPosX < len(GameMap.Fields) && arrayPosY < len(GameMap.Fields[arrayPosX])
-
-	isAccessNull := true
-	isAccessOne := true
-	if inBounds {
-		if GameMap.Fields[arrayPosX][arrayPosY].Contains[0] != nil {
-			isAccessNull = GameMap.Fields[arrayPosX][arrayPosY].Contains[0].isAccessible()
-		}
-		if GameMap.Fields[arrayPosX][arrayPosY].Contains[1] != nil {
-			isAccessOne = GameMap.Fields[arrayPosX][arrayPosY].Contains[1].isAccessible()
-		}
-	} else {
-		return false
-	}
-
-	isAccessible := isAccessNull && isAccessOne
-	if isAccessible {
-		r.oldPositionX = r.PositionX
-		r.oldPositionY = r.PositionY
-	}
-
-	return isAccessible
-}
-
 func UpdateClients() {
 	for _ = range ticker.C {
 		err := sendDataToClients()
@@ -243,7 +294,7 @@ func UpdateClients() {
 }
 
 func sendDataToClients() error {
-	//collect data
+	//Create array from all connected Bombermen
 	sessions := make([]Bomberman, connections.Len())
 	count := 0
 
@@ -258,8 +309,33 @@ func sendDataToClients() error {
 		sessions[count] = *v.Val.(*Session).Bomber
 		count++
 	}
+	//Create map to send
+	mapToSend := make([][][]FieldObject, len(GameMap.Fields))
+	testToSend := make([][]int, len(GameMap.Fields))
+	for i, _ := range GameMap.Fields {
+		mapToSend[i] = make([][]FieldObject, len(GameMap.Fields[i]))
+		testToSend[i] = make([]int, len(GameMap.Fields[i]))
+		for j, _ := range GameMap.Fields[i] {
+			mapToSend[i][j] = make([]FieldObject, len(GameMap.Fields[i][j].Contains))
+			if GameMap.Fields[i][j].Player.Front() != nil {
+				testToSend[i][j] = 1
+			}
+			for k, _ := range GameMap.Fields[i][j].Contains {
+				if GameMap.Fields[i][j].Contains[k] != nil {
+					mapToSend[i][j][k] = GameMap.Fields[i][j].Contains[k].getType()
+				}
+			}
+		}
+	}
 
-	jsonBytes, err := json.MarshalIndent(sessions, "", " ")
+	//Create ClientPackage to send to every client
+	clientPackage := ClientPackage{
+		Players:    sessions,
+		GameMap:    mapToSend,
+		TestPlayer: testToSend,
+	}
+
+	jsonBytes, err := json.MarshalIndent(clientPackage, "", " ")
 	if err != nil {
 
 		return err
@@ -276,7 +352,6 @@ func sendDataToClients() error {
 			return err
 		}
 	}
-
 	return nil
 }
 
