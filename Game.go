@@ -12,7 +12,7 @@ import (
 
 //commit comment
 const FIELD_SIZE = 50
-const STEP_SIZE = 1
+const STEP_SIZE = 2
 const CANVAS_SIZE = 500
 
 var GameMap = NewMap(CANVAS_SIZE / FIELD_SIZE)
@@ -109,7 +109,6 @@ func AllConnectionsAsString() string {
 func StartPlayerLoop(session *Session) {
 	//Add the infos to the connection map
 	connections.Insert(session.User.UserID, session)
-	FillTestMap(GameMap)
 	GameMap.Fields[0][0].Player.PushBack(session.Bomber)
 	playerWebsocketLoop(session)
 	//Remove from the connection map
@@ -171,13 +170,13 @@ func playerWebsocketLoop(session *Session) {
 
 }
 func updatePlayerPositioning(session *Session, x int, y int) bool {
-	posX := x / FIELD_SIZE
-	posY := y / FIELD_SIZE
+	posX := (x + FIELD_SIZE/2) / FIELD_SIZE
+	posY := (y + FIELD_SIZE/2) / FIELD_SIZE
 
 	//Change Pushback
 	if session.Bomber.isFieldAccessible(x, y) {
-		oldPosX := session.Bomber.oldPositionX / FIELD_SIZE
-		oldPosY := session.Bomber.oldPositionY / FIELD_SIZE
+		oldPosX := (session.Bomber.oldPositionX + FIELD_SIZE/2) / FIELD_SIZE
+		oldPosY := (session.Bomber.oldPositionY + FIELD_SIZE/2) / FIELD_SIZE
 		if posX != oldPosX {
 			removePlayerFromList(GameMap.Fields[oldPosX][posY].Player, session.Bomber)
 			GameMap.Fields[posX][posY].Player.PushBack(session.Bomber)
@@ -196,8 +195,8 @@ func (r *Bomberman) isInBounds(x int, y int) bool {
 	if x < 0 || y < 0 || x > (len(GameMap.Fields)-1)*FIELD_SIZE || y > (len(GameMap.Fields[x/FIELD_SIZE])-1)*FIELD_SIZE {
 		return false
 	}
-	arrayPosX := x / FIELD_SIZE
-	arrayPosY := y / FIELD_SIZE
+	arrayPosX := (x + FIELD_SIZE/2) / FIELD_SIZE
+	arrayPosY := (y + FIELD_SIZE/2) / FIELD_SIZE
 	inBounds := arrayPosX >= 0 && arrayPosY >= 0 && arrayPosX < len(GameMap.Fields) && arrayPosY < len(GameMap.Fields[arrayPosX])
 	// if oldPoxX != posX
 	//if fieldAccessible {}
@@ -208,8 +207,8 @@ func (r *Bomberman) isInBounds(x int, y int) bool {
 func (b *Bomberman) isFieldAccessible(x int, y int) bool {
 	isAccessNull := true
 	isAccessOne := true
-	arrayPosX := x / FIELD_SIZE
-	arrayPosY := y / FIELD_SIZE
+	arrayPosX := (x + FIELD_SIZE/2) / FIELD_SIZE
+	arrayPosY := (y + FIELD_SIZE/2) / FIELD_SIZE
 	if GameMap.Fields[arrayPosX][arrayPosY].Contains[0] != nil {
 		isAccessNull = GameMap.Fields[arrayPosX][arrayPosY].Contains[0].isAccessible()
 	}
