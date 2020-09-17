@@ -1,4 +1,4 @@
-let testContainer = document.getElementById("test");
+const info = document.querySelector('#info')
 const ctx = document.getElementById("matchfield").getContext("2d")
 const fieldSize = 50
 let socket = new WebSocket("ws://localhost:2100/ws-test/")
@@ -6,19 +6,20 @@ let playerChar = new Image();
 let ticker;
 let isBombLegal = true;
 let keyPresses = {};
-let userId = "";
+let userId;
+let currentUser;
 
 let wallImg = new Image();
 let wallImg2 = new Image();
 let grassImg = new Image();
 let bombImg = new Image();
-playerChar.src = "media/player.png"
-wallImg.src ="media/wallBreak.png"
-wallImg2.src ="media/wallBreak2.png"
-grassImg.src = "media/grass.png"
-bombImg.src = "media/bomb.png"
 
-playerChar.src = "media/player1.png"
+const nameLabel = document.createElement("p");
+const posXLabel = document.createElement("p");
+const posYLabel = document.createElement("p");
+
+initGame();
+
 console.log("Attempting Websocket connection")
 socket.onopen = () => {
     ticker = setInterval(function(){
@@ -56,7 +57,9 @@ socket.onmessage = (ev) => {
         ctx.clearRect(0, 0, 500, 500);
         drawGrid(500, 500, "matchfield");
         background(grassImg, incomingPackage.GameMap);
-        drawPlayerPosClient(incomingPackage.Players);
+        searchForUser(incomingPackage.Players)
+        updateUserInfo()
+        drawPlayerPosClient();
         for(let i = 0; i < incomingPackage.Players.length; i++){
             ctx.fillText(incomingPackage.Players[i].Name,incomingPackage.Players[i].PositionX + 15,incomingPackage.Players[i].PositionY - 5, 100);
             ctx.drawImage(playerChar, incomingPackage.Players[i].PositionX, incomingPackage.Players[i].PositionY, 50, 50);
@@ -65,6 +68,19 @@ socket.onmessage = (ev) => {
     drawImage(wallImg, incomingPackage.GameMap, 3);
     drawImage(wallImg2, incomingPackage.GameMap, 2)
     drawImage(bombImg, incomingPackage.GameMap, 1)
+}
+
+function initGame(){
+    playerChar.src = "media/player.png"
+    wallImg.src ="media/wallBreak.png"
+    wallImg2.src ="media/wallBreak2.png"
+    grassImg.src = "media/grass.png"
+    bombImg.src = "media/bomb.png"
+    playerChar.src = "media/player1.png"
+
+    info.append(nameLabel);
+    info.append(posXLabel);
+    info.append(posYLabel);
 }
 
 function drawElement (color, map, type){
@@ -97,6 +113,14 @@ function background (img, map){
         }
     }
 }
+
+function updateUserInfo() {
+    if(currentUser == null || nameLabel == null || posXLabel == null || posYLabel == null){return}
+    nameLabel.innerHTML = "Name: " + currentUser.Name;
+    posXLabel.innerHTML = "Position X: " + currentUser.PositionX;
+    posYLabel.innerHTML = "Position Y: " + currentUser.PositionY;
+}
+
 function drawPlayersPos(playerArr) {
     for (let i = 0; i < playerArr.length; i++){
         for (let j = 0; j < playerArr[i].length; j++) {
@@ -108,19 +132,24 @@ function drawPlayersPos(playerArr) {
         }
 }
 
-function drawPlayerPosClient(playerArr) {
+function searchForUser(playerArr){
     if (userId === "" || playerArr == null){
         return
     }
-    for(let i = 0; i < playerArr.length; i++){
-        if(playerArr[i].UserID == userId){
-            ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
-            const x = Math.floor((playerArr[i].PositionX + fieldSize/2)/fieldSize) * fieldSize
-            const y = Math.floor((playerArr[i].PositionY + fieldSize/2)/fieldSize) * fieldSize
-            ctx.fillRect(x,y , fieldSize , fieldSize)
-            break
+    for(let i = 0; i < playerArr.length; i++) {
+        if (playerArr[i].UserID == userId) {
+            currentUser = playerArr[i]
+            return
         }
     }
+}
+
+function drawPlayerPosClient() {
+    if(currentUser == null){return}
+    ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+    const x = Math.floor((currentUser.PositionX + fieldSize/2)/fieldSize) * fieldSize
+    const y = Math.floor((currentUser.PositionY + fieldSize/2)/fieldSize) * fieldSize
+    ctx.fillRect(x,y , fieldSize , fieldSize)
 }
 
 
