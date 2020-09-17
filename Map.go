@@ -63,6 +63,7 @@ func (f *Field) addBomb(b *Bomb) {
 	} else {
 		f.Contains[0] = b
 	}
+	BuildAbstractGameMap()
 }
 
 func (f *Field) addWall(w *Wall) {
@@ -87,6 +88,7 @@ func (f *Field) explosion() bool {
 			if f.Contains[i].isDestructible() {
 				f.Contains[i] = nil
 			} else {
+				BuildAbstractGameMap()
 				return true
 			}
 		}
@@ -172,6 +174,7 @@ func (b *Bomb) startBomb() {
 	} else if GameMap.Fields[x][y].Contains[1] == b {
 		GameMap.Fields[x][y].Contains[1] = nil
 	}
+	BuildAbstractGameMap()
 }
 
 type Item struct {

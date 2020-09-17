@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 )
 
 //database
@@ -21,6 +22,7 @@ const (
 	GET_FETCH_ACTIVE_CONNECTIONS = "/fetchConnections/"
 	POST_LOGIN                   = "/login"
 	POST_REGISTER                = "/register"
+	GET_FETCH_USER_ID            = "/fetchUserId"
 )
 
 var db *sql.DB
@@ -51,6 +53,7 @@ func main() {
 	http.HandleFunc(POST_SAVEPICTURE, handleUploadImage)
 	http.HandleFunc(WEBSOCKET_TEST, handleWebsocketEndpoint)
 	http.HandleFunc(GET_FETCH_ACTIVE_CONNECTIONS, handleFetchActiveConnections)
+	http.HandleFunc(GET_FETCH_USER_ID, handleGetUserID)
 	log.Println("Server started...")
 	err = http.ListenAndServe(":2100", nil)
 	if err != nil {
@@ -58,10 +61,22 @@ func main() {
 	}
 }
 
+func handleGetUserID(w http.ResponseWriter, r *http.Request) {
+	log.Println("handling handleGetUserID request started...")
+	var user User
+	if dErr := CheckCookie(r, db, &user); dErr != nil {
+		log.Println(dErr.Error())
+		http.Error(w, dErr.PublicError(), dErr.Status())
+		return
+	}
+	w.Write([]byte(strconv.FormatUint(user.UserID, 10)))
+	log.Println("handling handleGetUserID request ended...")
+}
+
 func handleFetchActiveConnections(w http.ResponseWriter, r *http.Request) {
-	log.Println("handling fetch active connections request started...")
+	log.Println("handling fetch active Connections request started...")
 	w.Write([]byte(AllConnectionsAsString()))
-	log.Println("handling fetch active connections request ended...")
+	log.Println("handling fetch active Connections request ended...")
 }
 
 func handleWebsocketEndpoint(w http.ResponseWriter, r *http.Request) {

@@ -4,7 +4,6 @@ import (
 	"container/list"
 	"encoding/json"
 	"github.com/gorilla/websocket"
-	"github.com/umpc/go-sortedmap"
 	"log"
 	"strconv"
 	"time"
@@ -16,8 +15,14 @@ const STEP_SIZE = 4
 const CANVAS_SIZE = 500
 
 var GameMap = NewMap(CANVAS_SIZE / FIELD_SIZE)
-var connections = sortedmap.New(10, isLesserThan)
-var ticker = time.NewTicker(5 * time.Millisecond)
+var Connections = make(map[uint64]*Session, 0)
+var ticker = time.NewTicker(16 * time.Millisecond)
+var incomingTicker = time.NewTicker(1 * time.Millisecond)
+
+//Things send to the clients
+var bombermanArray = make([]Bomberman, 0)
+var abstractGameMap = make([][][]FieldObject, 0)
+var clientPackageAsJson = make([]byte, 0)
 
 type KeyInput struct {
 	Wpressed     bool `json:"w"`
@@ -32,7 +37,7 @@ type Bomberman struct {
 	PositionX      int
 	PositionY      int
 	Name           string
-	OldPositionX   int
+	oldPositionX   int
 	oldPositionY   int
 	lastBombPlaced time.Time
 	BombRadius     int
@@ -41,9 +46,9 @@ type Bomberman struct {
 }
 
 type ClientPackage struct {
-	Players    []Bomberman
-	GameMap    [][][]FieldObject
-	TestPlayer [][]int
+	Players []Bomberman
+	GameMap [][][]FieldObject
+	//TestPlayer [][]int
 }
 
 func (r *Bomberman) String() string {
@@ -55,7 +60,7 @@ func NewBomberman(userID uint64, positionX int, positionY int, name string) *Bom
 		UserID:       userID,
 		PositionX:    positionX,
 		PositionY:    positionY,
-		OldPositionX: positionX,
+		oldPositionX: positionX,
 		oldPositionY: positionY,
 		Name:         name,
 		BombRadius:   3,
@@ -90,17 +95,8 @@ func (r *Session) String() string {
 //Prints every active connection
 func AllConnectionsAsString() string {
 	result := "Active Connections:"
-
-	iterCh, err := connections.IterCh()
-
-	if err != nil {
-		log.Println(err)
-		return result
-	}
-	defer iterCh.Close()
-
-	for v := range iterCh.Records() {
-		result += v.Val.(*Session).String() + "\n"
+	for _, v := range Connections {
+		result += v.String() + "\n"
 	}
 	return result
 }
@@ -108,11 +104,12 @@ func AllConnectionsAsString() string {
 //Starts the interaction loop
 func StartPlayerLoop(session *Session) {
 	//Add the infos to the connection map
-	connections.Insert(session.User.UserID, session)
+	BuildAbstractGameMap()
+	Connections[session.User.UserID] = session
 	GameMap.Fields[0][0].Player.PushBack(session.Bomber)
 	playerWebsocketLoop(session)
 	//Remove from the connection map
-	connections.Delete(session.User.UserID)
+	delete(Connections, session.User.UserID)
 }
 
 //interaction loop
@@ -174,7 +171,7 @@ func updatePlayerPositioning(session *Session, x int, y int) bool {
 
 	//Change Pushback
 	if session.Bomber.isFieldAccessible(x, y) {
-		oldPosX := (session.Bomber.OldPositionX) / FIELD_SIZE
+		oldPosX := (session.Bomber.oldPositionX) / FIELD_SIZE
 		oldPosY := (session.Bomber.oldPositionY) / FIELD_SIZE
 		if posX != oldPosX {
 			removePlayerFromList(GameMap.Fields[oldPosX][posY].Player, session.Bomber)
@@ -217,7 +214,7 @@ func (r *Bomberman) isMovementLegal(x int, y int) bool { //r.positionX = 50
 				return false
 			}
 		}
-		r.OldPositionX = r.PositionX
+		r.oldPositionX = r.PositionX
 		r.oldPositionY = r.PositionY
 		return true
 	}
@@ -240,7 +237,7 @@ func (b *Bomberman) isFieldAccessible(x int, y int) bool {
 
 	isAccessible := isAccessNull && isAccessOne
 	if isAccessible {
-		b.OldPositionX = b.PositionX
+		b.oldPositionX = b.PositionX
 		b.oldPositionY = b.PositionY
 	}
 	return isAccessible
@@ -295,64 +292,52 @@ func UpdateClients() {
 
 func sendDataToClients() error {
 	//Create array from all connected Bombermen
-	sessions := make([]Bomberman, connections.Len())
+	bombermanArray = make([]Bomberman, len(Connections))
 	count := 0
 
-	iterCh, err := connections.IterCh()
-
-	if err != nil {
-		return nil
-	}
-	defer iterCh.Close()
-
-	for v := range iterCh.Records() {
-		sessions[count] = *v.Val.(*Session).Bomber
+	for _, v := range Connections {
+		bombermanArray[count] = *v.Bomber
 		count++
 	}
-	//Create map to send
-	mapToSend := make([][][]FieldObject, len(GameMap.Fields))
-	testToSend := make([][]int, len(GameMap.Fields))
-	for i, _ := range GameMap.Fields {
-		mapToSend[i] = make([][]FieldObject, len(GameMap.Fields[i]))
-		testToSend[i] = make([]int, len(GameMap.Fields[i]))
-		for j, _ := range GameMap.Fields[i] {
-			mapToSend[i][j] = make([]FieldObject, len(GameMap.Fields[i][j].Contains))
-			if GameMap.Fields[i][j].Player.Front() != nil {
-				testToSend[i][j] = 1
-			}
-			for k, _ := range GameMap.Fields[i][j].Contains {
-				if GameMap.Fields[i][j].Contains[k] != nil {
-					mapToSend[i][j][k] = GameMap.Fields[i][j].Contains[k].getType()
-				}
-			}
-		}
-	}
 
-	//Create ClientPackage to send to every client
-	clientPackage := ClientPackage{
-		Players:    sessions,
-		GameMap:    mapToSend,
-		TestPlayer: testToSend,
-	}
-
-	jsonBytes, err := json.MarshalIndent(clientPackage, "", " ")
+	var err error
+	clientPackageAsJson, err = json.Marshal(ClientPackage{
+		Players: bombermanArray,
+		GameMap: abstractGameMap,
+		//TestPlayer: testToSend,
+	})
 	if err != nil {
-
+		log.Println(err)
 		return err
 	}
-	iterCh, err = connections.IterCh()
 
-	if err != nil {
-		return nil
-	}
-
-	for v := range iterCh.Records() {
-
-		if err := v.Val.(*Session).Connection.WriteMessage(websocket.TextMessage, jsonBytes); err != nil {
+	for _, v := range Connections {
+		if err := v.Connection.WriteMessage(websocket.TextMessage, clientPackageAsJson); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func BuildAbstractGameMap() {
+	//Create map to send
+	abstractGameMap = make([][][]FieldObject, len(GameMap.Fields))
+	//testToSend := make([][]int, len(GameMap.Fields))
+	for i, _ := range GameMap.Fields {
+		abstractGameMap[i] = make([][]FieldObject, len(GameMap.Fields[i]))
+		//testToSend[i] = make([]int, len(GameMap.Fields[i]))
+		for j, _ := range GameMap.Fields[i] {
+			abstractGameMap[i][j] = make([]FieldObject, len(GameMap.Fields[i][j].Contains))
+			if GameMap.Fields[i][j].Player.Front() != nil {
+				//testToSend[i][j] = 1
+			}
+			for k, _ := range GameMap.Fields[i][j].Contains {
+				if GameMap.Fields[i][j].Contains[k] != nil {
+					abstractGameMap[i][j][k] = GameMap.Fields[i][j].Contains[k].getType()
+				}
+			}
+		}
+	}
 }
 
 func isLesserThan(a interface{}, b interface{}) bool {
