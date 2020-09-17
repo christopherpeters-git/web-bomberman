@@ -6,12 +6,12 @@ Server: Go
 Clientkommunikation: WebSockets
 
 Für die erfolgreiche Ausführung ist es notwendig, im root-Verzeichnis des Projekts eine go-Datei mit dem package "main" zu erstellen, in der folgende Konstanten vorhanden sein müssen:
-"DB_URL": Adresse mit Port des Datenbankservers
-"DB_NAME": Name der Datenbank
-"DB_USERNAME": Username des Users des Datenbankservers
-"DB_PASSWORD": Passwort des Users des Datenbankservers
++ "DB_URL": Adresse mit Port des Datenbankservers
++ "DB_NAME": Name der Datenbank
++ "DB_USERNAME": Username des Users des Datenbankservers
++ "DB_PASSWORD": Passwort des Users des Datenbankservers
 
-Der sql-Skript, um die Datenbank aufzubauen, ist in "databse.sql" zu finden.
+###Der sql-Skript, um die Datenbank aufzubauen, ist in "databse.sql" zu finden.
 
 
 
