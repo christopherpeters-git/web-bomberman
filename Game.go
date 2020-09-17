@@ -43,6 +43,8 @@ type Bomberman struct {
 	BombRadius     int
 	bombTime       int
 	IsAlive        bool
+	RealPosX       int
+	RealPosY       int
 }
 
 type ClientPackage struct {
@@ -66,6 +68,8 @@ func NewBomberman(userID uint64, positionX int, positionY int, name string) *Bom
 		BombRadius:   3,
 		bombTime:     3,
 		IsAlive:      true,
+		RealPosX:     positionX + FIELD_SIZE/2,
+		RealPosY:     positionY + FIELD_SIZE/2,
 	}
 }
 
@@ -129,33 +133,41 @@ func playerWebsocketLoop(session *Session) {
 		//	return
 		//}
 		if keys.Wpressed {
-			if session.Bomber.isMovementLegal(session.Bomber.PositionX, session.Bomber.PositionY-STEP_SIZE) {
+			if outerEdges(session.Bomber.RealPosX, session.Bomber.RealPosY-FIELD_SIZE/2) {
+				if session.Bomber.isMovementLegal(session.Bomber.PositionX, session.Bomber.PositionY-STEP_SIZE) {
 
-				session.Bomber.PositionY -= STEP_SIZE
-
+					session.Bomber.PositionY -= STEP_SIZE
+					session.Bomber.RealPosY -= STEP_SIZE
+				}
 			}
 		} else
 		//S
 		if keys.Spressed {
-			if session.Bomber.isMovementLegal(session.Bomber.PositionX, session.Bomber.PositionY+STEP_SIZE) {
+			if outerEdges(session.Bomber.RealPosX, session.Bomber.RealPosY+FIELD_SIZE/2) {
+				if session.Bomber.isMovementLegal(session.Bomber.PositionX, session.Bomber.PositionY+STEP_SIZE) {
 
-				session.Bomber.PositionY += STEP_SIZE
-
+					session.Bomber.PositionY += STEP_SIZE
+					session.Bomber.RealPosY += STEP_SIZE
+				}
 			}
 		} else
 		//A
 		if keys.Apressed {
-			if session.Bomber.isMovementLegal(session.Bomber.PositionX-STEP_SIZE, session.Bomber.PositionY) {
+			if outerEdges(session.Bomber.RealPosX-FIELD_SIZE/2, session.Bomber.RealPosY) {
+				if session.Bomber.isMovementLegal(session.Bomber.PositionX-STEP_SIZE, session.Bomber.PositionY) {
 
-				session.Bomber.PositionX -= STEP_SIZE
-
+					session.Bomber.PositionX -= STEP_SIZE
+					session.Bomber.RealPosX -= STEP_SIZE
+				}
 			}
 		} else
 		//D
 		if keys.Dpressed {
-			if session.Bomber.isMovementLegal(session.Bomber.PositionX+STEP_SIZE, session.Bomber.PositionY) {
-				session.Bomber.PositionX += STEP_SIZE
-
+			if outerEdges(session.Bomber.RealPosX+FIELD_SIZE/2, session.Bomber.RealPosY) {
+				if session.Bomber.isMovementLegal(session.Bomber.PositionX+STEP_SIZE, session.Bomber.PositionY) {
+					session.Bomber.PositionX += STEP_SIZE
+					session.Bomber.RealPosX += STEP_SIZE
+				}
 			}
 		}
 		//Spacebar
@@ -187,7 +199,7 @@ func updatePlayerPositioning(session *Session, x int, y int) bool {
 	return false
 }
 
-func (r *Bomberman) isMovementLegal(x int, y int) bool { //r.positionX = 50
+func (r *Bomberman) isMovementLegal(x int, y int) bool {
 	if x < 0 || y < 0 || x > (len(GameMap.Fields)-1)*FIELD_SIZE || y > (len(GameMap.Fields[x/FIELD_SIZE])-1)*FIELD_SIZE {
 		return false
 	}
@@ -240,6 +252,29 @@ func (b *Bomberman) isFieldAccessible(x int, y int) bool {
 		b.oldPositionX = b.PositionX
 		b.oldPositionY = b.PositionY
 	}
+	return isAccessible
+}
+
+func outerEdges(x int, y int) bool {
+	if x < 0 || y < 0 || x > (len(GameMap.Fields)-1)*FIELD_SIZE || y > (len(GameMap.Fields[x/FIELD_SIZE])-1)*FIELD_SIZE {
+		return true
+	}
+	arrayPosX := x / FIELD_SIZE
+	arrayPosY := y / FIELD_SIZE
+	accessible0, accessible1 := true, true
+	if GameMap.Fields[arrayPosX][arrayPosY].Contains[0] != nil {
+		if GameMap.Fields[arrayPosX][arrayPosY].Contains[0].getType() == 1 {
+			return true
+		}
+		accessible0 = GameMap.Fields[arrayPosX][arrayPosY].Contains[0].isAccessible()
+	}
+	if GameMap.Fields[arrayPosX][arrayPosY].Contains[1] != nil {
+		if GameMap.Fields[arrayPosX][arrayPosY].Contains[1].getType() == 1 {
+			return true
+		}
+		accessible1 = GameMap.Fields[arrayPosX][arrayPosY].Contains[1].isAccessible()
+	}
+	isAccessible := accessible0 && accessible1
 	return isAccessible
 }
 
