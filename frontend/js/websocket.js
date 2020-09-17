@@ -40,7 +40,9 @@ socket.onmessage = (ev) => {
         + "X-Postion: " + incomingPackage.Players[0].PositionX + "<br>"
         + "Y-Postion: " + incomingPackage.Players[0].PositionY + "<br>"
         + "Spieler lebt: " + incomingPackage.Players[0].IsAlive + "<br>"
-        + "Bombenradius: " + incomingPackage.Players[0].BombRadius + "<br>" + "<br>";
+        + "Bombenradius: " + incomingPackage.Players[0].BombRadius + "<br>" + "<br>"
+        + "RealPosX: " + incomingPackage.Players[0].RealPosX + "<br>"
+        + "RealPosY: " + incomingPackage.Players[0].RealPosY + "<br>";
 
     drawElement("#ae1111",incomingPackage.GameMap, 3 )
     drawElement("#60f542",incomingPackage.GameMap, 2 )
