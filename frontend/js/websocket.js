@@ -34,7 +34,7 @@ socket.onopen = () => {
         })
         .then(text => {
             userId = text
-            console.log(userId)
+            console.log("User ID: " + userId)
         })
         .catch((reason => {
             console.log(reason)
@@ -161,10 +161,8 @@ function spaceKeyDownListener(event) {
     if(isBombLegal && event.key === " "){
         keyPresses[event.key] = true
         isBombLegal = false
-        console.log("lol1")
         setTimeout(()=>{
             isBombLegal = true
-            console.log("lol2")
         },1000)
     }
 }

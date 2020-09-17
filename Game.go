@@ -43,8 +43,8 @@ type Bomberman struct {
 	BombRadius     int
 	bombTime       int
 	IsAlive        bool
-	RealPosX       int
-	RealPosY       int
+	realPosX       int
+	realPosY       int
 }
 
 type ClientPackage struct {
@@ -68,8 +68,8 @@ func NewBomberman(userID uint64, positionX int, positionY int, name string) *Bom
 		BombRadius:   3,
 		bombTime:     3,
 		IsAlive:      true,
-		RealPosX:     positionX + FIELD_SIZE/2,
-		RealPosY:     positionY + FIELD_SIZE/2,
+		realPosX:     positionX + FIELD_SIZE/2,
+		realPosY:     positionY + FIELD_SIZE/2,
 	}
 }
 
@@ -133,40 +133,40 @@ func playerWebsocketLoop(session *Session) {
 		//	return
 		//}
 		if keys.Wpressed {
-			if outerEdges(session.Bomber.RealPosX, session.Bomber.RealPosY-FIELD_SIZE/2) {
+			if outerEdges(session.Bomber.realPosX, session.Bomber.realPosY-FIELD_SIZE/2) {
 				if session.Bomber.isMovementLegal(session.Bomber.PositionX, session.Bomber.PositionY-STEP_SIZE) {
 
 					session.Bomber.PositionY -= STEP_SIZE
-					session.Bomber.RealPosY -= STEP_SIZE
+					session.Bomber.realPosY -= STEP_SIZE
 				}
 			}
 		} else
 		//S
 		if keys.Spressed {
-			if outerEdges(session.Bomber.RealPosX, session.Bomber.RealPosY+FIELD_SIZE/2) {
+			if outerEdges(session.Bomber.realPosX, session.Bomber.realPosY+FIELD_SIZE/2) {
 				if session.Bomber.isMovementLegal(session.Bomber.PositionX, session.Bomber.PositionY+STEP_SIZE) {
 
 					session.Bomber.PositionY += STEP_SIZE
-					session.Bomber.RealPosY += STEP_SIZE
+					session.Bomber.realPosY += STEP_SIZE
 				}
 			}
 		} else
 		//A
 		if keys.Apressed {
-			if outerEdges(session.Bomber.RealPosX-FIELD_SIZE/2, session.Bomber.RealPosY) {
+			if outerEdges(session.Bomber.realPosX-FIELD_SIZE/2, session.Bomber.realPosY) {
 				if session.Bomber.isMovementLegal(session.Bomber.PositionX-STEP_SIZE, session.Bomber.PositionY) {
 
 					session.Bomber.PositionX -= STEP_SIZE
-					session.Bomber.RealPosX -= STEP_SIZE
+					session.Bomber.realPosX -= STEP_SIZE
 				}
 			}
 		} else
 		//D
 		if keys.Dpressed {
-			if outerEdges(session.Bomber.RealPosX+FIELD_SIZE/2, session.Bomber.RealPosY) {
+			if outerEdges(session.Bomber.realPosX+FIELD_SIZE/2, session.Bomber.realPosY) {
 				if session.Bomber.isMovementLegal(session.Bomber.PositionX+STEP_SIZE, session.Bomber.PositionY) {
 					session.Bomber.PositionX += STEP_SIZE
-					session.Bomber.RealPosX += STEP_SIZE
+					session.Bomber.realPosX += STEP_SIZE
 				}
 			}
 		}
