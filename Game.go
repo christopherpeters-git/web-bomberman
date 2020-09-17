@@ -55,10 +55,12 @@ type Bomberman struct {
 	BombRadius     int
 	bombTime       int
 	IsAlive        bool
+	IsHit          bool
 	topRightPos    Position
 	topLeftPos     Position
 	bottomRightPos Position
 	bottomLeftPos  Position
+	stepMult       float32
 }
 
 type ClientPackage struct {
@@ -82,10 +84,12 @@ func NewBomberman(userID uint64, positionX int, positionY int, name string) *Bom
 		BombRadius:     3,
 		bombTime:       3,
 		IsAlive:        true,
+		IsHit:          false,
 		topRightPos:    newPosition(43, 7),
 		topLeftPos:     newPosition(7, 7),
 		bottomRightPos: newPosition(7, 43),
 		bottomLeftPos:  newPosition(43, 43),
+		stepMult:       1,
 	}
 }
 
@@ -145,53 +149,53 @@ func playerWebsocketLoop(session *Session) {
 			log.Println(err)
 			continue
 		}
-		//if !session.Bomber.IsAlive {
-		//	return
-		//}
+		if !session.Bomber.IsAlive {
+			return
+		}
 		if keys.Wpressed {
-			if session.Bomber.collisionWithSurroundings(0, -STEP_SIZE) {
-				if session.Bomber.isMovementLegal(session.Bomber.PositionX, session.Bomber.PositionY-STEP_SIZE) {
-					session.Bomber.topRightPos.updatePosition(0, -STEP_SIZE)
-					session.Bomber.topLeftPos.updatePosition(0, -STEP_SIZE)
-					session.Bomber.bottomRightPos.updatePosition(0, -STEP_SIZE)
-					session.Bomber.bottomLeftPos.updatePosition(0, -STEP_SIZE)
-					session.Bomber.PositionY -= STEP_SIZE
+			if session.Bomber.collisionWithSurroundings(0, -int(STEP_SIZE*session.Bomber.stepMult)) {
+				if session.Bomber.isMovementLegal(session.Bomber.PositionX, session.Bomber.PositionY-int(STEP_SIZE*session.Bomber.stepMult)) {
+					session.Bomber.topRightPos.updatePosition(0, -int(STEP_SIZE*session.Bomber.stepMult))
+					session.Bomber.topLeftPos.updatePosition(0, -int(STEP_SIZE*session.Bomber.stepMult))
+					session.Bomber.bottomRightPos.updatePosition(0, -int(STEP_SIZE*session.Bomber.stepMult))
+					session.Bomber.bottomLeftPos.updatePosition(0, -int(STEP_SIZE*session.Bomber.stepMult))
+					session.Bomber.PositionY -= int(STEP_SIZE * session.Bomber.stepMult)
 				}
 			}
 		} else
 		//S
 		if keys.Spressed {
-			if session.Bomber.collisionWithSurroundings(0, STEP_SIZE) {
-				if session.Bomber.isMovementLegal(session.Bomber.PositionX, session.Bomber.PositionY+STEP_SIZE) {
-					session.Bomber.topRightPos.updatePosition(0, STEP_SIZE)
-					session.Bomber.topLeftPos.updatePosition(0, STEP_SIZE)
-					session.Bomber.bottomRightPos.updatePosition(0, STEP_SIZE)
-					session.Bomber.bottomLeftPos.updatePosition(0, STEP_SIZE)
-					session.Bomber.PositionY += STEP_SIZE
+			if session.Bomber.collisionWithSurroundings(0, int(STEP_SIZE*session.Bomber.stepMult)) {
+				if session.Bomber.isMovementLegal(session.Bomber.PositionX, session.Bomber.PositionY+int(STEP_SIZE*session.Bomber.stepMult)) {
+					session.Bomber.topRightPos.updatePosition(0, int(STEP_SIZE*session.Bomber.stepMult))
+					session.Bomber.topLeftPos.updatePosition(0, int(STEP_SIZE*session.Bomber.stepMult))
+					session.Bomber.bottomRightPos.updatePosition(0, int(STEP_SIZE*session.Bomber.stepMult))
+					session.Bomber.bottomLeftPos.updatePosition(0, int(STEP_SIZE*session.Bomber.stepMult))
+					session.Bomber.PositionY += int(STEP_SIZE * session.Bomber.stepMult)
 				}
 			}
 		} else
 		//A
 		if keys.Apressed {
-			if session.Bomber.collisionWithSurroundings(-STEP_SIZE, 0) {
-				if session.Bomber.isMovementLegal(session.Bomber.PositionX-STEP_SIZE, session.Bomber.PositionY) {
-					session.Bomber.topRightPos.updatePosition(-STEP_SIZE, 0)
-					session.Bomber.topLeftPos.updatePosition(-STEP_SIZE, 0)
-					session.Bomber.bottomRightPos.updatePosition(-STEP_SIZE, 0)
-					session.Bomber.bottomLeftPos.updatePosition(-STEP_SIZE, 0)
-					session.Bomber.PositionX -= STEP_SIZE
+			if session.Bomber.collisionWithSurroundings(-int(STEP_SIZE*session.Bomber.stepMult), 0) {
+				if session.Bomber.isMovementLegal(session.Bomber.PositionX-int(STEP_SIZE*session.Bomber.stepMult), session.Bomber.PositionY) {
+					session.Bomber.topRightPos.updatePosition(-int(STEP_SIZE*session.Bomber.stepMult), 0)
+					session.Bomber.topLeftPos.updatePosition(-int(STEP_SIZE*session.Bomber.stepMult), 0)
+					session.Bomber.bottomRightPos.updatePosition(-int(STEP_SIZE*session.Bomber.stepMult), 0)
+					session.Bomber.bottomLeftPos.updatePosition(-int(STEP_SIZE*session.Bomber.stepMult), 0)
+					session.Bomber.PositionX -= int(STEP_SIZE * session.Bomber.stepMult)
 				}
 			}
 		} else
 		//D
 		if keys.Dpressed {
-			if session.Bomber.collisionWithSurroundings(STEP_SIZE, 0) {
-				if session.Bomber.isMovementLegal(session.Bomber.PositionX+STEP_SIZE, session.Bomber.PositionY) {
-					session.Bomber.topRightPos.updatePosition(STEP_SIZE, 0)
-					session.Bomber.topLeftPos.updatePosition(STEP_SIZE, 0)
-					session.Bomber.bottomRightPos.updatePosition(STEP_SIZE, 0)
-					session.Bomber.bottomLeftPos.updatePosition(STEP_SIZE, 0)
-					session.Bomber.PositionX += STEP_SIZE
+			if session.Bomber.collisionWithSurroundings(int(STEP_SIZE*session.Bomber.stepMult), 0) {
+				if session.Bomber.isMovementLegal(session.Bomber.PositionX+int(STEP_SIZE*session.Bomber.stepMult), session.Bomber.PositionY) {
+					session.Bomber.topRightPos.updatePosition(int(STEP_SIZE*session.Bomber.stepMult), 0)
+					session.Bomber.topLeftPos.updatePosition(int(STEP_SIZE*session.Bomber.stepMult), 0)
+					session.Bomber.bottomRightPos.updatePosition(int(STEP_SIZE*session.Bomber.stepMult), 0)
+					session.Bomber.bottomLeftPos.updatePosition(int(STEP_SIZE*session.Bomber.stepMult), 0)
+					session.Bomber.PositionX += int(STEP_SIZE * session.Bomber.stepMult)
 				}
 			}
 		}
@@ -199,9 +203,34 @@ func playerWebsocketLoop(session *Session) {
 		if keys.SpacePressed {
 			go session.Bomber.placeBomb()
 		}
+		checkItem(session)
+
 	}
 
 }
+
+func checkItem(session *Session) {
+	arrayPosX := (session.Bomber.PositionX + FIELD_SIZE/2) / FIELD_SIZE
+	arrayPosY := (session.Bomber.PositionY + FIELD_SIZE/2) / FIELD_SIZE
+
+	for i := 0; i < len(GameMap.Fields[arrayPosX][arrayPosY].Contains); i++ {
+		if GameMap.Fields[arrayPosX][arrayPosY].Contains[i] != nil {
+			if GameMap.Fields[arrayPosX][arrayPosY].Contains[i].getType() == 6 {
+				session.Bomber.stepMult = 2
+				GameMap.Fields[arrayPosX][arrayPosY].Contains[i] = nil
+				BuildAbstractGameMap()
+				time.AfterFunc(7*time.Second, func() { session.Bomber.stepMult = 1 })
+			} else if GameMap.Fields[arrayPosX][arrayPosY].Contains[i].getType() == 7 {
+				session.Bomber.stepMult = 0.3
+				GameMap.Fields[arrayPosX][arrayPosY].Contains[i] = nil
+				BuildAbstractGameMap()
+				time.AfterFunc(5*time.Second, func() { session.Bomber.stepMult = 1 })
+			}
+
+		}
+	}
+}
+
 func updatePlayerPositioning(session *Session, x int, y int) bool {
 	posX := x / FIELD_SIZE
 	posY := y / FIELD_SIZE

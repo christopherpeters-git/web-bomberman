@@ -26,6 +26,7 @@ const (
 	FieldObjectItemUpgrade   FieldObject = 4
 	FieldObjectItemDowngrade FieldObject = 5
 	FieldObjectItemBoost     FieldObject = 6
+	FieldObjectItemSlow      FieldObject = 7
 )
 
 type Map struct {
@@ -71,6 +72,13 @@ func (f *Field) addWall(w *Wall) {
 		f.Contains[1] = w
 	} else {
 		f.Contains[0] = w
+	}
+}
+func (f *Field) addItem(i *Item) {
+	if f.Contains[0] != nil {
+		f.Contains[1] = i
+	} else {
+		f.Contains[0] = i
 	}
 }
 
@@ -244,6 +252,8 @@ func FillTestMap(m Map) {
 	w17 := NewWall(false)
 	w18 := NewWall(false)
 	w19 := NewWall(false)
+	i0 := NewItem(FieldObjectItemBoost)
+	i1 := NewItem(FieldObjectItemSlow)
 	m.Fields[3][0].addWall(w0)
 	m.Fields[5][0].addWall(w1)
 	m.Fields[2][1].addWall(w10)
@@ -264,4 +274,6 @@ func FillTestMap(m Map) {
 	m.Fields[4][4].addWall(w9)
 	m.Fields[1][5].addWall(w18)
 	m.Fields[2][5].addWall(w19)
+	m.Fields[8][8].addItem(&i0)
+	m.Fields[8][6].addItem(&i1)
 }

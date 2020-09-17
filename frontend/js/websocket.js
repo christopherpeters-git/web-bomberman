@@ -13,6 +13,8 @@ let wallImg = new Image();
 let wallImg2 = new Image();
 let grassImg = new Image();
 let bombImg = new Image();
+let itemBoostImg = new Image()
+let itemSlowImg = new Image()
 
 const nameLabel = document.createElement("p");
 const posXLabel = document.createElement("p");
@@ -68,6 +70,8 @@ socket.onmessage = (ev) => {
     drawImage(wallImg, incomingPackage.GameMap, 3);
     drawImage(wallImg2, incomingPackage.GameMap, 2)
     drawImage(bombImg, incomingPackage.GameMap, 1)
+    drawImage(itemBoostImg, incomingPackage.GameMap, 6)
+    drawImage(itemSlowImg, incomingPackage.GameMap, 7)
 }
 
 function initGame(){
@@ -77,6 +81,8 @@ function initGame(){
     grassImg.src = "media/grass.png"
     bombImg.src = "media/bomb.png"
     playerChar.src = "media/gumbi.png"
+    itemBoostImg.src = "media/speeditem.png"
+    itemSlowImg.src = "media/slowitem.png"
 
     info.append(nameLabel);
     info.append(posXLabel);
