@@ -1,4 +1,4 @@
-// let testContainer = document.getElementById("test");
+let testContainer = document.getElementById("test");
 const ctx = document.getElementById("matchfield").getContext("2d")
 const fieldSize = 50
 let socket = new WebSocket("ws://localhost:2100/ws-test/")
@@ -7,9 +7,19 @@ let ticker;
 let isBombLegal = true;
 let keyPresses = {};
 let userId = "";
+
+let wallImg = new Image();
+let wallImg2 = new Image();
+let grassImg = new Image();
+let bombImg = new Image();
+playerChar.src = "media/player.png"
+wallImg.src ="media/wallBreak.png"
+wallImg2.src ="media/wallBreak2.png"
+grassImg.src = "media/grass.png"
+bombImg.src = "media/bomb.png"
+
 playerChar.src = "media/player1.png"
 console.log("Attempting Websocket connection")
-
 socket.onopen = () => {
     ticker = setInterval(function(){
         socket.send(JSON.stringify(keyPresses))
@@ -45,18 +55,16 @@ socket.onmessage = (ev) => {
     if (ctx !== null && incomingPackage !== null){
         ctx.clearRect(0, 0, 500, 500);
         drawGrid(500, 500, "matchfield");
-
+        background(grassImg, incomingPackage.GameMap);
+        drawPlayerPosClient(incomingPackage.Players);
         for(let i = 0; i < incomingPackage.Players.length; i++){
             ctx.fillText(incomingPackage.Players[i].Name,incomingPackage.Players[i].PositionX + 15,incomingPackage.Players[i].PositionY - 5, 100);
             ctx.drawImage(playerChar, incomingPackage.Players[i].PositionX, incomingPackage.Players[i].PositionY, 50, 50);
         }
     }
-
-    drawElement("#ae1111",incomingPackage.GameMap, 3 )
-    drawElement("#60f542",incomingPackage.GameMap, 2 )
-    drawElement("#000000",incomingPackage.GameMap, 1 )
-    drawPlayerPosClient(incomingPackage.Players)
-    // drawPlayersPos(incomingPackage.TestPlayer)
+    drawImage(wallImg, incomingPackage.GameMap, 3);
+    drawImage(wallImg2, incomingPackage.GameMap, 2)
+    drawImage(bombImg, incomingPackage.GameMap, 1)
 }
 
 function drawElement (color, map, type){
@@ -68,6 +76,24 @@ function drawElement (color, map, type){
                     ctx.fillRect(i * fieldSize, j * fieldSize, fieldSize ,fieldSize)
                 }
             }
+        }
+    }
+}
+function drawImage (img, map, type){
+    for (i = 0; i < map.length; i++){
+        for (j = 0; j < map[i].length; j++) {
+            for (k = 0; k < map[i][j].length; k++){
+                if (map[i][j][k] === type) {
+                    ctx.drawImage(img, i *50, j * 50, 50, 50);
+                }
+            }
+        }
+    }
+}
+function background (img, map){
+    for (i = 0; i < map.length; i++){
+        for (j = 0; j < map[i].length; j++) {
+                         ctx.drawImage(img, i *50, j * 50, 50, 50);
         }
     }
 }
