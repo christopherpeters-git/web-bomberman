@@ -3,14 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Game</title>
+    <title>Bomberman</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <link rel='icon' href='/media/favicon.ico' type='image/x-icon'/>
     <link rel="stylesheet" href="/css/game.css" />
-
 </head>
 <body>
-<canvas id="matchfield" width="500" height="500"></canvas>
-<div id="info"></div>
+<audio src="/media/abgehen.mp3" autoplay loop></audio>
+<div class="testCont">
+    <canvas id="matchfield" width="500" height="500"></canvas>
+    <div id="info">
+        <div class="shadowCont">
+        </div>
+    </div>
+</div>
+
 
 </body>
 <script src="js/websocket.js"></script>

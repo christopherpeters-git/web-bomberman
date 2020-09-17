@@ -1,4 +1,4 @@
-const info = document.querySelector('#info')
+const info = document.querySelector('.shadowCont')
 const ctx = document.getElementById("matchfield").getContext("2d")
 const fieldSize = 50
 let socket = new WebSocket("ws://localhost:2100/ws-test/")
@@ -76,7 +76,7 @@ function initGame(){
     wallImg2.src ="media/wallBreak2.png"
     grassImg.src = "media/grass.png"
     bombImg.src = "media/bomb.png"
-    playerChar.src = "media/player1.png"
+    playerChar.src = "media/gumbi.png"
 
     info.append(nameLabel);
     info.append(posXLabel);
