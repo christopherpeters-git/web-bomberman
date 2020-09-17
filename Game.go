@@ -132,6 +132,10 @@ func StartPlayerLoop(session *Session) {
 	Connections[session.User.UserID] = session
 	GameMap.Fields[0][0].Player.PushBack(session.Bomber)
 	playerWebsocketLoop(session)
+	//Remove player from list at his last array position
+	x := session.Bomber.PositionX / FIELD_SIZE
+	y := session.Bomber.PositionY / FIELD_SIZE
+	removePlayerFromList(GameMap.Fields[x][y].Player, session.Bomber)
 	//Remove from the connection map
 	delete(Connections, session.User.UserID)
 }
