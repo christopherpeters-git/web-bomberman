@@ -24,6 +24,18 @@ var bombermanArray = make([]Bomberman, 0)
 var abstractGameMap = make([][][]FieldObject, 0)
 var clientPackageAsJson = make([]byte, 0)
 
+type Position struct {
+	x int
+	y int
+}
+
+func newPosition(x int, y int) Position {
+	return Position{
+		x: x,
+		y: y,
+	}
+}
+
 type KeyInput struct {
 	Wpressed     bool `json:"w"`
 	Spressed     bool `json:"s"`
@@ -43,8 +55,10 @@ type Bomberman struct {
 	BombRadius     int
 	bombTime       int
 	IsAlive        bool
-	realPosX       int
-	realPosY       int
+	topRightPos    Position
+	topLeftPos     Position
+	bottomRightPos Position
+	bottomLeftPos  Position
 }
 
 type ClientPackage struct {
@@ -59,17 +73,19 @@ func (r *Bomberman) String() string {
 
 func NewBomberman(userID uint64, positionX int, positionY int, name string) *Bomberman {
 	return &Bomberman{
-		UserID:       userID,
-		PositionX:    positionX,
-		PositionY:    positionY,
-		oldPositionX: positionX,
-		oldPositionY: positionY,
-		Name:         name,
-		BombRadius:   3,
-		bombTime:     3,
-		IsAlive:      true,
-		realPosX:     positionX + FIELD_SIZE/2,
-		realPosY:     positionY + FIELD_SIZE/2,
+		UserID:         userID,
+		PositionX:      positionX,
+		PositionY:      positionY,
+		oldPositionX:   positionX,
+		oldPositionY:   positionY,
+		Name:           name,
+		BombRadius:     3,
+		bombTime:       3,
+		IsAlive:        true,
+		topRightPos:    newPosition(43, 7),
+		topLeftPos:     newPosition(7, 7),
+		bottomRightPos: newPosition(7, 43),
+		bottomLeftPos:  newPosition(43, 43),
 	}
 }
 
@@ -133,40 +149,49 @@ func playerWebsocketLoop(session *Session) {
 		//	return
 		//}
 		if keys.Wpressed {
-			if outerEdges(session.Bomber.realPosX, session.Bomber.realPosY-FIELD_SIZE/2) {
+			if session.Bomber.collisionWithSurroundings(0, -STEP_SIZE) {
 				if session.Bomber.isMovementLegal(session.Bomber.PositionX, session.Bomber.PositionY-STEP_SIZE) {
-
+					session.Bomber.topRightPos.updatePosition(0, -STEP_SIZE)
+					session.Bomber.topLeftPos.updatePosition(0, -STEP_SIZE)
+					session.Bomber.bottomRightPos.updatePosition(0, -STEP_SIZE)
+					session.Bomber.bottomLeftPos.updatePosition(0, -STEP_SIZE)
 					session.Bomber.PositionY -= STEP_SIZE
-					session.Bomber.realPosY -= STEP_SIZE
 				}
 			}
 		} else
 		//S
 		if keys.Spressed {
-			if outerEdges(session.Bomber.realPosX, session.Bomber.realPosY+FIELD_SIZE/2) {
+			if session.Bomber.collisionWithSurroundings(0, STEP_SIZE) {
 				if session.Bomber.isMovementLegal(session.Bomber.PositionX, session.Bomber.PositionY+STEP_SIZE) {
-
+					session.Bomber.topRightPos.updatePosition(0, STEP_SIZE)
+					session.Bomber.topLeftPos.updatePosition(0, STEP_SIZE)
+					session.Bomber.bottomRightPos.updatePosition(0, STEP_SIZE)
+					session.Bomber.bottomLeftPos.updatePosition(0, STEP_SIZE)
 					session.Bomber.PositionY += STEP_SIZE
-					session.Bomber.realPosY += STEP_SIZE
 				}
 			}
 		} else
 		//A
 		if keys.Apressed {
-			if outerEdges(session.Bomber.realPosX-FIELD_SIZE/2, session.Bomber.realPosY) {
+			if session.Bomber.collisionWithSurroundings(-STEP_SIZE, 0) {
 				if session.Bomber.isMovementLegal(session.Bomber.PositionX-STEP_SIZE, session.Bomber.PositionY) {
-
+					session.Bomber.topRightPos.updatePosition(-STEP_SIZE, 0)
+					session.Bomber.topLeftPos.updatePosition(-STEP_SIZE, 0)
+					session.Bomber.bottomRightPos.updatePosition(-STEP_SIZE, 0)
+					session.Bomber.bottomLeftPos.updatePosition(-STEP_SIZE, 0)
 					session.Bomber.PositionX -= STEP_SIZE
-					session.Bomber.realPosX -= STEP_SIZE
 				}
 			}
 		} else
 		//D
 		if keys.Dpressed {
-			if outerEdges(session.Bomber.realPosX+FIELD_SIZE/2, session.Bomber.realPosY) {
+			if session.Bomber.collisionWithSurroundings(STEP_SIZE, 0) {
 				if session.Bomber.isMovementLegal(session.Bomber.PositionX+STEP_SIZE, session.Bomber.PositionY) {
+					session.Bomber.topRightPos.updatePosition(STEP_SIZE, 0)
+					session.Bomber.topLeftPos.updatePosition(STEP_SIZE, 0)
+					session.Bomber.bottomRightPos.updatePosition(STEP_SIZE, 0)
+					session.Bomber.bottomLeftPos.updatePosition(STEP_SIZE, 0)
 					session.Bomber.PositionX += STEP_SIZE
-					session.Bomber.realPosX += STEP_SIZE
 				}
 			}
 		}
@@ -278,6 +303,15 @@ func outerEdges(x int, y int) bool {
 	return isAccessible
 }
 
+func (b *Bomberman) collisionWithSurroundings(xOffset int, yOffset int) bool {
+	topRight := outerEdges(b.topRightPos.x+xOffset, b.topRightPos.y+yOffset)
+	topLeft := outerEdges(b.topLeftPos.x+xOffset, b.topLeftPos.y+yOffset)
+	bottomRight := outerEdges(b.bottomRightPos.x+xOffset, b.bottomRightPos.y+yOffset)
+	bottomLeft := outerEdges(b.bottomLeftPos.x+xOffset, b.bottomLeftPos.y+yOffset)
+	legal := topRight && topLeft && bottomRight && bottomLeft
+	return legal
+}
+
 func printList(list *list.List) {
 	element := list.Front()
 	if element == nil {
@@ -377,4 +411,9 @@ func BuildAbstractGameMap() {
 
 func isLesserThan(a interface{}, b interface{}) bool {
 	return a.(*Session).User.UserID < b.(*Session).User.UserID
+}
+
+func (p *Position) updatePosition(xOffset int, yOffset int) {
+	p.x += xOffset
+	p.y += yOffset
 }
