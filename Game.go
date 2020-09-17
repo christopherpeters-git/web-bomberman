@@ -168,27 +168,6 @@ func playerWebsocketLoop(session *Session) {
 	}
 
 }
-func updatePlayerPositioning(session *Session, x int, y int) bool {
-	posX := x / FIELD_SIZE
-	posY := y / FIELD_SIZE
-
-	//Change Pushback
-	if session.Bomber.isFieldAccessible(x, y) {
-		oldPosX := (session.Bomber.OldPositionX) / FIELD_SIZE
-		oldPosY := (session.Bomber.oldPositionY) / FIELD_SIZE
-		if posX != oldPosX {
-			removePlayerFromList(GameMap.Fields[oldPosX][posY].Player, session.Bomber)
-			GameMap.Fields[posX][posY].Player.PushBack(session.Bomber)
-			//log.Println(GameMap.Fields[posX][posY].Player)
-		} else if posY != oldPosY {
-			removePlayerFromList(GameMap.Fields[posX][oldPosY].Player, session.Bomber)
-			GameMap.Fields[posX][posY].Player.PushBack(session.Bomber)
-			//log.Println(GameMap.Fields[posX][posY].Player)
-		}
-		return true
-	}
-	return false
-}
 
 func (r *Bomberman) isMovementLegal(x int, y int) bool { //r.positionX = 50
 	if x < 0 || y < 0 || x > (len(GameMap.Fields)-1)*FIELD_SIZE || y > (len(GameMap.Fields[x/FIELD_SIZE])-1)*FIELD_SIZE {

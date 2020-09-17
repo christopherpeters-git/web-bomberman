@@ -49,8 +49,8 @@ func main() {
 	http.HandleFunc(POST_REGISTER, handleRegister)
 	http.HandleFunc(POST_LOGIN, handleLogin)
 	http.HandleFunc(POST_SAVEPICTURE, handleUploadImage)
-	http.HandleFunc(WEBSOCKET_TEST, handleWebsocketEndpoint)
-	http.HandleFunc(GET_FETCH_ACTIVE_CONNECTIONS, handleFetchActiveConnections)
+	go http.HandleFunc(WEBSOCKET_TEST, handleWebsocketEndpoint)
+	go http.HandleFunc(GET_FETCH_ACTIVE_CONNECTIONS, handleFetchActiveConnections)
 	log.Println("Server started...")
 	err = http.ListenAndServe(":2100", nil)
 	if err != nil {
@@ -60,7 +60,7 @@ func main() {
 
 func handleFetchActiveConnections(w http.ResponseWriter, r *http.Request) {
 	log.Println("handling fetch active connections request started...")
-	w.Write([]byte(AllConnectionsAsString()))
+	go w.Write([]byte(AllConnectionsAsString()))
 	log.Println("handling fetch active connections request ended...")
 }
 
@@ -145,7 +145,7 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 		log.Println(err.Error())
 	}
 	w.WriteHeader(http.StatusOK)
-	w.Write(userAsJson)
+	go w.Write(userAsJson)
 	log.Println("Login successfully handled")
 
 }
@@ -216,6 +216,6 @@ func handleCookie(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, glo.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
 		return
 	}
-	w.Write(userAsJson)
+	go w.Write(userAsJson)
 	log.Println("cookie handled successfully")
 }

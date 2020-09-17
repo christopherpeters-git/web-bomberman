@@ -2,9 +2,15 @@ let testContainer = document.getElementById("test");
 const ctx = document.getElementById("matchfield").getContext("2d")
 let socket = new WebSocket("ws://localhost:2100/ws-test/")
 let playerChar = new Image();
+let wallImg = new Image();
+let wallImg2 = new Image();
+let grassImg = new Image();
 let ticker;
 let keyPresses = {};
 playerChar.src = "media/player1.png"
+wallImg.src ="media/wallBreak.png"
+wallImg2.src ="media/wallBreak2.png"
+grassImg.src = "media/grass.png"
 console.log("Attempting Websocket connection")
 
 console.log(testContainer);
@@ -28,7 +34,7 @@ socket.onmessage = (ev) => {
     if (ctx !== null && incomingPackage !== null){
         ctx.clearRect(0, 0, 500, 500);
         drawGrid(500, 500, "matchfield");
-
+        background(grassImg, incomingPackage.GameMap);
         for(let i = 0; i < incomingPackage.Players.length; i++){
             ctx.fillText(incomingPackage.Players[i].Name,incomingPackage.Players[i].PositionX + 15,incomingPackage.Players[i].PositionY - 5, 100);
             ctx.drawImage(playerChar, incomingPackage.Players[i].PositionX, incomingPackage.Players[i].PositionY, 50, 50);
@@ -42,10 +48,12 @@ socket.onmessage = (ev) => {
         + "Spieler lebt: " + incomingPackage.Players[0].IsAlive + "<br>"
         + "Bombenradius: " + incomingPackage.Players[0].BombRadius + "<br>" + "<br>";
 
-    drawElement("#ae1111",incomingPackage.GameMap, 3 )
-    drawElement("#60f542",incomingPackage.GameMap, 2 )
-    drawElement("#000000",incomingPackage.GameMap, 1 )
-    drawPlayersPos(incomingPackage.TestPlayer)
+
+
+    drawImage(wallImg, incomingPackage.GameMap, 3);
+    drawImage(wallImg2, incomingPackage.GameMap, 2)
+    drawElement("#000000",incomingPackage.GameMap, 1 );
+    drawPlayersPos(incomingPackage.TestPlayer);
 }
 
 function drawElement (color, map, type){
@@ -60,6 +68,31 @@ function drawElement (color, map, type){
         }
     }
 }
+function drawImage (img, map, type){
+    for (i = 0; i < map.length; i++){
+        for (j = 0; j < map[i].length; j++) {
+            for (k = 0; k < map[i][j].length; k++){
+                if (map[i][j][k] === type) {
+                    ctx.drawImage(img, i *50, j * 50, 50, 50);
+                }
+            }
+        }
+    }
+}
+
+function background (img, map){
+    for (i = 0; i < map.length; i++){
+        for (j = 0; j < map[i].length; j++) {
+
+
+                    ctx.drawImage(img, i *50, j * 50, 50, 50);
+
+
+        }
+    }
+}
+
+
 function drawPlayersPos(playerArr) {
     for (i = 0; i < playerArr.length; i++){
         for (j = 0; j < playerArr[i].length; j++) {
