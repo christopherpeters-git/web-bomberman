@@ -213,6 +213,7 @@ func checkItem(session *Session) {
 	arrayPosX := (session.Bomber.PositionX + FIELD_SIZE/2) / FIELD_SIZE
 	arrayPosY := (session.Bomber.PositionY + FIELD_SIZE/2) / FIELD_SIZE
 
+	//!time.AfterFunc calls new goroutine automatically!
 	for i := 0; i < len(GameMap.Fields[arrayPosX][arrayPosY].Contains); i++ {
 		if GameMap.Fields[arrayPosX][arrayPosY].Contains[i] != nil {
 			if GameMap.Fields[arrayPosX][arrayPosY].Contains[i].getType() == 6 {
