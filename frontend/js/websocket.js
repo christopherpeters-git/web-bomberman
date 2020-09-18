@@ -64,17 +64,14 @@ socket.onmessage = (ev) => {
         background(grassImg, incomingPackage.GameMap);
         searchForUser(incomingPackage.Players)
         updateUserInfo()
-        if (currentUser != null && currentUser.GhostActive){
-            drawImageFromEnum(wallImg, incomingPackage.GameMap, 3);
-            drawImageFromEnum(wallImg2, incomingPackage.GameMap, 2);
-        }
+
         drawPlayerPosClient();
         for(let i = 0; i < incomingPackage.Players.length; i++){
             ctx.fillText(incomingPackage.Players[i].Name,incomingPackage.Players[i].PositionX + 15,incomingPackage.Players[i].PositionY - 5, 100);
-            if(currentUser != null &&currentUser.GhostActive){
+            if(incomingPackage.Players[i] != null && incomingPackage.Players[i].GhostActive){
                 ctx.globalAlpha = 0.5
             }
-            if (currentUser != null && currentUser.IsAlive){
+            if (incomingPackage.Players[i] != null && incomingPackage.Players[i].IsAlive){
                 ctx.drawImage(playerChar, incomingPackage.Players[i].PositionX, incomingPackage.Players[i].PositionY, fieldSize, fieldSize);
             }
             else {
@@ -84,10 +81,8 @@ socket.onmessage = (ev) => {
         }
     }
 
-    if (currentUser != null && !currentUser.GhostActive){
-        drawImageFromEnum(wallImg, gamemap, 3);
-        drawImageFromEnum(wallImg2, gamemap, 2);
-    }
+    drawImageFromEnum(wallImg, incomingPackage.GameMap, 3);
+    drawImageFromEnum(wallImg2, incomingPackage.GameMap, 2);
     drawImageFromEnum(bombImg, gamemap, 1);
     drawImageFromEnum(itemBoostImg, gamemap, 6);
     drawImageFromEnum(itemSlowImg, gamemap, 7);
