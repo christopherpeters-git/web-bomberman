@@ -16,6 +16,7 @@ let bombImg = new Image();
 let itemBoostImg = new Image()
 let itemSlowImg = new Image()
 let itemGhostImg = new Image()
+let playerGhostImg = new Image()
 
 const nameLabel = document.createElement("p");
 const posXLabel = document.createElement("p");
@@ -55,6 +56,7 @@ socket.onerror = (error) => {
 
 socket.onmessage = (ev) => {
     const incomingPackage = JSON.parse(ev.data);
+    const gamemap = incomingPackage.GameMap;
 
     if (ctx !== null && incomingPackage !== null){
         ctx.clearRect(0, 0, 500, 500);
@@ -62,22 +64,34 @@ socket.onmessage = (ev) => {
         background(grassImg, incomingPackage.GameMap);
         searchForUser(incomingPackage.Players)
         updateUserInfo()
+        if (currentUser != null && currentUser.GhostActive){
+            drawImageFromEnum(wallImg, incomingPackage.GameMap, 3);
+            drawImageFromEnum(wallImg2, incomingPackage.GameMap, 2);
+        }
         drawPlayerPosClient();
         for(let i = 0; i < incomingPackage.Players.length; i++){
             ctx.fillText(incomingPackage.Players[i].Name,incomingPackage.Players[i].PositionX + 15,incomingPackage.Players[i].PositionY - 5, 100);
-            if(currentUser.GhostActive){
+            if(currentUser != null &&currentUser.GhostActive){
                 ctx.globalAlpha = 0.5
             }
-            ctx.drawImage(playerChar, incomingPackage.Players[i].PositionX, incomingPackage.Players[i].PositionY, 50, 50);
+            if (currentUser != null && currentUser.IsAlive){
+                ctx.drawImage(playerChar, incomingPackage.Players[i].PositionX, incomingPackage.Players[i].PositionY, fieldSize, fieldSize);
+            }
+            else {
+                ctx.drawImage(playerGhostImg, incomingPackage.Players[i].PositionX, incomingPackage.Players[i].PositionY, fieldSize, fieldSize);
+            }
             ctx.globalAlpha = 1
         }
     }
-    drawImage(wallImg, incomingPackage.GameMap, 3);
-    drawImage(wallImg2, incomingPackage.GameMap, 2)
-    drawImage(bombImg, incomingPackage.GameMap, 1)
-    drawImage(itemBoostImg, incomingPackage.GameMap, 6)
-    drawImage(itemSlowImg, incomingPackage.GameMap, 7)
-    drawImage(itemGhostImg, incomingPackage.GameMap, 8)
+
+    if (currentUser != null && !currentUser.GhostActive){
+        drawImageFromEnum(wallImg, gamemap, 3);
+        drawImageFromEnum(wallImg2, gamemap, 2);
+    }
+    drawImageFromEnum(bombImg, gamemap, 1);
+    drawImageFromEnum(itemBoostImg, gamemap, 6);
+    drawImageFromEnum(itemSlowImg, gamemap, 7);
+    drawImageFromEnum(itemGhostImg, gamemap, 8);
 }
 
 function initGame(){
@@ -90,7 +104,7 @@ function initGame(){
     itemBoostImg.src = "media/speeditem.png"
     itemSlowImg.src = "media/slowitem.png"
     itemGhostImg.src = "media/ghostitem.png"
-
+    playerGhostImg.src = "media/ghostPlayer.png"
     info.append(nameLabel);
     info.append(posXLabel);
     info.append(posYLabel);
@@ -108,12 +122,12 @@ function drawElement (color, map, type){
         }
     }
 }
-function drawImage (img, map, type){
+function drawImageFromEnum (img, map, type){
     for (i = 0; i < map.length; i++){
         for (j = 0; j < map[i].length; j++) {
             for (k = 0; k < map[i][j].length; k++){
                 if (map[i][j][k] === type) {
-                    ctx.drawImage(img, i *50, j * 50, 50, 50);
+                    ctx.drawImage(img, i *fieldSize, j * fieldSize, fieldSize, fieldSize);
                 }
             }
         }
@@ -122,7 +136,7 @@ function drawImage (img, map, type){
 function background (img, map){
     for (i = 0; i < map.length; i++){
         for (j = 0; j < map[i].length; j++) {
-                         ctx.drawImage(img, i *50, j * 50, 50, 50);
+                         ctx.drawImage(img, i *fieldSize, j * fieldSize, fieldSize, fieldSize);
         }
     }
 }

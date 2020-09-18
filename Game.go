@@ -11,7 +11,7 @@ import (
 
 //commit comment
 const FIELD_SIZE = 50
-const STEP_SIZE = 4
+const STEP_SIZE = 3
 const CANVAS_SIZE = 500
 
 var GameMap = NewMap(CANVAS_SIZE / FIELD_SIZE)
@@ -229,7 +229,7 @@ func checkItem(session *Session) {
 			if GameMap.Fields[arrayPosX][arrayPosY].Contains[i].getType() == 6 {
 				//resets set timer, so the duration of item collected before doesnt count anymore
 				itemActive = true
-				session.Bomber.stepMult = 2
+				session.Bomber.stepMult = 1.8
 				GameMap.Fields[arrayPosX][arrayPosY].Contains[i] = nil
 				BuildAbstractGameMap()
 				time.AfterFunc(7*time.Second, func() {
@@ -238,7 +238,7 @@ func checkItem(session *Session) {
 				})
 			} else if GameMap.Fields[arrayPosX][arrayPosY].Contains[i].getType() == 7 {
 				itemActive = true
-				session.Bomber.stepMult = 0.3
+				session.Bomber.stepMult = 0.5
 				GameMap.Fields[arrayPosX][arrayPosY].Contains[i] = nil
 				BuildAbstractGameMap()
 				time.AfterFunc(5*time.Second, func() {

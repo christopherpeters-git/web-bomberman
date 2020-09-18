@@ -88,12 +88,12 @@ func (f *Field) explosion() bool {
 	if element != nil {
 		element.Value.(*Bomberman).IsAlive = false
 		element.Value.(*Bomberman).GhostActive = true
-		element.Value.(*Bomberman).stepMult = 0.4
+		element.Value.(*Bomberman).stepMult = 0.5
 		for element.Next() != nil {
 			element = element.Next()
 			element.Value.(*Bomberman).IsAlive = false
 			element.Value.(*Bomberman).GhostActive = true
-			element.Value.(*Bomberman).stepMult = 0.4
+			element.Value.(*Bomberman).stepMult = 0.5
 		}
 	}
 	for i := 0; i < 2; i++ {
