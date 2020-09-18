@@ -58,6 +58,7 @@ socket.onmessage = (ev) => {
     const incomingPackage = JSON.parse(ev.data);
     const gamemap = incomingPackage.GameMap;
 
+
     if (ctx !== null && incomingPackage !== null){
         ctx.clearRect(0, 0, 500, 500);
         drawGrid(500, 500, "matchfield");
@@ -65,28 +66,40 @@ socket.onmessage = (ev) => {
         searchForUser(incomingPackage.Players)
         updateUserInfo()
 
-        drawPlayerPosClient();
+
+        for(let i = 0; i < incomingPackage.Players.length; i++){
+
+            ctx.fillText(incomingPackage.Players[i].Name,incomingPackage.Players[i].PositionX + 15,incomingPackage.Players[i].PositionY - 5, 100);
+
+            if (incomingPackage.Players[i] != null && !incomingPackage.Players[i].GhostActive){
+                drawPlayerPosClient();
+                ctx.drawImage(playerChar, incomingPackage.Players[i].PositionX, incomingPackage.Players[i].PositionY, fieldSize, fieldSize);
+            }
+        }
+
+        drawImageFromEnum(wallImg, incomingPackage.GameMap, 3);
+        drawImageFromEnum(wallImg2, incomingPackage.GameMap, 2);
+        drawImageFromEnum(bombImg, gamemap, 1);
+        drawImageFromEnum(itemBoostImg, gamemap, 6);
+        drawImageFromEnum(itemSlowImg, gamemap, 7);
+        drawImageFromEnum(itemGhostImg, gamemap, 8);
+
         for(let i = 0; i < incomingPackage.Players.length; i++){
             ctx.fillText(incomingPackage.Players[i].Name,incomingPackage.Players[i].PositionX + 15,incomingPackage.Players[i].PositionY - 5, 100);
             if(incomingPackage.Players[i] != null && incomingPackage.Players[i].GhostActive){
+                drawPlayerPosClient();
                 ctx.globalAlpha = 0.5
+                if (incomingPackage.Players[i] != null && incomingPackage.Players[i].IsAlive){
+                    ctx.drawImage(playerChar, incomingPackage.Players[i].PositionX, incomingPackage.Players[i].PositionY, fieldSize, fieldSize);
+                }
+                else {
+                    ctx.drawImage(playerGhostImg, incomingPackage.Players[i].PositionX, incomingPackage.Players[i].PositionY, fieldSize, fieldSize);
+                }
+                ctx.globalAlpha = 1
             }
-            if (incomingPackage.Players[i] != null && incomingPackage.Players[i].IsAlive){
-                ctx.drawImage(playerChar, incomingPackage.Players[i].PositionX, incomingPackage.Players[i].PositionY, fieldSize, fieldSize);
-            }
-            else {
-                ctx.drawImage(playerGhostImg, incomingPackage.Players[i].PositionX, incomingPackage.Players[i].PositionY, fieldSize, fieldSize);
-            }
-            ctx.globalAlpha = 1
         }
     }
 
-    drawImageFromEnum(wallImg, incomingPackage.GameMap, 3);
-    drawImageFromEnum(wallImg2, incomingPackage.GameMap, 2);
-    drawImageFromEnum(bombImg, gamemap, 1);
-    drawImageFromEnum(itemBoostImg, gamemap, 6);
-    drawImageFromEnum(itemSlowImg, gamemap, 7);
-    drawImageFromEnum(itemGhostImg, gamemap, 8);
 }
 
 function initGame(){
