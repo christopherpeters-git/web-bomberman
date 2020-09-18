@@ -107,7 +107,7 @@ function initGame(){
     wallImg2.src ="media/wallBreak2.png"
     grassImg.src = "media/grass.png"
     bombImg.src = "media/bomb.png"
-    playerChar.src = "media/gumbi.png"
+    playerChar.src = "media/cutie2.png"
     itemBoostImg.src = "media/speeditem.png"
     itemSlowImg.src = "media/slowitem.png"
     itemGhostImg.src = "media/ghostitem.png"
