@@ -27,6 +27,7 @@ const (
 	FieldObjectItemDowngrade FieldObject = 5
 	FieldObjectItemBoost     FieldObject = 6
 	FieldObjectItemSlow      FieldObject = 7
+	FieldObjectItemGhost     FieldObject = 8
 )
 
 type Map struct {
@@ -86,9 +87,13 @@ func (f *Field) explosion() bool {
 	element := f.Player.Front()
 	if element != nil {
 		element.Value.(*Bomberman).IsAlive = false
+		element.Value.(*Bomberman).GhostActive = true
+		element.Value.(*Bomberman).stepMult = 0.4
 		for element.Next() != nil {
 			element = element.Next()
 			element.Value.(*Bomberman).IsAlive = false
+			element.Value.(*Bomberman).GhostActive = true
+			element.Value.(*Bomberman).stepMult = 0.4
 		}
 	}
 	for i := 0; i < 2; i++ {
@@ -254,6 +259,7 @@ func FillTestMap(m Map) {
 	w19 := NewWall(false)
 	i0 := NewItem(FieldObjectItemBoost)
 	i1 := NewItem(FieldObjectItemSlow)
+	i2 := NewItem(FieldObjectItemGhost)
 	m.Fields[3][0].addWall(w0)
 	m.Fields[5][0].addWall(w1)
 	m.Fields[2][1].addWall(w10)
@@ -276,4 +282,5 @@ func FillTestMap(m Map) {
 	m.Fields[2][5].addWall(w19)
 	m.Fields[8][8].addItem(&i0)
 	m.Fields[8][6].addItem(&i1)
+	m.Fields[8][5].addItem(&i2)
 }

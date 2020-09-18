@@ -15,6 +15,7 @@ let grassImg = new Image();
 let bombImg = new Image();
 let itemBoostImg = new Image()
 let itemSlowImg = new Image()
+let itemGhostImg = new Image()
 
 const nameLabel = document.createElement("p");
 const posXLabel = document.createElement("p");
@@ -64,7 +65,11 @@ socket.onmessage = (ev) => {
         drawPlayerPosClient();
         for(let i = 0; i < incomingPackage.Players.length; i++){
             ctx.fillText(incomingPackage.Players[i].Name,incomingPackage.Players[i].PositionX + 15,incomingPackage.Players[i].PositionY - 5, 100);
+            if(currentUser.GhostActive){
+                ctx.globalAlpha = 0.5
+            }
             ctx.drawImage(playerChar, incomingPackage.Players[i].PositionX, incomingPackage.Players[i].PositionY, 50, 50);
+            ctx.globalAlpha = 1
         }
     }
     drawImage(wallImg, incomingPackage.GameMap, 3);
@@ -72,6 +77,7 @@ socket.onmessage = (ev) => {
     drawImage(bombImg, incomingPackage.GameMap, 1)
     drawImage(itemBoostImg, incomingPackage.GameMap, 6)
     drawImage(itemSlowImg, incomingPackage.GameMap, 7)
+    drawImage(itemGhostImg, incomingPackage.GameMap, 8)
 }
 
 function initGame(){
@@ -83,6 +89,7 @@ function initGame(){
     playerChar.src = "media/gumbi.png"
     itemBoostImg.src = "media/speeditem.png"
     itemSlowImg.src = "media/slowitem.png"
+    itemGhostImg.src = "media/ghostitem.png"
 
     info.append(nameLabel);
     info.append(posXLabel);

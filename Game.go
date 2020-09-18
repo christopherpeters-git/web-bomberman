@@ -18,6 +18,7 @@ var GameMap = NewMap(CANVAS_SIZE / FIELD_SIZE)
 var Connections = make(map[uint64]*Session, 0)
 var ticker = time.NewTicker(16 * time.Millisecond)
 var incomingTicker = time.NewTicker(1 * time.Millisecond)
+var itemActive = false
 
 //Things send to the clients
 var bombermanArray = make([]Bomberman, 0)
@@ -56,6 +57,7 @@ type Bomberman struct {
 	bombTime       int
 	IsAlive        bool
 	IsHit          bool
+	GhostActive    bool
 	topRightPos    Position
 	topLeftPos     Position
 	bottomRightPos Position
@@ -85,6 +87,7 @@ func NewBomberman(userID uint64, positionX int, positionY int, name string) *Bom
 		bombTime:       3,
 		IsAlive:        true,
 		IsHit:          false,
+		GhostActive:    false,
 		topRightPos:    newPosition(43, 7),
 		topLeftPos:     newPosition(7, 7),
 		bottomRightPos: newPosition(7, 43),
@@ -153,9 +156,9 @@ func playerWebsocketLoop(session *Session) {
 			log.Println(err)
 			continue
 		}
-		if !session.Bomber.IsAlive {
-			return
-		}
+		//if !session.Bomber.IsAlive {
+		//	return
+		//}
 		if keys.Wpressed {
 			if session.Bomber.collisionWithSurroundings(0, -int(STEP_SIZE*session.Bomber.stepMult)) {
 				if session.Bomber.isMovementLegal(session.Bomber.PositionX, session.Bomber.PositionY-int(STEP_SIZE*session.Bomber.stepMult)) {
@@ -205,10 +208,13 @@ func playerWebsocketLoop(session *Session) {
 		}
 		//Spacebar
 		if keys.SpacePressed {
-			go session.Bomber.placeBomb()
+			if session.Bomber.IsAlive {
+				go session.Bomber.placeBomb()
+			}
 		}
-		checkItem(session)
-
+		if session.Bomber.IsAlive && !itemActive {
+			checkItem(session)
+		}
 	}
 
 }
@@ -221,41 +227,39 @@ func checkItem(session *Session) {
 	for i := 0; i < len(GameMap.Fields[arrayPosX][arrayPosY].Contains); i++ {
 		if GameMap.Fields[arrayPosX][arrayPosY].Contains[i] != nil {
 			if GameMap.Fields[arrayPosX][arrayPosY].Contains[i].getType() == 6 {
+				//resets set timer, so the duration of item collected before doesnt count anymore
+				itemActive = true
 				session.Bomber.stepMult = 2
 				GameMap.Fields[arrayPosX][arrayPosY].Contains[i] = nil
 				BuildAbstractGameMap()
-				time.AfterFunc(7*time.Second, func() { session.Bomber.stepMult = 1 })
+				time.AfterFunc(7*time.Second, func() {
+					session.Bomber.stepMult = 1
+					itemActive = false
+				})
 			} else if GameMap.Fields[arrayPosX][arrayPosY].Contains[i].getType() == 7 {
+				itemActive = true
 				session.Bomber.stepMult = 0.3
 				GameMap.Fields[arrayPosX][arrayPosY].Contains[i] = nil
 				BuildAbstractGameMap()
-				time.AfterFunc(5*time.Second, func() { session.Bomber.stepMult = 1 })
+				time.AfterFunc(5*time.Second, func() {
+					session.Bomber.stepMult = 1
+					itemActive = false
+				})
+
+			} else if GameMap.Fields[arrayPosX][arrayPosY].Contains[i].getType() == 8 {
+				itemActive = true
+				session.Bomber.GhostActive = true
+				GameMap.Fields[arrayPosX][arrayPosY].Contains[i] = nil
+				BuildAbstractGameMap()
+				time.AfterFunc(5*time.Second, func() {
+					session.Bomber.GhostActive = false
+					itemActive = false
+				})
+
 			}
 
 		}
 	}
-}
-
-func updatePlayerPositioning(session *Session, x int, y int) bool {
-	posX := x / FIELD_SIZE
-	posY := y / FIELD_SIZE
-
-	//Change Pushback
-	if session.Bomber.isFieldAccessible(x, y) {
-		oldPosX := (session.Bomber.oldPositionX) / FIELD_SIZE
-		oldPosY := (session.Bomber.oldPositionY) / FIELD_SIZE
-		if posX != oldPosX {
-			removePlayerFromList(GameMap.Fields[oldPosX][posY].Player, session.Bomber)
-			GameMap.Fields[posX][posY].Player.PushBack(session.Bomber)
-			//log.Println(GameMap.Fields[posX][posY].Player)
-		} else if posY != oldPosY {
-			removePlayerFromList(GameMap.Fields[posX][oldPosY].Player, session.Bomber)
-			GameMap.Fields[posX][posY].Player.PushBack(session.Bomber)
-			//log.Println(GameMap.Fields[posX][posY].Player)
-		}
-		return true
-	}
-	return false
 }
 
 func (r *Bomberman) isMovementLegal(x int, y int) bool {
@@ -269,7 +273,7 @@ func (r *Bomberman) isMovementLegal(x int, y int) bool {
 	inBounds := arrayPosX >= 0 && arrayPosY >= 0 && arrayPosX < len(GameMap.Fields) && arrayPosY < len(GameMap.Fields[arrayPosX])
 	if inBounds {
 		if oldPosX != arrayPosX {
-			if r.isFieldAccessible(x, y) {
+			if r.isFieldAccessible(x, y) || r.GhostActive {
 				removePlayerFromList(GameMap.Fields[oldPosX][arrayPosY].Player, r)
 				GameMap.Fields[arrayPosX][arrayPosY].Player.PushBack(r)
 				return true
@@ -277,7 +281,7 @@ func (r *Bomberman) isMovementLegal(x int, y int) bool {
 				return false
 			}
 		} else if oldPosY != arrayPosY {
-			if r.isFieldAccessible(x, y) {
+			if r.isFieldAccessible(x, y) || r.GhostActive {
 				removePlayerFromList(GameMap.Fields[arrayPosX][oldPosY].Player, r)
 				GameMap.Fields[arrayPosX][arrayPosY].Player.PushBack(r)
 				return true
@@ -343,7 +347,11 @@ func (b *Bomberman) collisionWithSurroundings(xOffset int, yOffset int) bool {
 	bottomRight := outerEdges(b.bottomRightPos.x+xOffset, b.bottomRightPos.y+yOffset)
 	bottomLeft := outerEdges(b.bottomLeftPos.x+xOffset, b.bottomLeftPos.y+yOffset)
 	legal := topRight && topLeft && bottomRight && bottomLeft
-	return legal
+	if b.GhostActive {
+		return true
+	} else {
+		return legal
+	}
 }
 
 func printList(list *list.List) {
