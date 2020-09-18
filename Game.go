@@ -233,7 +233,7 @@ func checkItem(session *Session) {
 				GameMap.Fields[arrayPosX][arrayPosY].Contains[i] = nil
 				BuildAbstractGameMap()
 				time.AfterFunc(7*time.Second, func() {
-					session.Bomber.stepMult = 1
+
 					itemActive = false
 				})
 			} else if GameMap.Fields[arrayPosX][arrayPosY].Contains[i].getType() == 7 {
@@ -242,7 +242,9 @@ func checkItem(session *Session) {
 				GameMap.Fields[arrayPosX][arrayPosY].Contains[i] = nil
 				BuildAbstractGameMap()
 				time.AfterFunc(5*time.Second, func() {
-					session.Bomber.stepMult = 1
+					if session.Bomber.IsAlive {
+						session.Bomber.stepMult = 1
+					}
 					itemActive = false
 				})
 
@@ -252,7 +254,9 @@ func checkItem(session *Session) {
 				GameMap.Fields[arrayPosX][arrayPosY].Contains[i] = nil
 				BuildAbstractGameMap()
 				time.AfterFunc(5*time.Second, func() {
-					session.Bomber.GhostActive = false
+					if session.Bomber.IsAlive {
+						session.Bomber.GhostActive = false
+					}
 					itemActive = false
 				})
 
