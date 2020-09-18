@@ -1,6 +1,7 @@
 const info = document.querySelector('.shadowCont')
 const ctx = document.getElementById("matchfield").getContext("2d")
-const fieldSize = 50
+const fieldSize = 50;
+const canvasSize = 1000;
 let socket = new WebSocket("ws://localhost:2100/ws-test/")
 let playerChar = new Image();
 let ticker;
@@ -60,15 +61,13 @@ socket.onmessage = (ev) => {
 
 
     if (ctx !== null && incomingPackage !== null){
-        ctx.clearRect(0, 0, 500, 500);
-        drawGrid(500, 500, "matchfield");
+        ctx.clearRect(0, 0, canvasSize, canvasSize);
         background(grassImg, incomingPackage.GameMap);
         searchForUser(incomingPackage.Players)
         updateUserInfo()
 
 
         for(let i = 0; i < incomingPackage.Players.length; i++){
-
             ctx.fillText(incomingPackage.Players[i].Name,incomingPackage.Players[i].PositionX + 15,incomingPackage.Players[i].PositionY - 5, 100);
 
             if (incomingPackage.Players[i] != null && !incomingPackage.Players[i].GhostActive){
@@ -215,7 +214,7 @@ function keyUpListener(event) {
 
 
 var drawGrid = function(w, h, id) {
-    var canvas = document.getElementById(id);
+    var canvas = document.getElementById("matchfield");
     var ctx = canvas.getContext('2d');
     ctx.canvas.width = w;
     ctx.canvas.height = h;

@@ -12,7 +12,7 @@ import (
 //commit comment
 const FIELD_SIZE = 50
 const STEP_SIZE = 3
-const CANVAS_SIZE = 500
+const CANVAS_SIZE = 1000
 
 var GameMap = NewMap(CANVAS_SIZE / FIELD_SIZE)
 var Connections = make(map[uint64]*Session, 0)
