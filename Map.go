@@ -3,6 +3,7 @@ package main
 import (
 	"container/list"
 	"log"
+	"math/rand"
 	"time"
 )
 
@@ -237,50 +238,88 @@ func (w *Wall) getType() FieldObject {
 }
 
 func FillTestMap(m Map) {
-	w0 := NewWall(true)
-	w1 := NewWall(true)
-	w2 := NewWall(true)
-	w3 := NewWall(true)
-	w4 := NewWall(true)
-	w5 := NewWall(true)
-	w6 := NewWall(true)
-	w7 := NewWall(true)
-	w8 := NewWall(true)
-	w9 := NewWall(true)
-	w10 := NewWall(false)
-	w11 := NewWall(false)
-	w12 := NewWall(false)
-	w13 := NewWall(false)
-	w14 := NewWall(false)
-	w15 := NewWall(false)
-	w16 := NewWall(false)
-	w17 := NewWall(false)
-	w18 := NewWall(false)
-	w19 := NewWall(false)
+	//w0 := NewWall(true)
+	//w1 := NewWall(true)
+	//w2 := NewWall(true)
+	//w3 := NewWall(true)
+	//w4 := NewWall(true)
+	//w5 := NewWall(true)
+	//w6 := NewWall(true)
+	//w7 := NewWall(true)
+	//w8 := NewWall(true)
+	//w9 := NewWall(true)
+	//w10 := NewWall(false)
+	//w11 := NewWall(false)
+	//w12 := NewWall(false)
+	//w13 := NewWall(false)
+	//w14 := NewWall(false)
+	//w15 := NewWall(false)
+	//w16 := NewWall(false)
+	//w17 := NewWall(false)
+	//w18 := NewWall(false)
+	//w19 := NewWall(false)
+	//i0 := NewItem(FieldObjectItemBoost)
+	//i1 := NewItem(FieldObjectItemSlow)
+	//i2 := NewItem(FieldObjectItemGhost)
+	//m.Fields[3][0].addWall(w0)
+	//m.Fields[5][0].addWall(w1)
+	//m.Fields[2][1].addWall(w10)
+	//m.Fields[3][1].addWall(w11)
+	//m.Fields[4][1].addWall(w12)
+	//m.Fields[6][1].addWall(w13)
+	//m.Fields[1][2].addWall(w14)
+	//m.Fields[2][2].addWall(w2)
+	//m.Fields[4][2].addWall(w15)
+	//m.Fields[5][2].addWall(w3)
+	//m.Fields[6][2].addWall(w16)
+	//m.Fields[1][3].addWall(w4)
+	//m.Fields[2][3].addWall(w5)
+	//m.Fields[3][3].addWall(w6)
+	//m.Fields[0][4].addWall(w7)
+	//m.Fields[1][4].addWall(w17)
+	//m.Fields[2][4].addWall(w8)
+	//m.Fields[4][4].addWall(w9)
+	//m.Fields[1][5].addWall(w18)
+	//m.Fields[2][5].addWall(w19)
+	//m.Fields[8][8].addItem(&i0)
+	//m.Fields[8][6].addItem(&i1)
+	//m.Fields[8][5].addItem(&i2)
+
+	wSolid := NewWall(false)
+	wWeak := NewWall(true)
 	i0 := NewItem(FieldObjectItemBoost)
 	i1 := NewItem(FieldObjectItemSlow)
 	i2 := NewItem(FieldObjectItemGhost)
-	m.Fields[3][0].addWall(w0)
-	m.Fields[5][0].addWall(w1)
-	m.Fields[2][1].addWall(w10)
-	m.Fields[3][1].addWall(w11)
-	m.Fields[4][1].addWall(w12)
-	m.Fields[6][1].addWall(w13)
-	m.Fields[1][2].addWall(w14)
-	m.Fields[2][2].addWall(w2)
-	m.Fields[4][2].addWall(w15)
-	m.Fields[5][2].addWall(w3)
-	m.Fields[6][2].addWall(w16)
-	m.Fields[1][3].addWall(w4)
-	m.Fields[2][3].addWall(w5)
-	m.Fields[3][3].addWall(w6)
-	m.Fields[0][4].addWall(w7)
-	m.Fields[1][4].addWall(w17)
-	m.Fields[2][4].addWall(w8)
-	m.Fields[4][4].addWall(w9)
-	m.Fields[1][5].addWall(w18)
-	m.Fields[2][5].addWall(w19)
-	m.Fields[8][8].addItem(&i0)
-	m.Fields[8][6].addItem(&i1)
-	m.Fields[8][5].addItem(&i2)
+	rand.Seed(time.Now().UTC().UnixNano())
+	// (i != 0 || j != 0) && (i != 19 || j != 19) && (i != 0 || j != 19) && (i != 19 || j != 0)
+	for i := 0; i < len(m.Fields); i++ {
+		for j := 0; j < len(m.Fields[i]); j++ {
+			if i != 0 && j != 0 && i != 19 && j != 19 {
+				random := rand.Intn(5)
+
+				if random == 1 {
+					m.Fields[i][j].addWall(wSolid)
+				} else if random == 2 {
+					m.Fields[i][j].addWall(wWeak)
+				}
+			}
+		}
+	}
+
+	for i := 0; i < len(m.Fields); i++ {
+		for j := 0; j < len(m.Fields[i]); j++ {
+			if i != 0 && j != 0 && i != 19 && j != 19 {
+				random := rand.Intn(45) + 1
+
+				if random == 15 {
+					m.Fields[i][j].addItem(&i0)
+				} else if random == 30 {
+					m.Fields[i][j].addItem(&i1)
+				} else if random == 45 {
+					m.Fields[i][j].addItem(&i2)
+				}
+			}
+		}
+	}
+
 }

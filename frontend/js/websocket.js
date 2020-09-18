@@ -75,13 +75,13 @@ socket.onmessage = (ev) => {
                 ctx.drawImage(playerChar, incomingPackage.Players[i].PositionX, incomingPackage.Players[i].PositionY, fieldSize, fieldSize);
             }
         }
-
-        drawImageFromEnum(wallImg, incomingPackage.GameMap, 3);
-        drawImageFromEnum(wallImg2, incomingPackage.GameMap, 2);
-        drawImageFromEnum(bombImg, gamemap, 1);
         drawImageFromEnum(itemBoostImg, gamemap, 6);
         drawImageFromEnum(itemSlowImg, gamemap, 7);
         drawImageFromEnum(itemGhostImg, gamemap, 8);
+        drawImageFromEnum(wallImg, incomingPackage.GameMap, 3);
+        drawImageFromEnum(wallImg2, incomingPackage.GameMap, 2);
+        drawImageFromEnum(bombImg, gamemap, 1);
+
 
         for(let i = 0; i < incomingPackage.Players.length; i++){
             ctx.fillText(incomingPackage.Players[i].Name,incomingPackage.Players[i].PositionX + 15,incomingPackage.Players[i].PositionY - 5, 100);
