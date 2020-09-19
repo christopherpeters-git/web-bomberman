@@ -63,6 +63,10 @@ type Bomberman struct {
 	bottomRightPos Position
 	bottomLeftPos  Position
 	stepMult       float32
+	DirUp          bool
+	DirDown        bool
+	DirLeft        bool
+	DirRight       bool
 }
 
 type ClientPackage struct {
@@ -75,7 +79,7 @@ func (r *Bomberman) String() string {
 	return "Bomberman: {" + strconv.FormatUint(r.UserID, 10) + " | " + strconv.FormatInt(int64(r.PositionX), 10) + " | " + strconv.FormatInt(int64(r.PositionY), 10) + " | " + r.lastBombPlaced.String() + "}"
 }
 
-func NewBomberman(userID uint64, positionX int, positionY int, name string) *Bomberman {
+func NewBomberman(userID uint64, positionX int, positionY int, name string, topRight Position, topLeft Position, bottomRight Position, bottomLeft Position) *Bomberman {
 	return &Bomberman{
 		UserID:         userID,
 		PositionX:      positionX,
@@ -88,11 +92,15 @@ func NewBomberman(userID uint64, positionX int, positionY int, name string) *Bom
 		IsAlive:        true,
 		IsHit:          false,
 		GhostActive:    false,
-		topRightPos:    newPosition(43, 7),
-		topLeftPos:     newPosition(7, 7),
-		bottomRightPos: newPosition(7, 43),
-		bottomLeftPos:  newPosition(43, 43),
+		topRightPos:    topRight,
+		topLeftPos:     topLeft,
+		bottomRightPos: bottomRight,
+		bottomLeftPos:  bottomLeft,
 		stepMult:       1,
+		DirUp:          false,
+		DirDown:        false,
+		DirLeft:        false,
+		DirRight:       false,
 	}
 }
 
@@ -156,12 +164,16 @@ func playerWebsocketLoop(session *Session) {
 			log.Println(err)
 			continue
 		}
-		//if !session.Bomber.IsAlive {
-		//	return
-		//}
+
+		session.Bomber.DirUp = false
+		session.Bomber.DirDown = false
+		session.Bomber.DirLeft = false
+		session.Bomber.DirRight = false
+
 		if keys.Wpressed {
 			if session.Bomber.collisionWithSurroundings(0, -int(STEP_SIZE*session.Bomber.stepMult)) {
 				if session.Bomber.isMovementLegal(session.Bomber.PositionX, session.Bomber.PositionY-int(STEP_SIZE*session.Bomber.stepMult)) {
+					session.Bomber.DirUp = true
 					session.Bomber.topRightPos.updatePosition(0, -int(STEP_SIZE*session.Bomber.stepMult))
 					session.Bomber.topLeftPos.updatePosition(0, -int(STEP_SIZE*session.Bomber.stepMult))
 					session.Bomber.bottomRightPos.updatePosition(0, -int(STEP_SIZE*session.Bomber.stepMult))
@@ -174,6 +186,7 @@ func playerWebsocketLoop(session *Session) {
 		if keys.Spressed {
 			if session.Bomber.collisionWithSurroundings(0, int(STEP_SIZE*session.Bomber.stepMult)) {
 				if session.Bomber.isMovementLegal(session.Bomber.PositionX, session.Bomber.PositionY+int(STEP_SIZE*session.Bomber.stepMult)) {
+					session.Bomber.DirDown = true
 					session.Bomber.topRightPos.updatePosition(0, int(STEP_SIZE*session.Bomber.stepMult))
 					session.Bomber.topLeftPos.updatePosition(0, int(STEP_SIZE*session.Bomber.stepMult))
 					session.Bomber.bottomRightPos.updatePosition(0, int(STEP_SIZE*session.Bomber.stepMult))
@@ -186,6 +199,7 @@ func playerWebsocketLoop(session *Session) {
 		if keys.Apressed {
 			if session.Bomber.collisionWithSurroundings(-int(STEP_SIZE*session.Bomber.stepMult), 0) {
 				if session.Bomber.isMovementLegal(session.Bomber.PositionX-int(STEP_SIZE*session.Bomber.stepMult), session.Bomber.PositionY) {
+					session.Bomber.DirLeft = true
 					session.Bomber.topRightPos.updatePosition(-int(STEP_SIZE*session.Bomber.stepMult), 0)
 					session.Bomber.topLeftPos.updatePosition(-int(STEP_SIZE*session.Bomber.stepMult), 0)
 					session.Bomber.bottomRightPos.updatePosition(-int(STEP_SIZE*session.Bomber.stepMult), 0)
@@ -198,6 +212,7 @@ func playerWebsocketLoop(session *Session) {
 		if keys.Dpressed {
 			if session.Bomber.collisionWithSurroundings(int(STEP_SIZE*session.Bomber.stepMult), 0) {
 				if session.Bomber.isMovementLegal(session.Bomber.PositionX+int(STEP_SIZE*session.Bomber.stepMult), session.Bomber.PositionY) {
+					session.Bomber.DirRight = true
 					session.Bomber.topRightPos.updatePosition(int(STEP_SIZE*session.Bomber.stepMult), 0)
 					session.Bomber.topLeftPos.updatePosition(int(STEP_SIZE*session.Bomber.stepMult), 0)
 					session.Bomber.bottomRightPos.updatePosition(int(STEP_SIZE*session.Bomber.stepMult), 0)
@@ -215,6 +230,7 @@ func playerWebsocketLoop(session *Session) {
 		if session.Bomber.IsAlive && !itemActive {
 			checkItem(session)
 		}
+
 	}
 
 }
@@ -227,13 +243,14 @@ func checkItem(session *Session) {
 	for i := 0; i < len(GameMap.Fields[arrayPosX][arrayPosY].Contains); i++ {
 		if GameMap.Fields[arrayPosX][arrayPosY].Contains[i] != nil {
 			if GameMap.Fields[arrayPosX][arrayPosY].Contains[i].getType() == 6 {
-				//resets set timer, so the duration of item collected before doesnt count anymore
 				itemActive = true
 				session.Bomber.stepMult = 1.8
 				GameMap.Fields[arrayPosX][arrayPosY].Contains[i] = nil
 				BuildAbstractGameMap()
 				time.AfterFunc(7*time.Second, func() {
-
+					if session.Bomber.IsAlive {
+						session.Bomber.stepMult = 1
+					}
 					itemActive = false
 				})
 			} else if GameMap.Fields[arrayPosX][arrayPosY].Contains[i].getType() == 7 {
