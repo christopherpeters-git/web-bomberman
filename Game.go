@@ -165,15 +165,13 @@ func playerWebsocketLoop(session *Session) {
 			continue
 		}
 
-		session.Bomber.DirUp = false
-		session.Bomber.DirDown = false
-		session.Bomber.DirLeft = false
-		session.Bomber.DirRight = false
+		//Face Up when no Key is pressed?
+		//session.Bomber.DirUp, session.Bomber.DirDown, session.Bomber.DirLeft, session.Bomber.DirRight  = false, false, false, false
 
 		if keys.Wpressed {
+			session.Bomber.DirUp, session.Bomber.DirDown, session.Bomber.DirLeft, session.Bomber.DirRight = true, false, false, false
 			if session.Bomber.collisionWithSurroundings(0, -int(STEP_SIZE*session.Bomber.stepMult)) {
 				if session.Bomber.isMovementLegal(session.Bomber.PositionX, session.Bomber.PositionY-int(STEP_SIZE*session.Bomber.stepMult)) {
-					session.Bomber.DirUp = true
 					session.Bomber.topRightPos.updatePosition(0, -int(STEP_SIZE*session.Bomber.stepMult))
 					session.Bomber.topLeftPos.updatePosition(0, -int(STEP_SIZE*session.Bomber.stepMult))
 					session.Bomber.bottomRightPos.updatePosition(0, -int(STEP_SIZE*session.Bomber.stepMult))
@@ -184,9 +182,9 @@ func playerWebsocketLoop(session *Session) {
 		} else
 		//S
 		if keys.Spressed {
+			session.Bomber.DirUp, session.Bomber.DirDown, session.Bomber.DirLeft, session.Bomber.DirRight = false, true, false, false
 			if session.Bomber.collisionWithSurroundings(0, int(STEP_SIZE*session.Bomber.stepMult)) {
 				if session.Bomber.isMovementLegal(session.Bomber.PositionX, session.Bomber.PositionY+int(STEP_SIZE*session.Bomber.stepMult)) {
-					session.Bomber.DirDown = true
 					session.Bomber.topRightPos.updatePosition(0, int(STEP_SIZE*session.Bomber.stepMult))
 					session.Bomber.topLeftPos.updatePosition(0, int(STEP_SIZE*session.Bomber.stepMult))
 					session.Bomber.bottomRightPos.updatePosition(0, int(STEP_SIZE*session.Bomber.stepMult))
@@ -197,9 +195,9 @@ func playerWebsocketLoop(session *Session) {
 		} else
 		//A
 		if keys.Apressed {
+			session.Bomber.DirUp, session.Bomber.DirDown, session.Bomber.DirLeft, session.Bomber.DirRight = false, false, true, false
 			if session.Bomber.collisionWithSurroundings(-int(STEP_SIZE*session.Bomber.stepMult), 0) {
 				if session.Bomber.isMovementLegal(session.Bomber.PositionX-int(STEP_SIZE*session.Bomber.stepMult), session.Bomber.PositionY) {
-					session.Bomber.DirLeft = true
 					session.Bomber.topRightPos.updatePosition(-int(STEP_SIZE*session.Bomber.stepMult), 0)
 					session.Bomber.topLeftPos.updatePosition(-int(STEP_SIZE*session.Bomber.stepMult), 0)
 					session.Bomber.bottomRightPos.updatePosition(-int(STEP_SIZE*session.Bomber.stepMult), 0)
@@ -210,9 +208,9 @@ func playerWebsocketLoop(session *Session) {
 		} else
 		//D
 		if keys.Dpressed {
+			session.Bomber.DirUp, session.Bomber.DirDown, session.Bomber.DirLeft, session.Bomber.DirRight = false, false, false, true
 			if session.Bomber.collisionWithSurroundings(int(STEP_SIZE*session.Bomber.stepMult), 0) {
 				if session.Bomber.isMovementLegal(session.Bomber.PositionX+int(STEP_SIZE*session.Bomber.stepMult), session.Bomber.PositionY) {
-					session.Bomber.DirRight = true
 					session.Bomber.topRightPos.updatePosition(int(STEP_SIZE*session.Bomber.stepMult), 0)
 					session.Bomber.topLeftPos.updatePosition(int(STEP_SIZE*session.Bomber.stepMult), 0)
 					session.Bomber.bottomRightPos.updatePosition(int(STEP_SIZE*session.Bomber.stepMult), 0)
