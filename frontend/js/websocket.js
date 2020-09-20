@@ -195,9 +195,9 @@ function drawPlayerChar (player, count) {
 
 
 function initGame(){
-    wallImg.src ="media/wallBreak.png"
-    wallImg2.src ="media/wallBreak2.png"
-    grassImg.src = "media/grass.png"
+    wallImg.src ="media/hardwall.png"
+    wallImg2.src ="media/weakwall.png"
+    grassImg.src = "media/metalfloor.png"
     bombImg.src = "media/bomb3.png"
     bomb2Img.src ="media/bombstate2.png"
     bomb3Img.src ="media/bombstate3.png"
