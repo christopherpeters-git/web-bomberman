@@ -29,6 +29,7 @@ const (
 	FieldObjectItemBoost     FieldObject = 6
 	FieldObjectItemSlow      FieldObject = 7
 	FieldObjectItemGhost     FieldObject = 8
+	FieldObjectExplosion     FieldObject = 9
 )
 
 type Map struct {
@@ -84,6 +85,14 @@ func (f *Field) addItem(i *Item) {
 	}
 }
 
+func (f *Field) addExplosion(e *Explosion) {
+	if f.Contains[0] != nil {
+		f.Contains[1] = e
+	} else {
+		f.Contains[0] = e
+	}
+}
+
 func (f *Field) explosion() bool {
 	element := f.Player.Front()
 	if element != nil {
@@ -101,6 +110,7 @@ func (f *Field) explosion() bool {
 		if f.Contains[i] != nil {
 			if f.Contains[i].isDestructible() {
 				f.Contains[i] = nil
+
 			} else {
 				return true
 			}
@@ -152,10 +162,13 @@ func (b *Bomb) getType() FieldObject {
 
 func (b *Bomb) startBomb() {
 	time.Sleep(time.Duration(b.Time) * time.Second)
+	e := newExplosion()
 	x := b.PositionX
 	y := b.PositionY
 	xPosHitSolidWall, xNegHitSolidWall, yPosHitSolidWall, yNegHitSolidWall := false, false, false, false
 	GameMap.Fields[x][y].explosion()
+	e.ExpFields = append(e.ExpFields, newPosition(x, y))
+	GameMap.Fields[x][y].addExplosion(&e)
 	for i := 1; i < b.Radius; i++ {
 		xPos := x + i
 		xNeg := x - i
@@ -164,21 +177,37 @@ func (b *Bomb) startBomb() {
 		if xPos < len(GameMap.Fields) {
 			if !xPosHitSolidWall {
 				xPosHitSolidWall = GameMap.Fields[xPos][y].explosion()
+				if !xPosHitSolidWall {
+					e.ExpFields = append(e.ExpFields, newPosition(xPos, y))
+					GameMap.Fields[xPos][y].addExplosion(&e)
+				}
 			}
 		}
 		if xNeg >= 0 {
 			if !xNegHitSolidWall {
 				xNegHitSolidWall = GameMap.Fields[xNeg][y].explosion()
+				if !xNegHitSolidWall {
+					e.ExpFields = append(e.ExpFields, newPosition(xNeg, y))
+					GameMap.Fields[xNeg][y].addExplosion(&e)
+				}
 			}
 		}
 		if yPos < len(GameMap.Fields[x]) {
 			if !yPosHitSolidWall {
 				yPosHitSolidWall = GameMap.Fields[x][yPos].explosion()
+				if !yPosHitSolidWall {
+					e.ExpFields = append(e.ExpFields, newPosition(x, yPos))
+					GameMap.Fields[x][yPos].addExplosion(&e)
+				}
 			}
 		}
 		if yNeg >= 0 {
 			if !yNegHitSolidWall {
 				yNegHitSolidWall = GameMap.Fields[x][yNeg].explosion()
+				if !yNegHitSolidWall {
+					e.ExpFields = append(e.ExpFields, newPosition(x, yNeg))
+					GameMap.Fields[x][yNeg].addExplosion(&e)
+				}
 			}
 		}
 	}
@@ -188,6 +217,46 @@ func (b *Bomb) startBomb() {
 		GameMap.Fields[x][y].Contains[1] = nil
 	}
 	BuildAbstractGameMap()
+	time.Sleep(700 * time.Millisecond)
+	for i := 0; i < len(e.ExpFields); i++ {
+		if GameMap.Fields[e.ExpFields[i].x][e.ExpFields[i].y].Contains[0] != nil {
+			if GameMap.Fields[e.ExpFields[i].x][e.ExpFields[i].y].Contains[0].getType() == 9 {
+				GameMap.Fields[e.ExpFields[i].x][e.ExpFields[i].y].Contains[0] = nil
+			}
+		}
+		if GameMap.Fields[e.ExpFields[i].x][e.ExpFields[i].y].Contains[1] != nil {
+			if GameMap.Fields[e.ExpFields[i].x][e.ExpFields[i].y].Contains[1].getType() == 9 {
+				GameMap.Fields[e.ExpFields[i].x][e.ExpFields[i].y].Contains[1] = nil
+			}
+		}
+	}
+	BuildAbstractGameMap()
+}
+
+type Explosion struct {
+	ExpFields []Position
+}
+
+func newExplosion() Explosion {
+	return Explosion{
+		ExpFields: make([]Position, 0),
+	}
+}
+
+func (e *Explosion) isAccessible() bool {
+	return true
+}
+
+func (e *Explosion) startEvent() {
+
+}
+
+func (e *Explosion) isDestructible() bool {
+	return false
+}
+
+func (e *Explosion) getType() FieldObject {
+	return FieldObjectExplosion
 }
 
 type Item struct {
