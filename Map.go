@@ -14,6 +14,8 @@ type FieldObject int
 var globalBombCount uint64 = 0
 var globalTestMap Map = NewMap(10)
 
+const bombStates = 3
+
 const (
 	ItemTypeUpgrade    ItemType = 0
 	ItemTypeDowngrade  ItemType = 1
@@ -22,6 +24,8 @@ const (
 
 const (
 	FieldObjectBomb          FieldObject = 1
+	FieldObjectBomb1         FieldObject = 10
+	FieldObjectBomb2         FieldObject = 11
 	FieldObjectWeakWall      FieldObject = 2
 	FieldObjectSolidWall     FieldObject = 3
 	FieldObjectItemUpgrade   FieldObject = 4
@@ -133,6 +137,7 @@ type Bomb struct {
 	PositionY int
 	Time      int
 	Radius    int
+	state     int
 }
 
 func NewBomb(b *Bomberman) Bomb {
@@ -144,6 +149,7 @@ func NewBomb(b *Bomberman) Bomb {
 		PositionY: (b.PositionY + FIELD_SIZE/2) / FIELD_SIZE,
 		Time:      b.bombTime,
 		Radius:    b.BombRadius,
+		state:     0,
 	}
 }
 
@@ -157,11 +163,29 @@ func (b *Bomb) isDestructible() bool {
 	return false
 }
 func (b *Bomb) getType() FieldObject {
-	return FieldObjectBomb
+	if b.state == 0 {
+		return FieldObjectBomb1
+	} else if b.state == 1 {
+		return FieldObjectBomb2
+	} else {
+		return FieldObjectBomb
+	}
+
 }
 
 func (b *Bomb) startBomb() {
-	time.Sleep(time.Duration(b.Time) * time.Second)
+	//Change to Loop
+	time.Sleep((time.Duration(b.Time) / bombStates) * time.Second)
+	b.state++
+	BuildAbstractGameMap()
+
+	time.Sleep((time.Duration(b.Time) / bombStates) * time.Second)
+	b.state++
+	BuildAbstractGameMap()
+
+	time.Sleep((time.Duration(b.Time) / bombStates) * time.Second)
+	b.state = 0
+
 	e := newExplosion()
 	x := b.PositionX
 	y := b.PositionY

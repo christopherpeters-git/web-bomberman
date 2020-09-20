@@ -353,13 +353,13 @@ func outerEdges(x int, y int) bool {
 	arrayPosY := y / FIELD_SIZE
 	accessible0, accessible1 := true, true
 	if GameMap.Fields[arrayPosX][arrayPosY].Contains[0] != nil {
-		if GameMap.Fields[arrayPosX][arrayPosY].Contains[0].getType() == 1 {
+		if GameMap.Fields[arrayPosX][arrayPosY].Contains[0].getType() == 1 || GameMap.Fields[arrayPosX][arrayPosY].Contains[0].getType() == 10 || GameMap.Fields[arrayPosX][arrayPosY].Contains[0].getType() == 11 {
 			return true
 		}
 		accessible0 = GameMap.Fields[arrayPosX][arrayPosY].Contains[0].isAccessible()
 	}
 	if GameMap.Fields[arrayPosX][arrayPosY].Contains[1] != nil {
-		if GameMap.Fields[arrayPosX][arrayPosY].Contains[1].getType() == 1 {
+		if GameMap.Fields[arrayPosX][arrayPosY].Contains[1].getType() == 1 || GameMap.Fields[arrayPosX][arrayPosY].Contains[1].getType() == 10 || GameMap.Fields[arrayPosX][arrayPosY].Contains[1].getType() == 11 {
 			return true
 		}
 		accessible1 = GameMap.Fields[arrayPosX][arrayPosY].Contains[1].isAccessible()

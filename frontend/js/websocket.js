@@ -29,6 +29,9 @@ let wallImg = new Image();
 let wallImg2 = new Image();
 let grassImg = new Image();
 let bombImg = new Image();
+let bomb2Img = new Image();
+let bomb3Img = new Image();
+
 let itemBoostImg = new Image()
 let itemSlowImg = new Image()
 let itemGhostImg = new Image()
@@ -99,7 +102,9 @@ socket.onmessage = (ev) => {
         drawImageFromEnum(itemGhostImg, gamemap, 8);
         drawImageFromEnum(wallImg, gamemap, 3);
         drawImageFromEnum(wallImg2, gamemap, 2);
-        drawImageFromEnum(bombImg, gamemap, 1);
+        drawImageFromEnum(bomb3Img, gamemap, 1);
+        drawImageFromEnum(bombImg, gamemap, 10);
+        drawImageFromEnum(bomb2Img, gamemap, 11);
         drawImageFromEnum(explosionImg, gamemap, 9)
 
 
@@ -194,6 +199,8 @@ function initGame(){
     wallImg2.src ="media/wallBreak2.png"
     grassImg.src = "media/grass.png"
     bombImg.src = "media/bomb3.png"
+    bomb2Img.src ="media/bombstate2.png"
+    bomb3Img.src ="media/bombstate3.png"
     playerChar.src = "media/cutieFD.png"
     playerCharUp.src  = "media/cutieB.png"
     playerCharUp2.src = "media/cutieBL.png"
