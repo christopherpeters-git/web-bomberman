@@ -30,7 +30,8 @@ body {
 
 #matchfield {
     height: 80%;
-   max-width: 90%;
+    min-width: 500px;
+    min-height: 500px;
     border: 10px solid #4d3419;
     border-radius: 3px;
     box-shadow: 0px 0px 22px 8px rgba(0,0,0,0.75);
