@@ -87,14 +87,15 @@ socket.onmessage = (ev) => {
         ctx.clearRect(0, 0, canvasSize, canvasSize);
         background(grassImg, incomingPackage.GameMap);
         searchForUser(incomingPackage.Players)
-        updateUserInfo()
+        //updateUserInfo()
 
 
         for(let i = 0; i < incomingPackage.Players.length; i++){
-            ctx.fillText(incomingPackage.Players[i].Name,incomingPackage.Players[i].PositionX + 15,incomingPackage.Players[i].PositionY - 5, 100);
-            if (incomingPackage.Players[i] != null && !incomingPackage.Players[i].GhostActive){
-                drawPlayerPosClient();
-                drawPlayerChar(incomingPackage.Players[i], counter)
+            if (incomingPackage.Players[i] != null){
+                if (!incomingPackage.Players[i].GhostActive){
+                    drawPlayerPosClient();
+                    drawPlayerChar(incomingPackage.Players[i], counter)
+                }
             }
         }
         drawImageFromEnum(itemBoostImg, gamemap, 6);
@@ -109,12 +110,17 @@ socket.onmessage = (ev) => {
 
 
         for(let i = 0; i < incomingPackage.Players.length; i++){
-            ctx.fillText(incomingPackage.Players[i].Name,incomingPackage.Players[i].PositionX + 15,incomingPackage.Players[i].PositionY - 5, 100);
-            if(incomingPackage.Players[i] != null && incomingPackage.Players[i].GhostActive){
-                drawPlayerPosClient();
-                ctx.globalAlpha = 0.5
-                drawPlayerChar(incomingPackage.Players[i], counter)
-                ctx.globalAlpha = 1
+            ctx.font = "normal 8px 'Press Start 2P'";
+            ctx.textAlign= "center";
+            ctx.fillStyle = "rgba(0,0,0,0.75)"
+            ctx.fillText(incomingPackage.Players[i].Name,incomingPackage.Players[i].PositionX + 25,incomingPackage.Players[i].PositionY - 5, 100);
+            if(incomingPackage.Players[i] != null){
+                if (incomingPackage.Players[i].GhostActive){
+                    drawPlayerPosClient();
+                    ctx.globalAlpha = 0.5
+                    drawPlayerChar(incomingPackage.Players[i], counter)
+                    ctx.globalAlpha = 1
+                }
             }
         }
 
@@ -218,9 +224,9 @@ function initGame(){
     playerChar2.src = "media/cutieFL.png"
     playerChar3.src = "media/cutieFR.png"
     explosionImg.src = "media/explosion2.png"
-    info.append(nameLabel);
-    info.append(posXLabel);
-    info.append(posYLabel);
+    // info.append(nameLabel);
+    // info.append(posXLabel);
+    // info.append(posYLabel);
 }
 
 function drawElement (color, map, type){
