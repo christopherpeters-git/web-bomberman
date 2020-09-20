@@ -217,7 +217,7 @@ func (b *Bomb) startBomb() {
 		GameMap.Fields[x][y].Contains[1] = nil
 	}
 	BuildAbstractGameMap()
-	time.Sleep(700 * time.Millisecond)
+	time.Sleep(900 * time.Millisecond)
 	for i := 0; i < len(e.ExpFields); i++ {
 		if GameMap.Fields[e.ExpFields[i].x][e.ExpFields[i].y].Contains[0] != nil {
 			if GameMap.Fields[e.ExpFields[i].x][e.ExpFields[i].y].Contains[0].getType() == 9 {

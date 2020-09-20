@@ -168,7 +168,7 @@ function initGame(){
     playerGhostImg.src = "media/ghostPlayer.png"
     playerChar2.src = "media/cutie1.png"
     playerChar3.src = "media/cutie3.png"
-    explosionImg.src = "media/explosion.png"
+    explosionImg.src = "media/explosion2.png"
     info.append(nameLabel);
     info.append(posXLabel);
     info.append(posYLabel);
