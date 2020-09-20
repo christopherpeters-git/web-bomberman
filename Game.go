@@ -11,18 +11,31 @@ import (
 
 //commit comment
 const FIELD_SIZE = 50
-const STEP_SIZE = 4
-const CANVAS_SIZE = 500
+const STEP_SIZE = 3
+const CANVAS_SIZE = 1000
 
 var GameMap = NewMap(CANVAS_SIZE / FIELD_SIZE)
 var Connections = make(map[uint64]*Session, 0)
 var ticker = time.NewTicker(16 * time.Millisecond)
 var incomingTicker = time.NewTicker(1 * time.Millisecond)
+var itemActive = false
 
 //Things send to the clients
 var bombermanArray = make([]Bomberman, 0)
 var abstractGameMap = make([][][]FieldObject, 0)
 var clientPackageAsJson = make([]byte, 0)
+
+type Position struct {
+	x int
+	y int
+}
+
+func newPosition(x int, y int) Position {
+	return Position{
+		x: x,
+		y: y,
+	}
+}
 
 type KeyInput struct {
 	Wpressed     bool `json:"w"`
@@ -43,8 +56,18 @@ type Bomberman struct {
 	BombRadius     int
 	bombTime       int
 	IsAlive        bool
-	realPosX       int
-	realPosY       int
+	IsHit          bool
+	IsMoving       bool
+	GhostActive    bool
+	topRightPos    Position
+	topLeftPos     Position
+	bottomRightPos Position
+	bottomLeftPos  Position
+	stepMult       float32
+	DirUp          bool
+	DirDown        bool
+	DirLeft        bool
+	DirRight       bool
 }
 
 type ClientPackage struct {
@@ -59,17 +82,27 @@ func (r *Bomberman) String() string {
 
 func NewBomberman(userID uint64, positionX int, positionY int, name string) *Bomberman {
 	return &Bomberman{
-		UserID:       userID,
-		PositionX:    positionX,
-		PositionY:    positionY,
-		oldPositionX: positionX,
-		oldPositionY: positionY,
-		Name:         name,
-		BombRadius:   3,
-		bombTime:     3,
-		IsAlive:      true,
-		realPosX:     positionX + FIELD_SIZE/2,
-		realPosY:     positionY + FIELD_SIZE/2,
+		UserID:         userID,
+		PositionX:      positionX,
+		PositionY:      positionY,
+		oldPositionX:   positionX,
+		oldPositionY:   positionY,
+		Name:           name,
+		BombRadius:     2,
+		bombTime:       3,
+		IsAlive:        true,
+		IsHit:          false,
+		IsMoving:       false,
+		GhostActive:    false,
+		topRightPos:    newPosition(positionX+43, positionY+7),
+		topLeftPos:     newPosition(positionX+7, positionY+7),
+		bottomRightPos: newPosition(positionX+7, positionY+43),
+		bottomLeftPos:  newPosition(positionX+43, positionY+43),
+		stepMult:       1,
+		DirUp:          false,
+		DirDown:        false,
+		DirLeft:        false,
+		DirRight:       false,
 	}
 }
 
@@ -110,8 +143,12 @@ func StartPlayerLoop(session *Session) {
 	//Add the infos to the connection map
 	BuildAbstractGameMap()
 	Connections[session.User.UserID] = session
-	GameMap.Fields[0][0].Player.PushBack(session.Bomber)
+	GameMap.Fields[(session.Bomber.PositionX+FIELD_SIZE/2)/FIELD_SIZE][(session.Bomber.PositionY+FIELD_SIZE/2)/FIELD_SIZE].Player.PushBack(session.Bomber)
 	playerWebsocketLoop(session)
+	//Remove player from list at his last array position
+	x := (session.Bomber.PositionX + FIELD_SIZE/2) / FIELD_SIZE
+	y := (session.Bomber.PositionY + FIELD_SIZE/2) / FIELD_SIZE
+	removePlayerFromList(GameMap.Fields[x][y].Player, session.Bomber)
 	//Remove from the connection map
 	delete(Connections, session.User.UserID)
 }
@@ -129,74 +166,127 @@ func playerWebsocketLoop(session *Session) {
 			log.Println(err)
 			continue
 		}
-		//if !session.Bomber.IsAlive {
-		//	return
-		//}
+		session.Bomber.IsMoving = false
 		if keys.Wpressed {
-			if outerEdges(session.Bomber.realPosX, session.Bomber.realPosY-FIELD_SIZE/2) {
-				if session.Bomber.isMovementLegal(session.Bomber.PositionX, session.Bomber.PositionY-STEP_SIZE) {
+			session.Bomber.DirUp, session.Bomber.DirDown, session.Bomber.DirLeft, session.Bomber.DirRight = true, false, false, false
+			session.Bomber.IsMoving = true
+			if session.Bomber.collisionWithSurroundings(0, -int(STEP_SIZE*session.Bomber.stepMult)) {
+				if session.Bomber.isMovementLegal(session.Bomber.PositionX, session.Bomber.PositionY-int(STEP_SIZE*session.Bomber.stepMult)) {
 
-					session.Bomber.PositionY -= STEP_SIZE
-					session.Bomber.realPosY -= STEP_SIZE
+					session.Bomber.topRightPos.updatePosition(0, -int(STEP_SIZE*session.Bomber.stepMult))
+					session.Bomber.topLeftPos.updatePosition(0, -int(STEP_SIZE*session.Bomber.stepMult))
+					session.Bomber.bottomRightPos.updatePosition(0, -int(STEP_SIZE*session.Bomber.stepMult))
+					session.Bomber.bottomLeftPos.updatePosition(0, -int(STEP_SIZE*session.Bomber.stepMult))
+					session.Bomber.PositionY -= int(STEP_SIZE * session.Bomber.stepMult)
 				}
 			}
 		} else
 		//S
 		if keys.Spressed {
-			if outerEdges(session.Bomber.realPosX, session.Bomber.realPosY+FIELD_SIZE/2) {
-				if session.Bomber.isMovementLegal(session.Bomber.PositionX, session.Bomber.PositionY+STEP_SIZE) {
+			session.Bomber.DirUp, session.Bomber.DirDown, session.Bomber.DirLeft, session.Bomber.DirRight = false, true, false, false
+			session.Bomber.IsMoving = true
+			if session.Bomber.collisionWithSurroundings(0, int(STEP_SIZE*session.Bomber.stepMult)) {
+				if session.Bomber.isMovementLegal(session.Bomber.PositionX, session.Bomber.PositionY+int(STEP_SIZE*session.Bomber.stepMult)) {
 
-					session.Bomber.PositionY += STEP_SIZE
-					session.Bomber.realPosY += STEP_SIZE
+					session.Bomber.topRightPos.updatePosition(0, int(STEP_SIZE*session.Bomber.stepMult))
+					session.Bomber.topLeftPos.updatePosition(0, int(STEP_SIZE*session.Bomber.stepMult))
+					session.Bomber.bottomRightPos.updatePosition(0, int(STEP_SIZE*session.Bomber.stepMult))
+					session.Bomber.bottomLeftPos.updatePosition(0, int(STEP_SIZE*session.Bomber.stepMult))
+					session.Bomber.PositionY += int(STEP_SIZE * session.Bomber.stepMult)
 				}
 			}
 		} else
 		//A
 		if keys.Apressed {
-			if outerEdges(session.Bomber.realPosX-FIELD_SIZE/2, session.Bomber.realPosY) {
-				if session.Bomber.isMovementLegal(session.Bomber.PositionX-STEP_SIZE, session.Bomber.PositionY) {
+			session.Bomber.DirUp, session.Bomber.DirDown, session.Bomber.DirLeft, session.Bomber.DirRight = false, false, true, false
+			session.Bomber.IsMoving = true
+			if session.Bomber.collisionWithSurroundings(-int(STEP_SIZE*session.Bomber.stepMult), 0) {
+				if session.Bomber.isMovementLegal(session.Bomber.PositionX-int(STEP_SIZE*session.Bomber.stepMult), session.Bomber.PositionY) {
 
-					session.Bomber.PositionX -= STEP_SIZE
-					session.Bomber.realPosX -= STEP_SIZE
+					session.Bomber.topRightPos.updatePosition(-int(STEP_SIZE*session.Bomber.stepMult), 0)
+					session.Bomber.topLeftPos.updatePosition(-int(STEP_SIZE*session.Bomber.stepMult), 0)
+					session.Bomber.bottomRightPos.updatePosition(-int(STEP_SIZE*session.Bomber.stepMult), 0)
+					session.Bomber.bottomLeftPos.updatePosition(-int(STEP_SIZE*session.Bomber.stepMult), 0)
+					session.Bomber.PositionX -= int(STEP_SIZE * session.Bomber.stepMult)
 				}
 			}
 		} else
 		//D
 		if keys.Dpressed {
-			if outerEdges(session.Bomber.realPosX+FIELD_SIZE/2, session.Bomber.realPosY) {
-				if session.Bomber.isMovementLegal(session.Bomber.PositionX+STEP_SIZE, session.Bomber.PositionY) {
-					session.Bomber.PositionX += STEP_SIZE
-					session.Bomber.realPosX += STEP_SIZE
+			session.Bomber.DirUp, session.Bomber.DirDown, session.Bomber.DirLeft, session.Bomber.DirRight = false, false, false, true
+			session.Bomber.IsMoving = true
+			if session.Bomber.collisionWithSurroundings(int(STEP_SIZE*session.Bomber.stepMult), 0) {
+				if session.Bomber.isMovementLegal(session.Bomber.PositionX+int(STEP_SIZE*session.Bomber.stepMult), session.Bomber.PositionY) {
+
+					session.Bomber.topRightPos.updatePosition(int(STEP_SIZE*session.Bomber.stepMult), 0)
+					session.Bomber.topLeftPos.updatePosition(int(STEP_SIZE*session.Bomber.stepMult), 0)
+					session.Bomber.bottomRightPos.updatePosition(int(STEP_SIZE*session.Bomber.stepMult), 0)
+					session.Bomber.bottomLeftPos.updatePosition(int(STEP_SIZE*session.Bomber.stepMult), 0)
+					session.Bomber.PositionX += int(STEP_SIZE * session.Bomber.stepMult)
 				}
 			}
 		}
 		//Spacebar
 		if keys.SpacePressed {
-			go session.Bomber.placeBomb()
+			if session.Bomber.IsAlive {
+				go session.Bomber.placeBomb()
+			}
 		}
+		if session.Bomber.IsAlive && !itemActive {
+			checkItem(session)
+		}
+
 	}
 
 }
-func updatePlayerPositioning(session *Session, x int, y int) bool {
-	posX := x / FIELD_SIZE
-	posY := y / FIELD_SIZE
 
-	//Change Pushback
-	if session.Bomber.isFieldAccessible(x, y) {
-		oldPosX := (session.Bomber.oldPositionX) / FIELD_SIZE
-		oldPosY := (session.Bomber.oldPositionY) / FIELD_SIZE
-		if posX != oldPosX {
-			removePlayerFromList(GameMap.Fields[oldPosX][posY].Player, session.Bomber)
-			GameMap.Fields[posX][posY].Player.PushBack(session.Bomber)
-			//log.Println(GameMap.Fields[posX][posY].Player)
-		} else if posY != oldPosY {
-			removePlayerFromList(GameMap.Fields[posX][oldPosY].Player, session.Bomber)
-			GameMap.Fields[posX][posY].Player.PushBack(session.Bomber)
-			//log.Println(GameMap.Fields[posX][posY].Player)
+func checkItem(session *Session) {
+	arrayPosX := (session.Bomber.PositionX + FIELD_SIZE/2) / FIELD_SIZE
+	arrayPosY := (session.Bomber.PositionY + FIELD_SIZE/2) / FIELD_SIZE
+
+	//!time.AfterFunc calls new goroutine automatically!
+	for i := 0; i < len(GameMap.Fields[arrayPosX][arrayPosY].Contains); i++ {
+		if GameMap.Fields[arrayPosX][arrayPosY].Contains[i] != nil {
+			//
+			if GameMap.Fields[arrayPosX][arrayPosY].Contains[i].getType() == 6 {
+				itemActive = true
+				session.Bomber.stepMult = 1.5
+				GameMap.Fields[arrayPosX][arrayPosY].Contains[i] = nil
+				BuildAbstractGameMap()
+				time.AfterFunc(7*time.Second, func() {
+					if session.Bomber.IsAlive {
+						session.Bomber.stepMult = 1
+					}
+					itemActive = false
+				})
+			} else if GameMap.Fields[arrayPosX][arrayPosY].Contains[i].getType() == 7 {
+				itemActive = true
+				session.Bomber.stepMult = 0.5
+				GameMap.Fields[arrayPosX][arrayPosY].Contains[i] = nil
+				BuildAbstractGameMap()
+				time.AfterFunc(5*time.Second, func() {
+					if session.Bomber.IsAlive {
+						session.Bomber.stepMult = 1
+					}
+					itemActive = false
+				})
+
+			} else if GameMap.Fields[arrayPosX][arrayPosY].Contains[i].getType() == 8 {
+				itemActive = true
+				session.Bomber.GhostActive = true
+				GameMap.Fields[arrayPosX][arrayPosY].Contains[i] = nil
+				BuildAbstractGameMap()
+				time.AfterFunc(5*time.Second, func() {
+					if session.Bomber.IsAlive {
+						session.Bomber.GhostActive = false
+					}
+					itemActive = false
+				})
+
+			}
+
 		}
-		return true
 	}
-	return false
 }
 
 func (r *Bomberman) isMovementLegal(x int, y int) bool {
@@ -210,7 +300,7 @@ func (r *Bomberman) isMovementLegal(x int, y int) bool {
 	inBounds := arrayPosX >= 0 && arrayPosY >= 0 && arrayPosX < len(GameMap.Fields) && arrayPosY < len(GameMap.Fields[arrayPosX])
 	if inBounds {
 		if oldPosX != arrayPosX {
-			if r.isFieldAccessible(x, y) {
+			if r.isFieldAccessible(x, y) || r.GhostActive {
 				removePlayerFromList(GameMap.Fields[oldPosX][arrayPosY].Player, r)
 				GameMap.Fields[arrayPosX][arrayPosY].Player.PushBack(r)
 				return true
@@ -218,7 +308,7 @@ func (r *Bomberman) isMovementLegal(x int, y int) bool {
 				return false
 			}
 		} else if oldPosY != arrayPosY {
-			if r.isFieldAccessible(x, y) {
+			if r.isFieldAccessible(x, y) || r.GhostActive {
 				removePlayerFromList(GameMap.Fields[arrayPosX][oldPosY].Player, r)
 				GameMap.Fields[arrayPosX][arrayPosY].Player.PushBack(r)
 				return true
@@ -248,7 +338,7 @@ func (b *Bomberman) isFieldAccessible(x int, y int) bool {
 	}
 
 	isAccessible := isAccessNull && isAccessOne
-	if isAccessible {
+	if isAccessible || b.GhostActive {
 		b.oldPositionX = b.PositionX
 		b.oldPositionY = b.PositionY
 	}
@@ -276,6 +366,19 @@ func outerEdges(x int, y int) bool {
 	}
 	isAccessible := accessible0 && accessible1
 	return isAccessible
+}
+
+func (b *Bomberman) collisionWithSurroundings(xOffset int, yOffset int) bool {
+	topRight := outerEdges(b.topRightPos.x+xOffset, b.topRightPos.y+yOffset)
+	topLeft := outerEdges(b.topLeftPos.x+xOffset, b.topLeftPos.y+yOffset)
+	bottomRight := outerEdges(b.bottomRightPos.x+xOffset, b.bottomRightPos.y+yOffset)
+	bottomLeft := outerEdges(b.bottomLeftPos.x+xOffset, b.bottomLeftPos.y+yOffset)
+	legal := topRight && topLeft && bottomRight && bottomLeft
+	if b.GhostActive {
+		return true
+	} else {
+		return legal
+	}
 }
 
 func printList(list *list.List) {
@@ -377,4 +480,9 @@ func BuildAbstractGameMap() {
 
 func isLesserThan(a interface{}, b interface{}) bool {
 	return a.(*Session).User.UserID < b.(*Session).User.UserID
+}
+
+func (p *Position) updatePosition(xOffset int, yOffset int) {
+	p.x += xOffset
+	p.y += yOffset
 }

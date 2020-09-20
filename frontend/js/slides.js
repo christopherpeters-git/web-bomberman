@@ -1,5 +1,5 @@
 let index = 0;
-let fruits = ["/media/img1.JPG", "/media/img2.JPG", "/media/img3.JPG"];
+let fruits = ["/media/banner.png", "/media/bannerUnten.png", "/media/ghostHQ.png"];
 let slideshow = document.querySelector(".slideShow");
 
 function slideRight() {

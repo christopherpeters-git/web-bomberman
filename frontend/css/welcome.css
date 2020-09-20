@@ -36,8 +36,8 @@ body {
 /* SLIDESHOW */
 
 .slideShow {
-    background-image: url("/media/img1.JPG");
-    background-size: cover;
+    background-image: url("../media/banner.png");
+    background-size: contain;
     flex: 3;
     border-radius: 6px 6px 0 0;
     height: 50%;
@@ -91,7 +91,7 @@ body {
     background-color: rgb(0, 0, 0);
     flex: 2;
     border-radius: 0 0 6px 6px;
-    background-image: url("/media/holz.jpg");
+    background-image: url("../media/bannerRed.png");
     background-size: cover;
     box-shadow: 0px 0px 13px 0px rgba(0, 0, 0, 0.75);
     box-shadow: inset 0px 0px 13px 0px rgba(0, 0, 0, 0.75);
