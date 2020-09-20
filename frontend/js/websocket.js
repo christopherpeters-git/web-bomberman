@@ -158,7 +158,7 @@ function drawPlayerChar (player, count) {
         playerImgLeft = playerCharLeft3;
     }
 
-    if (player.IsAlive){
+    if (player.IsAlive && player.IsMoving){
         if (player.DirDown){
             ctx.drawImage(playerImgDown, player.PositionX, player.PositionY, fieldSize, fieldSize);
         } else if ( player.DirUp){
@@ -167,6 +167,18 @@ function drawPlayerChar (player, count) {
             ctx.drawImage(playerImgLeft, player.PositionX, player.PositionY, fieldSize, fieldSize);
         } else if (player.DirRight){
             ctx.drawImage(playerImgRight, player.PositionX, player.PositionY, fieldSize, fieldSize);
+        }else {
+            ctx.drawImage(playerChar, player.PositionX, player.PositionY, fieldSize, fieldSize);
+        }
+    } else if (player.IsAlive && !player.IsMoving) {
+        if (player.DirDown){
+            ctx.drawImage(playerChar, player.PositionX, player.PositionY, fieldSize, fieldSize);
+        } else if ( player.DirUp){
+            ctx.drawImage(playerCharUp, player.PositionX, player.PositionY, fieldSize, fieldSize);
+        } else if (player.DirLeft){
+            ctx.drawImage(playerCharLeft, player.PositionX, player.PositionY, fieldSize, fieldSize);
+        } else if (player.DirRight){
+            ctx.drawImage(playerCharRight, player.PositionX, player.PositionY, fieldSize, fieldSize);
         }else {
             ctx.drawImage(playerChar, player.PositionX, player.PositionY, fieldSize, fieldSize);
         }
