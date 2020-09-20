@@ -102,7 +102,6 @@ func (f *Field) explosion() bool {
 			if f.Contains[i].isDestructible() {
 				f.Contains[i] = nil
 			} else {
-				BuildAbstractGameMap()
 				return true
 			}
 		}
@@ -296,7 +295,6 @@ func FillTestMap(m Map) {
 		for j := 0; j < len(m.Fields[i]); j++ {
 			if i != 0 && j != 0 && i != 19 && j != 19 {
 				random := rand.Intn(5)
-
 				if random == 1 {
 					m.Fields[i][j].addWall(wSolid)
 				} else if random == 2 {

@@ -79,7 +79,7 @@ func (r *Bomberman) String() string {
 	return "Bomberman: {" + strconv.FormatUint(r.UserID, 10) + " | " + strconv.FormatInt(int64(r.PositionX), 10) + " | " + strconv.FormatInt(int64(r.PositionY), 10) + " | " + r.lastBombPlaced.String() + "}"
 }
 
-func NewBomberman(userID uint64, positionX int, positionY int, name string, topRight Position, topLeft Position, bottomRight Position, bottomLeft Position) *Bomberman {
+func NewBomberman(userID uint64, positionX int, positionY int, name string) *Bomberman {
 	return &Bomberman{
 		UserID:         userID,
 		PositionX:      positionX,
@@ -92,10 +92,10 @@ func NewBomberman(userID uint64, positionX int, positionY int, name string, topR
 		IsAlive:        true,
 		IsHit:          false,
 		GhostActive:    false,
-		topRightPos:    topRight,
-		topLeftPos:     topLeft,
-		bottomRightPos: bottomRight,
-		bottomLeftPos:  bottomLeft,
+		topRightPos:    newPosition(positionX+43, positionY+7),
+		topLeftPos:     newPosition(positionX+7, positionY+7),
+		bottomRightPos: newPosition(positionX+7, positionY+43),
+		bottomLeftPos:  newPosition(positionX+43, positionY+43),
 		stepMult:       1,
 		DirUp:          false,
 		DirDown:        false,
@@ -141,11 +141,11 @@ func StartPlayerLoop(session *Session) {
 	//Add the infos to the connection map
 	BuildAbstractGameMap()
 	Connections[session.User.UserID] = session
-	GameMap.Fields[0][0].Player.PushBack(session.Bomber)
+	GameMap.Fields[(session.Bomber.PositionX+FIELD_SIZE/2)/FIELD_SIZE][(session.Bomber.PositionY+FIELD_SIZE/2)/FIELD_SIZE].Player.PushBack(session.Bomber)
 	playerWebsocketLoop(session)
 	//Remove player from list at his last array position
-	x := session.Bomber.PositionX / FIELD_SIZE
-	y := session.Bomber.PositionY / FIELD_SIZE
+	x := (session.Bomber.PositionX + FIELD_SIZE/2) / FIELD_SIZE
+	y := (session.Bomber.PositionY + FIELD_SIZE/2) / FIELD_SIZE
 	removePlayerFromList(GameMap.Fields[x][y].Player, session.Bomber)
 	//Remove from the connection map
 	delete(Connections, session.User.UserID)
@@ -240,9 +240,10 @@ func checkItem(session *Session) {
 	//!time.AfterFunc calls new goroutine automatically!
 	for i := 0; i < len(GameMap.Fields[arrayPosX][arrayPosY].Contains); i++ {
 		if GameMap.Fields[arrayPosX][arrayPosY].Contains[i] != nil {
+			//
 			if GameMap.Fields[arrayPosX][arrayPosY].Contains[i].getType() == 6 {
 				itemActive = true
-				session.Bomber.stepMult = 1.8
+				session.Bomber.stepMult = 1.5
 				GameMap.Fields[arrayPosX][arrayPosY].Contains[i] = nil
 				BuildAbstractGameMap()
 				time.AfterFunc(7*time.Second, func() {
@@ -330,7 +331,7 @@ func (b *Bomberman) isFieldAccessible(x int, y int) bool {
 	}
 
 	isAccessible := isAccessNull && isAccessOne
-	if isAccessible {
+	if isAccessible || b.GhostActive {
 		b.oldPositionX = b.PositionX
 		b.oldPositionY = b.PositionY
 	}
