@@ -9,8 +9,17 @@ let playerChar2 = new Image();
 let playerChar3 = new Image();
 
 let playerCharUp = new Image();
+let playerCharUp2 = new Image();
+let playerCharUp3 = new Image();
+
 let playerCharLeft = new Image();
+let playerCharLeft2 = new Image();
+let playerCharLeft3 = new Image();
+
 let playerCharRight = new Image();
+let playerCharRight2 = new Image();
+let playerCharRight3 = new Image();
+
 let ticker;
 let isBombLegal = true;
 let keyPresses = {};
@@ -28,7 +37,7 @@ let explosionImg = new Image()
 
 let counter = 0;
 let imgIndex = 0;
-const frameLimit = 2;
+const frameLimit = 8;
 
 const nameLabel = document.createElement("p");
 const posXLabel = document.createElement("p");
@@ -114,6 +123,9 @@ socket.onmessage = (ev) => {
 function drawPlayerChar (player, count) {
 
     playerImgDown = playerChar;
+    playerImgUp = playerCharUp;
+    playerImgRight = playerCharRight;
+    playerImgLeft = playerCharLeft;
 
     if (count == frameLimit) {
         imgIndex++;
@@ -123,26 +135,38 @@ function drawPlayerChar (player, count) {
     }
     if (imgIndex == 0) {
         playerImgDown = playerChar;
+        playerImgUp = playerCharUp;
+        playerImgRight = playerCharRight;
+        playerImgLeft = playerCharLeft;
     }
     if(imgIndex == 1) {
         playerImgDown = playerChar2;
+        playerImgUp = playerCharUp2;
+        playerImgRight = playerCharRight2;
+        playerImgLeft = playerCharLeft2;
     }
     if(imgIndex == 2) {
         playerImgDown = playerChar;
+        playerImgUp = playerCharUp;
+        playerImgRight = playerCharRight;
+        playerImgLeft = playerCharLeft;
     }
     if(imgIndex == 3) {
         playerImgDown = playerChar3;
+        playerImgUp = playerCharUp3;
+        playerImgRight = playerCharRight3;
+        playerImgLeft = playerCharLeft3;
     }
 
     if (player.IsAlive){
         if (player.DirDown){
             ctx.drawImage(playerImgDown, player.PositionX, player.PositionY, fieldSize, fieldSize);
         } else if ( player.DirUp){
-            ctx.drawImage(playerCharUp, player.PositionX, player.PositionY, fieldSize, fieldSize);
+            ctx.drawImage(playerImgUp, player.PositionX, player.PositionY, fieldSize, fieldSize);
         } else if (player.DirLeft){
-            ctx.drawImage(playerCharLeft, player.PositionX, player.PositionY, fieldSize, fieldSize);
+            ctx.drawImage(playerImgLeft, player.PositionX, player.PositionY, fieldSize, fieldSize);
         } else if (player.DirRight){
-            ctx.drawImage(playerCharRight, player.PositionX, player.PositionY, fieldSize, fieldSize);
+            ctx.drawImage(playerImgRight, player.PositionX, player.PositionY, fieldSize, fieldSize);
         }else {
             ctx.drawImage(playerChar, player.PositionX, player.PositionY, fieldSize, fieldSize);
         }
@@ -158,16 +182,22 @@ function initGame(){
     wallImg2.src ="media/wallBreak2.png"
     grassImg.src = "media/grass.png"
     bombImg.src = "media/bomb3.png"
-    playerChar.src = "media/cutie0.png"
-    playerCharUp.src  = "media/cutieBack.png"
-    playerCharLeft.src  = "media/cutieLeft.png"
-    playerCharRight.src  = "media/cutieRight.png"
+    playerChar.src = "media/cutieFD.png"
+    playerCharUp.src  = "media/cutieB.png"
+    playerCharUp2.src = "media/cutieBL.png"
+    playerCharUp3.src = "media/cutieBR.png"
+    playerCharLeft.src  = "media/cutieL.png"
+    playerCharLeft2.src  = "media/cutieLL.png"
+    playerCharLeft3.src  = "media/cutieLR.png"
+    playerCharRight.src  = "media/cutieR.png"
+    playerCharRight2.src = "media/cutieRL.png"
+    playerCharRight3.src = "media/cutieRR.png"
     itemBoostImg.src = "media/speeditem.png"
     itemSlowImg.src = "media/slowitem.png"
     itemGhostImg.src = "media/ghostitem.png"
     playerGhostImg.src = "media/ghostPlayer.png"
-    playerChar2.src = "media/cutie1.png"
-    playerChar3.src = "media/cutie3.png"
+    playerChar2.src = "media/cutieFL.png"
+    playerChar3.src = "media/cutieFR.png"
     explosionImg.src = "media/explosion2.png"
     info.append(nameLabel);
     info.append(posXLabel);
