@@ -1,4 +1,4 @@
-const info = document.querySelector('.shadowCont')
+const info = document.querySelector('#stats')
 const ctx = document.getElementById("matchfield").getContext("2d")
 const fieldSize = 50;
 const canvasSize = 1000;
@@ -88,7 +88,7 @@ socket.onmessage = (ev) => {
         ctx.clearRect(0, 0, canvasSize, canvasSize);
         background(grassImg, incomingPackage.GameMap);
         searchForUser(incomingPackage.Players)
-        //updateUserInfo()
+        updateUserInfo()
 
 
         for(let i = 0; i < incomingPackage.Players.length; i++){
@@ -227,9 +227,9 @@ function initGame(){
     playerChar3.src = "media/cutieFR.png"
     explosionImg.src = "media/explosion2.png"
     portalImg.src = "media/portal2.png"
-    // info.append(nameLabel);
-    // info.append(posXLabel);
-    // info.append(posYLabel);
+    info.append(nameLabel);
+    info.append(posXLabel);
+    info.append(posYLabel);
 }
 
 function drawElement (color, map, type){

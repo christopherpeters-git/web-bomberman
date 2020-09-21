@@ -57,8 +57,8 @@ body {
     flex-direction: column;
 }
 
-.infoFrame {
-    width: 100%;
+.infoTemplate {
+    width: 80%;
     flex: 1;
     display: flex;
     justify-content: center;
@@ -67,16 +67,23 @@ body {
     color: white;
 }
 
-.buttonFrame {
+.infoTemplate h2{
+    font-size: 15px;
+    margin-bottom: 3%;
+}
 
+.infoTemplate p{
+    font-size: 10px;
+}
+.buttonFrame {
     border-radius: 0 5px 0 0;
 }
+
 .statFrame {
 
 }
 
 .activeItemFrame {
-
     border-radius: 0 0 5px 0;
 }
 
