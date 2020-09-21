@@ -60,6 +60,7 @@ type Bomberman struct {
 	IsMoving       bool
 	GhostActive    bool
 	hasTeleported  bool
+	playerReady    bool
 	topRightPos    Position
 	topLeftPos     Position
 	bottomRightPos Position
@@ -97,6 +98,7 @@ func NewBomberman(userID uint64, positionX int, positionY int, name string) *Bom
 		IsMoving:       false,
 		GhostActive:    false,
 		hasTeleported:  false,
+		playerReady:    false,
 		topRightPos:    newPosition(positionX+43, positionY+7),
 		topLeftPos:     newPosition(positionX+7, positionY+7),
 		bottomRightPos: newPosition(positionX+7, positionY+43),

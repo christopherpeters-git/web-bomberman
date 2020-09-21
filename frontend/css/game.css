@@ -11,69 +11,89 @@ html, body {
 body {
     background-color: rgba(30, 30, 30, 1);
 }
-
-.testCont {
+.layoutContainer {
     height: 100%;
-}
-.field {
+    width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
     flex-direction: column;
 }
-.sign {
-    margin-top: 3%;
-    background-color: rgba(18, 18, 18, 1);
-    color: rgba(255, 255, 255, 0.8);
-    border-radius: 5px;
+
+.frame {
+    height: 90%;
+    width: 90%;
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 0.5%;
 
-}
-.sign p {
-    font-size: 8px;
 }
 
 #matchfield {
-    margin-top: 5%;
+    height: 90%;
+    border-radius: 5px;
+}
+
+.field {
     height: 100%;
-    min-width: 500px;
-    min-height: 500px;
-    border: 10px solid rgba(21,25,32,1);
-    border-radius: 3px;
-    box-shadow: 0px 0px 22px 8px rgba(0,0,0,0.75);
-}
-
-
-/*
-.infoframe {
-    flex: 1;
-    width: 100%;
     display: flex;
-    justify-content: left;
     align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    background-color: rgba(18, 18, 18, 1);
+    flex: 4;
+    border-radius: 5px 0  0 5px ;
 }
 
-#info {
-    width: 20%;
-    height: 8%;
-    min-width: 20%;
-    background-image: url("/media/frame.png");
-    background-size: 100% 100%;
-    padding: 1%;
-    margin-left: 10px;
-    border-radius: 3px;
-    box-shadow: 0px 0px 22px 8px rgba(0,0,0,0.75);
+
+.info {
+    height: 100%;
+    background-color: black;
+    flex: 1;
+    border-radius: 0 5px 5px 0;
     display: flex;
     justify-content: center;
     align-items: center;
+    flex-direction: column;
+}
+
+.infoFrame {
+    width: 100%;
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    color: white;
+}
+
+.buttonFrame {
+
+    border-radius: 0 5px 0 0;
+}
+.statFrame {
 
 }
 
-.shadowCont p {
+.activeItemFrame {
+
+    border-radius: 0 0 5px 0;
+}
+
+#readyButton {
+    padding: 3%;
+}
+
+.footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(18, 18, 18, 1);
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 7px;
+    padding: 1%;
     margin-top: 1%;
+    border-radius: 5px;
+
 }
 
-*/

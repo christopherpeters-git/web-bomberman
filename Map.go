@@ -404,10 +404,13 @@ func CreateMapFromImage(m Map, imagePfad string) {
 	m.addPortal(&p2)
 	m.addPortal(&p3)
 	fmt.Println(pixels)
+
+	wallPixel := newPixel(0, 0, 0, 255)
+
 	//j und i vertauscht?
 	for i := 0; i < len(pixels); i++ {
 		for j := 0; j < len(pixels[i]); j++ {
-			if pixels[i][j].R == 0 && pixels[i][j].G == 0 && pixels[i][j].B == 0 && pixels[i][j].A == 255 {
+			if pixels[i][j] == wallPixel {
 				m.Fields[j][i].addWall(wSolid)
 			}
 			if pixels[i][j].R == 66 && pixels[i][j].G == 65 && pixels[i][j].B == 66 && pixels[i][j].A == 255 {
@@ -462,4 +465,13 @@ type Pixel struct {
 	G int
 	B int
 	A int
+}
+
+func newPixel(r int, g int, b int, a int) Pixel {
+	return Pixel{
+		R: r,
+		G: g,
+		B: b,
+		A: a,
+	}
 }

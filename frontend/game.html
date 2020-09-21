@@ -10,13 +10,27 @@
 </head>
 <body>
 <audio src="/media/abgehen.mp3" autoplay loop></audio>
-<div class="testCont">
-    <div class="field">
-        <canvas id="matchfield" width="1000" height="1000"></canvas>
-        <div class="sign"><p>A Project by Christopher P, Till F and Nikolai W</p></div>
+<div class="layoutContainer">
+    <div class="frame">
+        <div class="field">
+            <canvas id="matchfield" width="1000" height="1000"></canvas>
+        </div>
+        <div class="info">
+            <div class="buttonFrame infoFrame">
+                <p>Button Container</p>
+                <button id="readyButton">Ready</button>
+            </div>
+            <div class="statFrame infoFrame">
+                <p>Stat Container</p>
+            </div>
+            <div class="activeItemFrame infoFrame">
+                <p>Active Item Container</p>
+            </div>
+        </div>
     </div>
-</div>
+    <div class="footer"><p>A Project by Christopher P, Till F and Nikolai W</p></div>
 
+</div>
 </body>
 <script src="js/websocket.js"></script>
 </html>
