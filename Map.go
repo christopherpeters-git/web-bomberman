@@ -3,7 +3,6 @@ package main
 import (
 	"container/list"
 	"log"
-	"math/rand"
 	"time"
 )
 
@@ -422,36 +421,331 @@ func FillTestMap(m Map) {
 	i2 := NewItem(FieldObjectItemGhost)
 	p0 := NewPortal(newPosition(0, 1), newPosition(0, 18))
 	m.addPortal(&p0)
-	rand.Seed(time.Now().UTC().UnixNano())
 
+	m.Fields[9][0].addWall(wSolid)
+	m.Fields[10][0].addWall(wSolid)
+
+	m.Fields[4][1].addWall(wWeak)
+	m.Fields[5][1].addWall(wSolid)
+	m.Fields[6][1].addWall(wSolid)
+	m.Fields[7][1].addWall(wSolid)
+	m.Fields[8][1].addWall(wSolid)
+	m.Fields[9][1].addWall(wSolid)
+	m.Fields[10][1].addWall(wSolid)
+	m.Fields[11][1].addWall(wSolid)
+	m.Fields[12][1].addWall(wSolid)
+	m.Fields[13][1].addWall(wSolid)
+	m.Fields[14][1].addWall(wSolid)
+	m.Fields[15][1].addWall(wWeak)
+
+	m.Fields[3][2].addWall(wWeak)
+	m.Fields[4][2].addWall(wWeak)
+	m.Fields[5][2].addWall(wWeak)
+	m.Fields[6][2].addWall(wWeak)
+	m.Fields[7][2].addWall(wWeak)
+	m.Fields[8][2].addWall(wWeak)
+	m.Fields[9][2].addWall(wWeak)
+	m.Fields[10][2].addWall(wWeak)
+	m.Fields[11][2].addWall(wWeak)
+	m.Fields[12][2].addWall(wWeak)
+	m.Fields[13][2].addWall(wWeak)
+	m.Fields[14][2].addWall(wWeak)
+	m.Fields[15][2].addWall(wWeak)
+	m.Fields[16][2].addWall(wWeak)
+
+	m.Fields[2][3].addWall(wSolid)
+	m.Fields[3][3].addWall(wSolid)
+	m.Fields[6][3].addWall(wWeak)
+	m.Fields[7][3].addWall(wWeak)
+	m.Fields[8][3].addWall(wWeak)
+	m.Fields[11][3].addWall(wWeak)
+	m.Fields[12][3].addWall(wWeak)
+	m.Fields[13][3].addWall(wWeak)
+	m.Fields[16][3].addWall(wSolid)
+	m.Fields[17][3].addWall(wSolid)
+
+	m.Fields[2][4].addWall(wSolid)
+	m.Fields[3][4].addWall(wWeak)
+	m.Fields[4][4].addWall(wWeak)
+	m.Fields[5][4].addWall(wWeak)
+	m.Fields[6][4].addWall(wWeak)
+	m.Fields[7][4].addWall(wWeak)
+	m.Fields[8][4].addWall(wWeak)
+	m.Fields[9][4].addWall(wWeak)
+	m.Fields[10][4].addWall(wWeak)
+	m.Fields[11][4].addWall(wWeak)
+	m.Fields[12][4].addWall(wWeak)
+	m.Fields[13][4].addWall(wWeak)
+	m.Fields[14][4].addWall(wWeak)
+	m.Fields[15][4].addWall(wWeak)
+	m.Fields[16][4].addWall(wWeak)
+	m.Fields[17][4].addWall(wSolid)
+
+	m.Fields[1][5].addWall(wWeak)
+	m.Fields[2][5].addWall(wWeak)
+	m.Fields[3][5].addWall(wWeak)
+	m.Fields[4][5].addWall(wSolid)
+	m.Fields[5][5].addItem(&i1)
+	m.Fields[6][5].addWall(wSolid)
+	m.Fields[7][5].addWall(wSolid)
+	m.Fields[8][5].addWall(wSolid)
+	m.Fields[9][5].addWall(wSolid)
+	m.Fields[10][5].addWall(wSolid)
+	m.Fields[11][5].addWall(wSolid)
+	m.Fields[12][5].addWall(wSolid)
+	m.Fields[13][5].addWall(wSolid)
+	m.Fields[14][5].addItem(&i1)
+	m.Fields[15][5].addWall(wSolid)
+	m.Fields[16][5].addWall(wWeak)
+	m.Fields[17][5].addWall(wWeak)
+	m.Fields[18][5].addWall(wWeak)
+
+	m.Fields[0][6].addWall(wWeak)
+	m.Fields[1][6].addWall(wSolid)
+	m.Fields[3][6].addWall(wWeak)
+	m.Fields[4][6].addItem(&i1)
+	m.Fields[6][6].addWall(wWeak)
+	m.Fields[9][6].addWall(wWeak)
+	m.Fields[10][6].addWall(wWeak)
+	m.Fields[13][6].addWall(wWeak)
+	m.Fields[15][6].addItem(&i1)
+	m.Fields[16][6].addWall(wWeak)
+	m.Fields[18][6].addWall(wSolid)
+	m.Fields[19][6].addWall(wWeak)
+
+	m.Fields[0][7].addWall(wWeak)
+	m.Fields[1][7].addWall(wSolid)
+	m.Fields[2][7].addWall(wWeak)
+	m.Fields[3][7].addWall(wWeak)
+	m.Fields[4][7].addWall(wSolid)
+	m.Fields[5][7].addWall(wWeak)
+	m.Fields[6][7].addWall(wSolid)
+	m.Fields[7][7].addWall(wWeak)
+	m.Fields[8][7].addWall(wWeak)
+	m.Fields[9][7].addWall(wSolid)
+	m.Fields[10][7].addWall(wSolid)
+	m.Fields[11][7].addWall(wWeak)
+	m.Fields[12][7].addWall(wWeak)
+	m.Fields[13][7].addWall(wSolid)
+	m.Fields[14][7].addWall(wWeak)
+	m.Fields[15][7].addWall(wSolid)
+	m.Fields[16][7].addWall(wWeak)
+	m.Fields[17][7].addWall(wWeak)
+	m.Fields[18][7].addWall(wSolid)
+	m.Fields[19][7].addWall(wWeak)
+
+	m.Fields[0][8].addItem(&i0)
+	m.Fields[1][8].addWall(wSolid)
+	m.Fields[2][8].addWall(wWeak)
+	m.Fields[3][8].addWall(wWeak)
+	m.Fields[4][8].addWall(wSolid)
+	m.Fields[6][8].addWall(wWeak)
+	m.Fields[9][8].addItem(&i1)
+	m.Fields[10][8].addItem(&i1)
+	m.Fields[13][8].addWall(wWeak)
+	m.Fields[15][8].addWall(wSolid)
+	m.Fields[16][8].addWall(wWeak)
+	m.Fields[17][8].addWall(wWeak)
+	m.Fields[18][8].addWall(wSolid)
+	m.Fields[19][8].addItem(&i0)
+
+	m.Fields[0][9].addWall(wSolid)
+	m.Fields[1][9].addWall(wSolid)
+	m.Fields[2][9].addItem(&i1)
+	m.Fields[3][9].addWall(wWeak)
+	m.Fields[4][9].addWall(wSolid)
+	m.Fields[5][9].addWall(wWeak)
+	m.Fields[6][9].addWall(wWeak)
+	m.Fields[7][9].addWall(wSolid)
+	m.Fields[8][9].addItem(&i1)
+	m.Fields[9][9].addItem(&i2)
+	m.Fields[10][9].addItem(&i2)
+	m.Fields[11][9].addItem(&i1)
+	m.Fields[12][9].addWall(wSolid)
+	m.Fields[13][9].addWall(wWeak)
+	m.Fields[14][9].addWall(wWeak)
+	m.Fields[15][9].addWall(wSolid)
+	m.Fields[16][9].addWall(wWeak)
+	m.Fields[17][9].addItem(&i1)
+	m.Fields[18][9].addWall(wSolid)
+	m.Fields[19][9].addWall(wSolid)
+
+	m.Fields[0][10].addWall(wSolid)
+	m.Fields[1][10].addWall(wSolid)
+	m.Fields[2][10].addItem(&i1)
+	m.Fields[3][10].addWall(wWeak)
+	m.Fields[4][10].addWall(wSolid)
+	m.Fields[5][10].addWall(wWeak)
+	m.Fields[6][10].addWall(wWeak)
+	m.Fields[7][10].addWall(wSolid)
+	m.Fields[8][10].addItem(&i1)
+	m.Fields[9][10].addItem(&i2)
+	m.Fields[10][10].addItem(&i2)
+	m.Fields[11][10].addItem(&i1)
+	m.Fields[12][10].addWall(wSolid)
+	m.Fields[13][10].addWall(wWeak)
+	m.Fields[14][10].addWall(wWeak)
+	m.Fields[15][10].addWall(wSolid)
+	m.Fields[16][10].addWall(wWeak)
+	m.Fields[17][10].addItem(&i1)
+	m.Fields[18][10].addWall(wSolid)
+	m.Fields[19][10].addWall(wSolid)
+
+	m.Fields[0][11].addItem(&i0)
+	m.Fields[1][11].addWall(wSolid)
+	m.Fields[2][11].addWall(wWeak)
+	m.Fields[3][11].addWall(wWeak)
+	m.Fields[4][11].addWall(wSolid)
+	m.Fields[6][11].addWall(wWeak)
+	m.Fields[9][11].addItem(&i1)
+	m.Fields[10][11].addItem(&i1)
+	m.Fields[13][11].addWall(wWeak)
+	m.Fields[15][11].addWall(wSolid)
+	m.Fields[16][11].addWall(wWeak)
+	m.Fields[17][11].addWall(wWeak)
+	m.Fields[18][11].addWall(wSolid)
+	m.Fields[19][11].addItem(&i0)
+
+	m.Fields[0][12].addWall(wWeak)
+	m.Fields[1][12].addWall(wSolid)
+	m.Fields[2][12].addWall(wWeak)
+	m.Fields[3][12].addWall(wWeak)
+	m.Fields[4][12].addWall(wSolid)
+	m.Fields[5][12].addWall(wWeak)
+	m.Fields[6][12].addWall(wSolid)
+	m.Fields[7][12].addWall(wWeak)
+	m.Fields[8][12].addWall(wWeak)
+	m.Fields[9][12].addWall(wSolid)
+	m.Fields[10][12].addWall(wSolid)
+	m.Fields[11][12].addWall(wWeak)
+	m.Fields[12][12].addWall(wWeak)
+	m.Fields[13][12].addWall(wSolid)
+	m.Fields[14][12].addWall(wWeak)
+	m.Fields[15][12].addWall(wSolid)
+	m.Fields[16][12].addWall(wWeak)
+	m.Fields[17][12].addWall(wWeak)
+	m.Fields[18][12].addWall(wSolid)
+	m.Fields[19][12].addWall(wWeak)
+
+	m.Fields[0][13].addWall(wWeak)
+	m.Fields[1][13].addWall(wSolid)
+	m.Fields[3][13].addWall(wWeak)
+	m.Fields[4][13].addItem(&i1)
+	m.Fields[6][13].addWall(wWeak)
+	m.Fields[9][13].addWall(wWeak)
+	m.Fields[10][13].addWall(wWeak)
+	m.Fields[13][13].addWall(wWeak)
+	m.Fields[15][13].addItem(&i1)
+	m.Fields[16][13].addWall(wWeak)
+	m.Fields[18][13].addWall(wSolid)
+	m.Fields[19][13].addWall(wWeak)
+
+	m.Fields[1][14].addWall(wWeak)
+	m.Fields[2][14].addWall(wWeak)
+	m.Fields[3][14].addWall(wWeak)
+	m.Fields[4][14].addWall(wSolid)
+	m.Fields[5][14].addItem(&i1)
+	m.Fields[6][14].addWall(wSolid)
+	m.Fields[7][14].addWall(wSolid)
+	m.Fields[8][14].addWall(wSolid)
+	m.Fields[9][14].addWall(wSolid)
+	m.Fields[10][14].addWall(wSolid)
+	m.Fields[11][14].addWall(wSolid)
+	m.Fields[12][14].addWall(wSolid)
+	m.Fields[13][14].addWall(wSolid)
+	m.Fields[14][14].addItem(&i1)
+	m.Fields[15][14].addWall(wSolid)
+	m.Fields[16][14].addWall(wWeak)
+	m.Fields[17][14].addWall(wWeak)
+	m.Fields[18][14].addWall(wWeak)
+
+	m.Fields[2][15].addWall(wSolid)
+	m.Fields[3][15].addWall(wWeak)
+	m.Fields[4][15].addWall(wWeak)
+	m.Fields[5][15].addWall(wWeak)
+	m.Fields[6][15].addWall(wWeak)
+	m.Fields[7][15].addWall(wWeak)
+	m.Fields[8][15].addWall(wWeak)
+	m.Fields[9][15].addWall(wWeak)
+	m.Fields[10][15].addWall(wWeak)
+	m.Fields[11][15].addWall(wWeak)
+	m.Fields[12][15].addWall(wWeak)
+	m.Fields[13][15].addWall(wWeak)
+	m.Fields[14][15].addWall(wWeak)
+	m.Fields[15][15].addWall(wWeak)
+	m.Fields[16][15].addWall(wWeak)
+	m.Fields[17][15].addWall(wSolid)
+
+	m.Fields[2][16].addWall(wSolid)
+	m.Fields[3][16].addWall(wSolid)
+	m.Fields[6][16].addWall(wWeak)
+	m.Fields[7][16].addWall(wWeak)
+	m.Fields[8][16].addWall(wWeak)
+	m.Fields[11][16].addWall(wWeak)
+	m.Fields[12][16].addWall(wWeak)
+	m.Fields[13][16].addWall(wWeak)
+	m.Fields[16][16].addWall(wSolid)
+	m.Fields[17][16].addWall(wSolid)
+
+	m.Fields[3][17].addWall(wWeak)
+	m.Fields[4][17].addWall(wWeak)
+	m.Fields[5][17].addWall(wWeak)
+	m.Fields[6][17].addWall(wWeak)
+	m.Fields[7][17].addWall(wWeak)
+	m.Fields[8][17].addWall(wWeak)
+	m.Fields[9][17].addWall(wWeak)
+	m.Fields[10][17].addWall(wWeak)
+	m.Fields[11][17].addWall(wWeak)
+	m.Fields[12][17].addWall(wWeak)
+	m.Fields[13][17].addWall(wWeak)
+	m.Fields[14][17].addWall(wWeak)
+	m.Fields[15][17].addWall(wWeak)
+	m.Fields[16][17].addWall(wWeak)
+
+	m.Fields[4][18].addWall(wWeak)
+	m.Fields[5][18].addWall(wSolid)
+	m.Fields[6][18].addWall(wSolid)
+	m.Fields[7][18].addWall(wSolid)
+	m.Fields[8][18].addWall(wSolid)
+	m.Fields[9][18].addWall(wSolid)
+	m.Fields[10][18].addWall(wSolid)
+	m.Fields[11][18].addWall(wSolid)
+	m.Fields[12][18].addWall(wSolid)
+	m.Fields[13][18].addWall(wSolid)
+	m.Fields[14][18].addWall(wSolid)
+	m.Fields[15][18].addWall(wWeak)
+
+	m.Fields[9][19].addWall(wSolid)
+	m.Fields[10][19].addWall(wSolid)
+	//rand.Seed(time.Now().UTC().UnixNano())
 	// (i != 0 || j != 0) && (i != 19 || j != 19) && (i != 0 || j != 19) && (i != 19 || j != 0)
-	for i := 0; i < len(m.Fields); i++ {
-		for j := 0; j < len(m.Fields[i]); j++ {
-			if i != 0 && j != 0 && i != 19 && j != 19 {
-				random := rand.Intn(5)
-				if random == 1 {
-					m.Fields[i][j].addWall(wSolid)
-				} else if random == 2 {
-					m.Fields[i][j].addWall(wWeak)
-				}
-			}
-		}
-	}
+	//for i := 0; i < len(m.Fields); i++ {
+	//	for j := 0; j < len(m.Fields[i]); j++ {
+	//		if i != 0 && j != 0 && i != 19 && j != 19 {
+	//			random := rand.Intn(5)
+	//			if random == 1 {
+	//				m.Fields[i][j].addWall(wSolid)
+	//			} else if random == 2 {
+	//				m.Fields[i][j].addWall(wWeak)
+	//			}
+	//		}
+	//	}
+	//}
 
-	for i := 0; i < len(m.Fields); i++ {
-		for j := 0; j < len(m.Fields[i]); j++ {
-			if i != 0 && j != 0 && i != 19 && j != 19 {
-				random := rand.Intn(45) + 1
-
-				if random == 15 {
-					m.Fields[i][j].addItem(&i0)
-				} else if random == 30 {
-					m.Fields[i][j].addItem(&i1)
-				} else if random == 45 {
-					m.Fields[i][j].addItem(&i2)
-				}
-			}
-		}
-	}
+	//for i := 0; i < len(m.Fields); i++ {
+	//	for j := 0; j < len(m.Fields[i]); j++ {
+	//		if i != 0 && j != 0 && i != 19 && j != 19 {
+	//			random := rand.Intn(45) + 1
+	//
+	//			if random == 15 {
+	//				m.Fields[i][j].addItem(&i0)
+	//			} else if random == 30 {
+	//				m.Fields[i][j].addItem(&i1)
+	//			} else if random == 45 {
+	//				m.Fields[i][j].addItem(&i2)
+	//			}
+	//		}
+	//	}
+	//}
 
 }
