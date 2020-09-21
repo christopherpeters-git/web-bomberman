@@ -34,6 +34,7 @@ const (
 	FieldObjectItemSlow      FieldObject = 7
 	FieldObjectItemGhost     FieldObject = 8
 	FieldObjectExplosion     FieldObject = 9
+	FieldObjectPortal        FieldObject = 12
 )
 
 type Map struct {
@@ -382,7 +383,10 @@ func FillTestMap(m Map) {
 	i0 := NewItem(FieldObjectItemBoost)
 	i1 := NewItem(FieldObjectItemSlow)
 	i2 := NewItem(FieldObjectItemGhost)
+	i3 := NewItem(FieldObjectPortal)
 	rand.Seed(time.Now().UTC().UnixNano())
+	m.Fields[0][1].addItem(&i3)
+
 	// (i != 0 || j != 0) && (i != 19 || j != 19) && (i != 0 || j != 19) && (i != 19 || j != 0)
 	for i := 0; i < len(m.Fields); i++ {
 		for j := 0; j < len(m.Fields[i]); j++ {

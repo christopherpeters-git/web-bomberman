@@ -37,6 +37,7 @@ let itemSlowImg = new Image()
 let itemGhostImg = new Image()
 let playerGhostImg = new Image()
 let explosionImg = new Image()
+let portalImg = new Image()
 
 let counter = 0;
 let imgIndex = 0;
@@ -101,6 +102,7 @@ socket.onmessage = (ev) => {
         drawImageFromEnum(itemBoostImg, gamemap, 6);
         drawImageFromEnum(itemSlowImg, gamemap, 7);
         drawImageFromEnum(itemGhostImg, gamemap, 8);
+        drawImageFromEnum(portalImg, gamemap, 12)
         drawImageFromEnum(wallImg, gamemap, 3);
         drawImageFromEnum(wallImg2, gamemap, 2);
         drawImageFromEnum(bomb3Img, gamemap, 1);
@@ -224,6 +226,7 @@ function initGame(){
     playerChar2.src = "media/cutieFL.png"
     playerChar3.src = "media/cutieFR.png"
     explosionImg.src = "media/explosion2.png"
+    portalImg.src = "media/portal.png"
     // info.append(nameLabel);
     // info.append(posXLabel);
     // info.append(posYLabel);

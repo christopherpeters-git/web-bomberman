@@ -282,9 +282,13 @@ func checkItem(session *Session) {
 					}
 					itemActive = false
 				})
-
+			} else if GameMap.Fields[arrayPosX][arrayPosY].Contains[i].getType() == 12 {
+				removePlayerFromList(GameMap.Fields[arrayPosX][arrayPosY].Player, session.Bomber)
+				session.Bomber.PositionX = 948
+				session.Bomber.PositionY = 948
+				GameMap.Fields[arrayPosX][arrayPosY].Player.PushBack(session.Bomber)
+				BuildAbstractGameMap()
 			}
-
 		}
 	}
 }
