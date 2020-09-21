@@ -12,7 +12,8 @@ type FieldObject int
 
 // -1 doesnt work
 var globalBombCount uint64 = 0
-var globalTestMap Map = NewMap(10)
+
+//var globalTestMap Map = NewMap(10)
 
 const bombStates = 3
 
@@ -23,6 +24,7 @@ const (
 )
 
 const (
+	FieldObjectNull          FieldObject = 0
 	FieldObjectBomb          FieldObject = 1
 	FieldObjectBomb1         FieldObject = 10
 	FieldObjectBomb2         FieldObject = 11
@@ -88,6 +90,11 @@ func (f *Field) addItem(i *Item) {
 	} else {
 		f.Contains[0] = i
 	}
+}
+
+func (m *Map) addPortal(p *Portal) {
+	m.Fields[p.portalOne.x][p.portalOne.y].Contains[1] = p
+	m.Fields[p.portalTwo.x][p.portalTwo.y].Contains[1] = p
 }
 
 func (f *Field) addExplosion(e *Explosion) {
@@ -296,13 +303,43 @@ func (i *Item) isAccessible() bool {
 	return true
 }
 func (i *Item) startEvent() {
-
 }
+
 func (i *Item) isDestructible() bool {
 	return false
 }
 func (i *Item) getType() FieldObject {
 	return i.Type
+}
+
+type Portal struct {
+	iFeelUsed bool
+	portalOne Position
+	portalTwo Position
+}
+
+func NewPortal(portalOne Position, portalTwo Position) Portal {
+	return Portal{
+		iFeelUsed: false,
+		portalOne: portalOne,
+		portalTwo: portalTwo,
+	}
+}
+
+func (p *Portal) isAccessible() bool {
+	return true
+}
+
+func (p *Portal) startEvent() {
+
+}
+
+func (p *Portal) isDestructible() bool {
+	return false
+}
+
+func (p *Portal) getType() FieldObject {
+	return FieldObjectPortal
 }
 
 type Wall struct {
@@ -383,9 +420,9 @@ func FillTestMap(m Map) {
 	i0 := NewItem(FieldObjectItemBoost)
 	i1 := NewItem(FieldObjectItemSlow)
 	i2 := NewItem(FieldObjectItemGhost)
-	i3 := NewItem(FieldObjectPortal)
+	p0 := NewPortal(newPosition(0, 1), newPosition(0, 18))
+	m.addPortal(&p0)
 	rand.Seed(time.Now().UTC().UnixNano())
-	m.Fields[0][1].addItem(&i3)
 
 	// (i != 0 || j != 0) && (i != 19 || j != 19) && (i != 0 || j != 19) && (i != 19 || j != 0)
 	for i := 0; i < len(m.Fields); i++ {

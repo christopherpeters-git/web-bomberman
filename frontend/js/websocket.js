@@ -226,7 +226,7 @@ function initGame(){
     playerChar2.src = "media/cutieFL.png"
     playerChar3.src = "media/cutieFR.png"
     explosionImg.src = "media/explosion2.png"
-    portalImg.src = "media/portal.png"
+    portalImg.src = "media/portal2.png"
     // info.append(nameLabel);
     // info.append(posXLabel);
     // info.append(posYLabel);

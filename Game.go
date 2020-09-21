@@ -18,7 +18,6 @@ var GameMap = NewMap(CANVAS_SIZE / FIELD_SIZE)
 var Connections = make(map[uint64]*Session, 0)
 var ticker = time.NewTicker(16 * time.Millisecond)
 var incomingTicker = time.NewTicker(1 * time.Millisecond)
-var itemActive = false
 
 //Things send to the clients
 var bombermanArray = make([]Bomberman, 0)
@@ -57,8 +56,10 @@ type Bomberman struct {
 	bombTime       int
 	IsAlive        bool
 	IsHit          bool
+	ItemActive     bool
 	IsMoving       bool
 	GhostActive    bool
+	hasTeleported  bool
 	topRightPos    Position
 	topLeftPos     Position
 	bottomRightPos Position
@@ -92,8 +93,10 @@ func NewBomberman(userID uint64, positionX int, positionY int, name string) *Bom
 		bombTime:       3,
 		IsAlive:        true,
 		IsHit:          false,
+		ItemActive:     false,
 		IsMoving:       false,
 		GhostActive:    false,
+		hasTeleported:  false,
 		topRightPos:    newPosition(positionX+43, positionY+7),
 		topLeftPos:     newPosition(positionX+7, positionY+7),
 		bottomRightPos: newPosition(positionX+7, positionY+43),
@@ -232,64 +235,167 @@ func playerWebsocketLoop(session *Session) {
 				go session.Bomber.placeBomb()
 			}
 		}
-		if session.Bomber.IsAlive && !itemActive {
-			checkItem(session)
-		}
+		//if session.Bomber.IsAlive && !itemActive {
+		//	checkItem(session)
+		//}
 
 	}
 
 }
 
-func checkItem(session *Session) {
-	arrayPosX := (session.Bomber.PositionX + FIELD_SIZE/2) / FIELD_SIZE
-	arrayPosY := (session.Bomber.PositionY + FIELD_SIZE/2) / FIELD_SIZE
+//func checkItem(session *Session) {
+//	arrayPosX := (session.Bomber.PositionX + FIELD_SIZE/2) / FIELD_SIZE
+//	arrayPosY := (session.Bomber.PositionY + FIELD_SIZE/2) / FIELD_SIZE
+//
+//	//!time.AfterFunc calls new goroutine automatically!
+//	for i := 0; i < len(GameMap.Fields[arrayPosX][arrayPosY].Contains); i++ {
+//		if GameMap.Fields[arrayPosX][arrayPosY].Contains[i] != nil {
+//			//
+//			if GameMap.Fields[arrayPosX][arrayPosY].Contains[i].getType() == 6 {
+//				itemActive = true
+//				session.Bomber.stepMult = 1.5
+//				GameMap.Fields[arrayPosX][arrayPosY].Contains[i] = nil
+//				BuildAbstractGameMap()
+//				time.AfterFunc(7*time.Second, func() {
+//					if session.Bomber.IsAlive {
+//						session.Bomber.stepMult = 1
+//					}
+//					itemActive = false
+//				})
+//			} else if GameMap.Fields[arrayPosX][arrayPosY].Contains[i].getType() == 7 {
+//				itemActive = true
+//				session.Bomber.stepMult = 0.5
+//				GameMap.Fields[arrayPosX][arrayPosY].Contains[i] = nil
+//				BuildAbstractGameMap()
+//				time.AfterFunc(5*time.Second, func() {
+//					if session.Bomber.IsAlive {
+//						session.Bomber.stepMult = 1
+//					}
+//					itemActive = false
+//				})
+//
+//			} else if GameMap.Fields[arrayPosX][arrayPosY].Contains[i].getType() == 8 {
+//				itemActive = true
+//				session.Bomber.GhostActive = true
+//				GameMap.Fields[arrayPosX][arrayPosY].Contains[i] = nil
+//				BuildAbstractGameMap()
+//				time.AfterFunc(5*time.Second, func() {
+//					if session.Bomber.IsAlive {
+//						session.Bomber.GhostActive = false
+//					}
+//					itemActive = false
+//				})
+//			} else if GameMap.Fields[arrayPosX][arrayPosY].Contains[i].getType() == 12 {
+//				removePlayerFromList(GameMap.Fields[arrayPosX][arrayPosY].Player, session.Bomber)
+//				session.Bomber.PositionX = 948
+//				session.Bomber.PositionY = 948
+//				GameMap.Fields[arrayPosX][arrayPosY].Player.PushBack(session.Bomber)
+//				BuildAbstractGameMap()
+//			}
+//		}
+//	}
+//}
 
-	//!time.AfterFunc calls new goroutine automatically!
-	for i := 0; i < len(GameMap.Fields[arrayPosX][arrayPosY].Contains); i++ {
-		if GameMap.Fields[arrayPosX][arrayPosY].Contains[i] != nil {
-			//
-			if GameMap.Fields[arrayPosX][arrayPosY].Contains[i].getType() == 6 {
-				itemActive = true
-				session.Bomber.stepMult = 1.5
-				GameMap.Fields[arrayPosX][arrayPosY].Contains[i] = nil
-				BuildAbstractGameMap()
-				time.AfterFunc(7*time.Second, func() {
-					if session.Bomber.IsAlive {
-						session.Bomber.stepMult = 1
-					}
-					itemActive = false
-				})
-			} else if GameMap.Fields[arrayPosX][arrayPosY].Contains[i].getType() == 7 {
-				itemActive = true
-				session.Bomber.stepMult = 0.5
-				GameMap.Fields[arrayPosX][arrayPosY].Contains[i] = nil
-				BuildAbstractGameMap()
-				time.AfterFunc(5*time.Second, func() {
-					if session.Bomber.IsAlive {
-						session.Bomber.stepMult = 1
-					}
-					itemActive = false
-				})
+func (r *Bomberman) checkFieldForItem(x int, y int) {
+	itemKey := FieldObjectNull
+	i := 0
 
-			} else if GameMap.Fields[arrayPosX][arrayPosY].Contains[i].getType() == 8 {
-				itemActive = true
-				session.Bomber.GhostActive = true
-				GameMap.Fields[arrayPosX][arrayPosY].Contains[i] = nil
-				BuildAbstractGameMap()
-				time.AfterFunc(5*time.Second, func() {
-					if session.Bomber.IsAlive {
-						session.Bomber.GhostActive = false
-					}
-					itemActive = false
-				})
-			} else if GameMap.Fields[arrayPosX][arrayPosY].Contains[i].getType() == 12 {
-				removePlayerFromList(GameMap.Fields[arrayPosX][arrayPosY].Player, session.Bomber)
-				session.Bomber.PositionX = 948
-				session.Bomber.PositionY = 948
-				GameMap.Fields[arrayPosX][arrayPosY].Player.PushBack(session.Bomber)
-				BuildAbstractGameMap()
-			}
+	if GameMap.Fields[x][y].Contains[0] != nil {
+		itemKey = GameMap.Fields[x][y].Contains[0].getType()
+	} else if GameMap.Fields[x][y].Contains[1] != nil {
+		i = 1
+		itemKey = GameMap.Fields[x][y].Contains[1].getType()
+	}
+
+	if itemKey == 12 {
+		portal := GameMap.Fields[x][y].Contains[1].(*Portal)
+
+		if x == portal.portalOne.x && y == portal.portalOne.y {
+			r.teleportTo(portal.portalTwo.x, portal.portalTwo.y, x, y)
+		} else if x == portal.portalTwo.x && y == portal.portalTwo.y {
+			r.teleportTo(portal.portalOne.x, portal.portalOne.y, x, y)
 		}
+		return
+	}
+
+	if r.ItemActive {
+		return
+	}
+
+	switch itemKey {
+	case 0:
+		return
+	case 6:
+		r.ItemActive = true
+		r.stepMult = 1.5
+		GameMap.Fields[x][y].Contains[i] = nil
+		time.AfterFunc(7*time.Second, func() {
+			if r.IsAlive {
+				r.stepMult = 1
+			}
+			r.ItemActive = false
+		})
+	case 7:
+		r.ItemActive = true
+		r.stepMult = 0.8
+		GameMap.Fields[x][y].Contains[i] = nil
+		time.AfterFunc(7*time.Second, func() {
+			if r.IsAlive {
+				r.stepMult = 1
+			}
+			r.ItemActive = false
+		})
+	case 8:
+		r.ItemActive = true
+		r.GhostActive = true
+		GameMap.Fields[x][y].Contains[i] = nil
+
+		time.AfterFunc(5*time.Second, func() {
+			if r.IsAlive {
+				r.GhostActive = false
+			}
+			r.ItemActive = false
+		})
+	case 12:
+
+	default:
+		return
+
+	}
+	BuildAbstractGameMap()
+}
+
+func (r *Bomberman) teleportTo(xDestination int, yDestination int, currentX int, currentY int) {
+	if xDestination < 0 || yDestination < 0 || xDestination > (len(GameMap.Fields)-1) || yDestination > (len(GameMap.Fields[xDestination/FIELD_SIZE])-1) {
+		return
+		log.Println("Teleport cancelled. Out of Bounds!")
+	}
+	accessOne := true
+	accessTwo := true
+
+	if GameMap.Fields[xDestination][yDestination].Contains[0] != nil {
+		accessOne = GameMap.Fields[xDestination][yDestination].Contains[0].isAccessible()
+	} else if GameMap.Fields[xDestination][yDestination].Contains[1] != nil {
+		accessTwo = GameMap.Fields[xDestination][yDestination].Contains[1].isAccessible()
+	}
+
+	if accessOne && accessTwo {
+		removePlayerFromList(GameMap.Fields[currentX][currentY].Player, r)
+		GameMap.Fields[xDestination][yDestination].Player.PushBack(r)
+		r.PositionX = xDestination * FIELD_SIZE
+		r.PositionY = yDestination * FIELD_SIZE
+		r.oldPositionX = xDestination * FIELD_SIZE
+		r.oldPositionY = yDestination * FIELD_SIZE
+		r.topRightPos.x = r.PositionX + 43
+		r.topRightPos.y = r.PositionY + 7
+		r.topLeftPos.x = r.PositionX + 7
+		r.topLeftPos.y = r.PositionY + 7
+		r.bottomRightPos.x = r.PositionX + 7
+		r.bottomRightPos.y = r.PositionY + 43
+		r.bottomLeftPos.x = r.PositionX + 43
+		r.bottomLeftPos.y = r.PositionY + 43
+		BuildAbstractGameMap()
+		r.hasTeleported = true
 	}
 }
 
@@ -307,6 +413,11 @@ func (r *Bomberman) isMovementLegal(x int, y int) bool {
 			if r.isFieldAccessible(x, y) || r.GhostActive {
 				removePlayerFromList(GameMap.Fields[oldPosX][arrayPosY].Player, r)
 				GameMap.Fields[arrayPosX][arrayPosY].Player.PushBack(r)
+				r.checkFieldForItem(arrayPosX, arrayPosY)
+				if r.hasTeleported {
+					r.hasTeleported = false
+					return false
+				}
 				return true
 			} else {
 				return false
@@ -315,6 +426,11 @@ func (r *Bomberman) isMovementLegal(x int, y int) bool {
 			if r.isFieldAccessible(x, y) || r.GhostActive {
 				removePlayerFromList(GameMap.Fields[arrayPosX][oldPosY].Player, r)
 				GameMap.Fields[arrayPosX][arrayPosY].Player.PushBack(r)
+				r.checkFieldForItem(arrayPosX, arrayPosY)
+				if r.hasTeleported {
+					r.hasTeleported = false
+					return false
+				}
 				return true
 			} else {
 				return false
