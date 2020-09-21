@@ -437,6 +437,8 @@ func getPixels(file io.Reader) ([][]Pixel, error) {
 	bounds := img.Bounds()
 	width, height := bounds.Max.X, bounds.Max.Y
 
+	//Überprüfen ob Bild größe der Mapsize entspricht
+
 	var pixels [][]Pixel
 	for y := 0; y < height; y++ {
 		var row []Pixel
