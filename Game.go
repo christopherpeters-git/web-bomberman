@@ -10,14 +10,22 @@ import (
 )
 
 //commit comment
-const FIELD_SIZE = 50
-const STEP_SIZE = 3
-const CANVAS_SIZE = 1000
+const (
+	FIELD_SIZE                  = 50
+	STEP_SIZE                   = 3
+	CANVAS_SIZE                 = 1000
+	STANDARD_BOMB_RADIUS        = 2
+	STANDARD_BOMB_TIME          = 3
+	STANDARD_STEP_MULTIPLICATOR = 1
+)
 
 var GameMap = NewMap(CANVAS_SIZE / FIELD_SIZE)
 var Connections = make(map[uint64]*Session, 0)
 var ticker = time.NewTicker(16 * time.Millisecond)
-var incomingTicker = time.NewTicker(1 * time.Millisecond)
+var spawnPositions = [][]int{{0, 0}, {0, 10}, {0, 19}, {10, 0}, {10, 19}, {19, 0}, {19, 10}, {19, 19}}
+
+//var incomingTicker = time.NewTicker(1 * time.Millisecond)
+var sessionRunning = false
 
 //Things send to the clients
 var bombermanArray = make([]Bomberman, 0)
@@ -60,7 +68,7 @@ type Bomberman struct {
 	IsMoving       bool
 	GhostActive    bool
 	hasTeleported  bool
-	playerReady    bool
+	PlayerReady    bool
 	topRightPos    Position
 	topLeftPos     Position
 	bottomRightPos Position
@@ -98,7 +106,7 @@ func NewBomberman(userID uint64, positionX int, positionY int, name string) *Bom
 		IsMoving:       false,
 		GhostActive:    false,
 		hasTeleported:  false,
-		playerReady:    false,
+		PlayerReady:    false,
 		topRightPos:    newPosition(positionX+43, positionY+7),
 		topLeftPos:     newPosition(positionX+7, positionY+7),
 		bottomRightPos: newPosition(positionX+7, positionY+43),
@@ -109,6 +117,24 @@ func NewBomberman(userID uint64, positionX int, positionY int, name string) *Bom
 		DirLeft:        false,
 		DirRight:       false,
 	}
+}
+
+func (b *Bomberman) Reset(x int, y int) {
+	b.IsAlive = true
+	b.GhostActive = false
+	b.ItemActive = false
+	b.DirUp = false
+	b.DirDown = false
+	b.DirLeft = false
+	b.DirRight = false
+	b.IsHit = false
+	b.hasTeleported = false
+	b.PlayerReady = false
+	b.IsMoving = false
+	b.stepMult = STANDARD_STEP_MULTIPLICATOR
+	b.BombRadius = STANDARD_BOMB_RADIUS
+	b.bombTime = STANDARD_BOMB_TIME
+	b.teleportTo(x, y, pixToArr(b.PositionX), pixToArr(b.PositionY))
 }
 
 func (r *Bomberman) placeBomb() {
@@ -467,6 +493,23 @@ func (b *Bomberman) isFieldAccessible(x int, y int) bool {
 	return isAccessible
 }
 
+func (b *Bomberman) collisionWithSurroundings(xOffset int, yOffset int) bool {
+	topRight := outerEdges(b.topRightPos.x+xOffset, b.topRightPos.y+yOffset)
+	topLeft := outerEdges(b.topLeftPos.x+xOffset, b.topLeftPos.y+yOffset)
+	bottomRight := outerEdges(b.bottomRightPos.x+xOffset, b.bottomRightPos.y+yOffset)
+	bottomLeft := outerEdges(b.bottomLeftPos.x+xOffset, b.bottomLeftPos.y+yOffset)
+	legal := topRight && topLeft && bottomRight && bottomLeft
+	if b.GhostActive {
+		return true
+	} else {
+		return legal
+	}
+}
+
+func pixToArr(pixel int) int {
+	return (pixel + FIELD_SIZE/2) / FIELD_SIZE
+}
+
 func outerEdges(x int, y int) bool {
 	if x < 0 || y < 0 || x > (len(GameMap.Fields)-1)*FIELD_SIZE || y > (len(GameMap.Fields[x/FIELD_SIZE])-1)*FIELD_SIZE {
 		return true
@@ -488,19 +531,6 @@ func outerEdges(x int, y int) bool {
 	}
 	isAccessible := accessible0 && accessible1
 	return isAccessible
-}
-
-func (b *Bomberman) collisionWithSurroundings(xOffset int, yOffset int) bool {
-	topRight := outerEdges(b.topRightPos.x+xOffset, b.topRightPos.y+yOffset)
-	topLeft := outerEdges(b.topLeftPos.x+xOffset, b.topLeftPos.y+yOffset)
-	bottomRight := outerEdges(b.bottomRightPos.x+xOffset, b.bottomRightPos.y+yOffset)
-	bottomLeft := outerEdges(b.bottomLeftPos.x+xOffset, b.bottomLeftPos.y+yOffset)
-	legal := topRight && topLeft && bottomRight && bottomLeft
-	if b.GhostActive {
-		return true
-	} else {
-		return legal
-	}
 }
 
 func printList(list *list.List) {
@@ -607,4 +637,30 @@ func isLesserThan(a interface{}, b interface{}) bool {
 func (p *Position) updatePosition(xOffset int, yOffset int) {
 	p.x += xOffset
 	p.y += yOffset
+}
+
+func StartGameIfPlayersReady() {
+	if len(Connections) < 2 {
+		return
+	}
+	for _, v := range Connections {
+		if !v.Bomber.PlayerReady {
+			return
+		}
+	}
+	resetGame()
+	sessionRunning = true
+
+}
+
+func resetGame() {
+	CreateMapFromImage(GameMap, "images/map.png")
+	count := 0
+	for _, v := range Connections {
+		if count > 7 {
+			count = 0
+		}
+		v.Bomber.Reset(spawnPositions[count][0], spawnPositions[count][1])
+		count++
+	}
 }

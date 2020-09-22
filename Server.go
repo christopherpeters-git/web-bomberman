@@ -23,6 +23,7 @@ const (
 	POST_LOGIN                   = "/login"
 	POST_REGISTER                = "/register"
 	GET_FETCH_USER_ID            = "/fetchUserId"
+	GET_SET_READY                = "/setReady"
 )
 
 var db *sql.DB
@@ -54,11 +55,30 @@ func main() {
 	http.HandleFunc(WEBSOCKET_TEST, handleWebsocketEndpoint)
 	http.HandleFunc(GET_FETCH_ACTIVE_CONNECTIONS, handleFetchActiveConnections)
 	http.HandleFunc(GET_FETCH_USER_ID, handleGetUserID)
+	http.HandleFunc(GET_SET_READY, handleGetSetReady)
 	log.Println("Server started...")
 	err = http.ListenAndServe(":2100", nil)
 	if err != nil {
 		log.Fatal("Starting Server failed: " + err.Error())
 	}
+}
+
+func handleGetSetReady(w http.ResponseWriter, r *http.Request) {
+	log.Println("handling handleGetSetReady request started...")
+	var user User
+	if dErr := CheckCookie(r, db, &user); dErr != nil {
+		log.Println(dErr.Error())
+		http.Error(w, dErr.PublicError(), dErr.Status())
+		return
+	}
+	Connections[user.UserID].Bomber.PlayerReady = !Connections[user.UserID].Bomber.PlayerReady
+	msg := "nrdy"
+	if Connections[user.UserID].Bomber.PlayerReady {
+		msg = "rdy"
+		StartGameIfPlayersReady()
+	}
+	w.Write([]byte(msg))
+	log.Println("handling handleGetSetReady request ended...")
 }
 
 func handleGetUserID(w http.ResponseWriter, r *http.Request) {

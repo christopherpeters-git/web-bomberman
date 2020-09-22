@@ -1,5 +1,7 @@
 const info = document.querySelector('#stats')
 const ctx = document.getElementById("matchfield").getContext("2d")
+const readyButton = document.querySelector("#readyButton")
+
 const fieldSize = 50;
 const canvasSize = 1000;
 let socket = new WebSocket("ws://localhost:2100/ws-test/")
@@ -199,6 +201,26 @@ function drawPlayerChar (player, count) {
     else {
         ctx.drawImage(playerGhostImg, player.PositionX, player.PositionY, fieldSize, fieldSize);
     }
+}
+
+function sendGetReady(){
+    fetch("/setReady")
+        .then(response => {
+            if(response.status === 200){
+                return response.text()
+            }
+            console.log(response.status)
+        })
+        .then(text => {
+            if(text === "nrdy"){
+                readyButton.style.backgroundColor = 'red'
+            }else {
+                readyButton.style.backgroundColor = 'green'
+            }
+        })
+        .catch((reason => {
+            console.log(reason)
+        }))
 }
 
 

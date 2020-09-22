@@ -55,7 +55,7 @@ func NewMap(size int) Map {
 			m.Fields[i][j] = NewField()
 		}
 	}
-	CreateMapFromImage(m, "images/map.png")
+	CreateMapFromImage(m, "images/map2.png")
 	return m
 }
 
