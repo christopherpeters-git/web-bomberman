@@ -55,7 +55,7 @@ func NewMap(size int) Map {
 			m.Fields[i][j] = NewField()
 		}
 	}
-	CreateMapFromImage(m, "images/map2.png")
+	CreateMapFromImage(m, "images/map.png")
 	return m
 }
 
@@ -403,7 +403,7 @@ func CreateMapFromImage(m Map, imagePfad string) {
 	m.addPortal(&p1)
 	m.addPortal(&p2)
 	m.addPortal(&p3)
-	fmt.Println(pixels)
+	//fmt.Println(pixels)
 
 	wallPixel := newPixel(0, 0, 0, 255)
 
@@ -473,5 +473,13 @@ func newPixel(r int, g int, b int, a int) Pixel {
 		G: g,
 		B: b,
 		A: a,
+	}
+}
+
+func clearMap(m Map) {
+	for i := 0; i < len(m.Fields); i++ {
+		for j := 0; j < len(m.Fields[0]); j++ {
+			m.Fields[i][j] = NewField()
+		}
 	}
 }

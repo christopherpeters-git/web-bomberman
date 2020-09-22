@@ -119,24 +119,6 @@ func NewBomberman(userID uint64, positionX int, positionY int, name string) *Bom
 	}
 }
 
-func (b *Bomberman) Reset(x int, y int) {
-	b.IsAlive = true
-	b.GhostActive = false
-	b.ItemActive = false
-	b.DirUp = false
-	b.DirDown = false
-	b.DirLeft = false
-	b.DirRight = false
-	b.IsHit = false
-	b.hasTeleported = false
-	b.PlayerReady = false
-	b.IsMoving = false
-	b.stepMult = STANDARD_STEP_MULTIPLICATOR
-	b.BombRadius = STANDARD_BOMB_RADIUS
-	b.bombTime = STANDARD_BOMB_TIME
-	b.teleportTo(x, y, pixToArr(b.PositionX), pixToArr(b.PositionY))
-}
-
 func (r *Bomberman) placeBomb() {
 	bomb := NewBomb(r)
 	GameMap.Fields[bomb.PositionX][bomb.PositionY].addBomb(&bomb)
@@ -266,7 +248,6 @@ func playerWebsocketLoop(session *Session) {
 		//if session.Bomber.IsAlive && !itemActive {
 		//	checkItem(session)
 		//}
-
 	}
 
 }
@@ -439,26 +420,27 @@ func (r *Bomberman) isMovementLegal(x int, y int) bool {
 	if inBounds {
 		if oldPosX != arrayPosX {
 			if r.isFieldAccessible(x, y) || r.GhostActive {
-				removePlayerFromList(GameMap.Fields[oldPosX][arrayPosY].Player, r)
-				GameMap.Fields[arrayPosX][arrayPosY].Player.PushBack(r)
-				r.checkFieldForItem(arrayPosX, arrayPosY)
 				if r.hasTeleported {
 					r.hasTeleported = false
 					return false
 				}
+				removePlayerFromList(GameMap.Fields[oldPosX][arrayPosY].Player, r)
+				GameMap.Fields[arrayPosX][arrayPosY].Player.PushBack(r)
+				r.checkFieldForItem(arrayPosX, arrayPosY)
+
 				return true
 			} else {
 				return false
 			}
 		} else if oldPosY != arrayPosY {
 			if r.isFieldAccessible(x, y) || r.GhostActive {
-				removePlayerFromList(GameMap.Fields[arrayPosX][oldPosY].Player, r)
-				GameMap.Fields[arrayPosX][arrayPosY].Player.PushBack(r)
-				r.checkFieldForItem(arrayPosX, arrayPosY)
 				if r.hasTeleported {
 					r.hasTeleported = false
 					return false
 				}
+				removePlayerFromList(GameMap.Fields[arrayPosX][oldPosY].Player, r)
+				GameMap.Fields[arrayPosX][arrayPosY].Player.PushBack(r)
+				r.checkFieldForItem(arrayPosX, arrayPosY)
 				return true
 			} else {
 				return false
@@ -654,7 +636,8 @@ func StartGameIfPlayersReady() {
 }
 
 func resetGame() {
-	CreateMapFromImage(GameMap, "images/map.png")
+	clearMap(GameMap)
+	CreateMapFromImage(GameMap, "images/map2.png")
 	count := 0
 	for _, v := range Connections {
 		if count > 7 {
@@ -663,4 +646,22 @@ func resetGame() {
 		v.Bomber.Reset(spawnPositions[count][0], spawnPositions[count][1])
 		count++
 	}
+}
+
+func (b *Bomberman) Reset(x int, y int) {
+	b.IsAlive = true
+	b.GhostActive = false
+	b.ItemActive = false
+	b.DirUp = false
+	b.DirDown = false
+	b.DirLeft = false
+	b.DirRight = false
+	b.IsHit = false
+	b.PlayerReady = false
+	b.IsMoving = false
+	b.stepMult = STANDARD_STEP_MULTIPLICATOR
+	b.BombRadius = STANDARD_BOMB_RADIUS
+	b.bombTime = STANDARD_BOMB_TIME
+	b.teleportTo(x, y, pixToArr(b.PositionX), pixToArr(b.PositionY))
+	//b.hasTeleported = false
 }
