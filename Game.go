@@ -17,6 +17,7 @@ const (
 	STANDARD_BOMB_RADIUS        = 2
 	STANDARD_BOMB_TIME          = 3
 	STANDARD_STEP_MULTIPLICATOR = 1
+	DEATH_STEP_MULTIPLICATOR    = 0.5
 )
 
 var GameMap = NewMap(CANVAS_SIZE / FIELD_SIZE)
@@ -156,7 +157,6 @@ func StartPlayerLoop(session *Session) {
 	//Add the infos to the connection map
 	BuildAbstractGameMap()
 	Connections[session.User.UserID] = session
-	GameMap.Fields[(session.Bomber.PositionX+FIELD_SIZE/2)/FIELD_SIZE][(session.Bomber.PositionY+FIELD_SIZE/2)/FIELD_SIZE].Player.PushBack(session.Bomber)
 	playerWebsocketLoop(session)
 	//Remove player from list at his last array position
 	x := (session.Bomber.PositionX + FIELD_SIZE/2) / FIELD_SIZE
@@ -180,17 +180,18 @@ func playerWebsocketLoop(session *Session) {
 			continue
 		}
 		session.Bomber.IsMoving = false
+		realStepSize := STEP_SIZE * session.Bomber.stepMult
 		if keys.Wpressed {
 			session.Bomber.DirUp, session.Bomber.DirDown, session.Bomber.DirLeft, session.Bomber.DirRight = true, false, false, false
 			session.Bomber.IsMoving = true
-			if session.Bomber.collisionWithSurroundings(0, -int(STEP_SIZE*session.Bomber.stepMult)) {
-				if session.Bomber.isMovementLegal(session.Bomber.PositionX, session.Bomber.PositionY-int(STEP_SIZE*session.Bomber.stepMult)) {
+			if session.Bomber.collisionWithSurroundings(0, -int(realStepSize)) {
+				if session.Bomber.isMovementLegal(session.Bomber.PositionX, session.Bomber.PositionY-int(realStepSize)) {
 
-					session.Bomber.topRightPos.updatePosition(0, -int(STEP_SIZE*session.Bomber.stepMult))
-					session.Bomber.topLeftPos.updatePosition(0, -int(STEP_SIZE*session.Bomber.stepMult))
-					session.Bomber.bottomRightPos.updatePosition(0, -int(STEP_SIZE*session.Bomber.stepMult))
-					session.Bomber.bottomLeftPos.updatePosition(0, -int(STEP_SIZE*session.Bomber.stepMult))
-					session.Bomber.PositionY -= int(STEP_SIZE * session.Bomber.stepMult)
+					session.Bomber.topRightPos.updatePosition(0, -int(realStepSize))
+					session.Bomber.topLeftPos.updatePosition(0, -int(realStepSize))
+					session.Bomber.bottomRightPos.updatePosition(0, -int(realStepSize))
+					session.Bomber.bottomLeftPos.updatePosition(0, -int(realStepSize))
+					session.Bomber.PositionY -= int(realStepSize)
 				}
 			}
 		} else
@@ -198,14 +199,14 @@ func playerWebsocketLoop(session *Session) {
 		if keys.Spressed {
 			session.Bomber.DirUp, session.Bomber.DirDown, session.Bomber.DirLeft, session.Bomber.DirRight = false, true, false, false
 			session.Bomber.IsMoving = true
-			if session.Bomber.collisionWithSurroundings(0, int(STEP_SIZE*session.Bomber.stepMult)) {
-				if session.Bomber.isMovementLegal(session.Bomber.PositionX, session.Bomber.PositionY+int(STEP_SIZE*session.Bomber.stepMult)) {
+			if session.Bomber.collisionWithSurroundings(0, int(realStepSize)) {
+				if session.Bomber.isMovementLegal(session.Bomber.PositionX, session.Bomber.PositionY+int(realStepSize)) {
 
-					session.Bomber.topRightPos.updatePosition(0, int(STEP_SIZE*session.Bomber.stepMult))
-					session.Bomber.topLeftPos.updatePosition(0, int(STEP_SIZE*session.Bomber.stepMult))
-					session.Bomber.bottomRightPos.updatePosition(0, int(STEP_SIZE*session.Bomber.stepMult))
-					session.Bomber.bottomLeftPos.updatePosition(0, int(STEP_SIZE*session.Bomber.stepMult))
-					session.Bomber.PositionY += int(STEP_SIZE * session.Bomber.stepMult)
+					session.Bomber.topRightPos.updatePosition(0, int(realStepSize))
+					session.Bomber.topLeftPos.updatePosition(0, int(realStepSize))
+					session.Bomber.bottomRightPos.updatePosition(0, int(realStepSize))
+					session.Bomber.bottomLeftPos.updatePosition(0, int(realStepSize))
+					session.Bomber.PositionY += int(realStepSize)
 				}
 			}
 		} else
@@ -213,14 +214,14 @@ func playerWebsocketLoop(session *Session) {
 		if keys.Apressed {
 			session.Bomber.DirUp, session.Bomber.DirDown, session.Bomber.DirLeft, session.Bomber.DirRight = false, false, true, false
 			session.Bomber.IsMoving = true
-			if session.Bomber.collisionWithSurroundings(-int(STEP_SIZE*session.Bomber.stepMult), 0) {
-				if session.Bomber.isMovementLegal(session.Bomber.PositionX-int(STEP_SIZE*session.Bomber.stepMult), session.Bomber.PositionY) {
+			if session.Bomber.collisionWithSurroundings(-int(realStepSize), 0) {
+				if session.Bomber.isMovementLegal(session.Bomber.PositionX-int(realStepSize), session.Bomber.PositionY) {
 
-					session.Bomber.topRightPos.updatePosition(-int(STEP_SIZE*session.Bomber.stepMult), 0)
-					session.Bomber.topLeftPos.updatePosition(-int(STEP_SIZE*session.Bomber.stepMult), 0)
-					session.Bomber.bottomRightPos.updatePosition(-int(STEP_SIZE*session.Bomber.stepMult), 0)
-					session.Bomber.bottomLeftPos.updatePosition(-int(STEP_SIZE*session.Bomber.stepMult), 0)
-					session.Bomber.PositionX -= int(STEP_SIZE * session.Bomber.stepMult)
+					session.Bomber.topRightPos.updatePosition(-int(realStepSize), 0)
+					session.Bomber.topLeftPos.updatePosition(-int(realStepSize), 0)
+					session.Bomber.bottomRightPos.updatePosition(-int(realStepSize), 0)
+					session.Bomber.bottomLeftPos.updatePosition(-int(realStepSize), 0)
+					session.Bomber.PositionX -= int(realStepSize)
 				}
 			}
 		} else
@@ -228,14 +229,14 @@ func playerWebsocketLoop(session *Session) {
 		if keys.Dpressed {
 			session.Bomber.DirUp, session.Bomber.DirDown, session.Bomber.DirLeft, session.Bomber.DirRight = false, false, false, true
 			session.Bomber.IsMoving = true
-			if session.Bomber.collisionWithSurroundings(int(STEP_SIZE*session.Bomber.stepMult), 0) {
-				if session.Bomber.isMovementLegal(session.Bomber.PositionX+int(STEP_SIZE*session.Bomber.stepMult), session.Bomber.PositionY) {
+			if session.Bomber.collisionWithSurroundings(int(realStepSize), 0) {
+				if session.Bomber.isMovementLegal(session.Bomber.PositionX+int(realStepSize), session.Bomber.PositionY) {
 
-					session.Bomber.topRightPos.updatePosition(int(STEP_SIZE*session.Bomber.stepMult), 0)
-					session.Bomber.topLeftPos.updatePosition(int(STEP_SIZE*session.Bomber.stepMult), 0)
-					session.Bomber.bottomRightPos.updatePosition(int(STEP_SIZE*session.Bomber.stepMult), 0)
-					session.Bomber.bottomLeftPos.updatePosition(int(STEP_SIZE*session.Bomber.stepMult), 0)
-					session.Bomber.PositionX += int(STEP_SIZE * session.Bomber.stepMult)
+					session.Bomber.topRightPos.updatePosition(int(realStepSize), 0)
+					session.Bomber.topLeftPos.updatePosition(int(realStepSize), 0)
+					session.Bomber.bottomRightPos.updatePosition(int(realStepSize), 0)
+					session.Bomber.bottomLeftPos.updatePosition(int(realStepSize), 0)
+					session.Bomber.PositionX += int(realStepSize)
 				}
 			}
 		}
@@ -493,7 +494,7 @@ func pixToArr(pixel int) int {
 }
 
 func outerEdges(x int, y int) bool {
-	if x < 0 || y < 0 || x > (len(GameMap.Fields)-1)*FIELD_SIZE || y > (len(GameMap.Fields[x/FIELD_SIZE])-1)*FIELD_SIZE {
+	if x < 0 || y < 0 || x > (len(GameMap.Fields))*FIELD_SIZE || y > (len(GameMap.Fields[x/FIELD_SIZE]))*FIELD_SIZE {
 		return true
 	}
 	arrayPosX := x / FIELD_SIZE
@@ -630,14 +631,17 @@ func StartGameIfPlayersReady() {
 			return
 		}
 	}
-	resetGame()
+	resetGame("images/map2.png")
 	sessionRunning = true
+	for _, v := range Connections {
+		v.Bomber.PlayerReady = false
+	}
 
 }
 
-func resetGame() {
+func resetGame(s string) {
 	clearMap(GameMap)
-	CreateMapFromImage(GameMap, "images/map2.png")
+	CreateMapFromImage(GameMap, s)
 	count := 0
 	for _, v := range Connections {
 		if count > 7 {
@@ -663,5 +667,47 @@ func (b *Bomberman) Reset(x int, y int) {
 	b.BombRadius = STANDARD_BOMB_RADIUS
 	b.bombTime = STANDARD_BOMB_TIME
 	b.teleportTo(x, y, pixToArr(b.PositionX), pixToArr(b.PositionY))
-	//b.hasTeleported = false
+}
+
+func (b *Bomberman) Kill() {
+	b.IsAlive = false
+	b.GhostActive = true
+	b.ItemActive = true
+	b.stepMult = DEATH_STEP_MULTIPLICATOR
+}
+
+func killAllPlayersOnField(list *list.List) {
+	element := list.Front()
+	if element != nil {
+		element.Value.(*Bomberman).Kill()
+		for element.Next() != nil {
+			element = element.Next()
+			element.Value.(*Bomberman).Kill()
+		}
+	}
+	if sessionRunning {
+		isOnePlayerAlive()
+	}
+}
+
+func isOnePlayerAlive() {
+	counter := 0
+	var lastBomberAlive *Bomberman
+	for _, v := range Connections {
+		if v.Bomber.IsAlive {
+			lastBomberAlive = v.Bomber
+			counter++
+		}
+	}
+	if counter > 1 {
+		return
+	} else if counter == 0 {
+		log.Println("Draw")
+	} else if counter == 1 {
+		log.Println(lastBomberAlive.Name)
+		log.Println("has Won")
+	}
+	//todo send message
+	resetGame("images/map.png")
+	sessionRunning = false
 }

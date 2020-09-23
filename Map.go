@@ -110,18 +110,7 @@ func (f *Field) addExplosion(e *Explosion) {
 }
 
 func (f *Field) explosion() bool {
-	element := f.Player.Front()
-	if element != nil {
-		element.Value.(*Bomberman).IsAlive = false
-		element.Value.(*Bomberman).GhostActive = true
-		element.Value.(*Bomberman).stepMult = 0.5
-		for element.Next() != nil {
-			element = element.Next()
-			element.Value.(*Bomberman).IsAlive = false
-			element.Value.(*Bomberman).GhostActive = true
-			element.Value.(*Bomberman).stepMult = 0.5
-		}
-	}
+	killAllPlayersOnField(f.Player)
 	for i := 0; i < 2; i++ {
 		if f.Contains[i] != nil {
 			if f.Contains[i].isDestructible() {
@@ -157,8 +146,8 @@ func NewBomb(b *Bomberman) Bomb {
 	return Bomb{
 		ID:        globalBombCount,
 		Owner:     b,
-		PositionX: (b.PositionX + FIELD_SIZE/2) / FIELD_SIZE,
-		PositionY: (b.PositionY + FIELD_SIZE/2) / FIELD_SIZE,
+		PositionX: pixToArr(b.PositionX),
+		PositionY: pixToArr(b.PositionY),
 		Time:      b.bombTime,
 		Radius:    b.BombRadius,
 		state:     0,
@@ -190,7 +179,6 @@ func (b *Bomb) startBomb() {
 	time.Sleep((time.Duration(b.Time) / bombStates) * time.Second)
 	b.state++
 	BuildAbstractGameMap()
-
 	time.Sleep((time.Duration(b.Time) / bombStates) * time.Second)
 	b.state++
 	BuildAbstractGameMap()
@@ -204,7 +192,6 @@ func (b *Bomb) startBomb() {
 	xPosHitSolidWall, xNegHitSolidWall, yPosHitSolidWall, yNegHitSolidWall := false, false, false, false
 	GameMap.Fields[x][y].explosion()
 	e.ExpFields = append(e.ExpFields, newPosition(x, y))
-	GameMap.Fields[x][y].addExplosion(&e)
 	for i := 1; i < b.Radius; i++ {
 		xPos := x + i
 		xNeg := x - i
@@ -252,6 +239,7 @@ func (b *Bomb) startBomb() {
 	} else if GameMap.Fields[x][y].Contains[1] == b {
 		GameMap.Fields[x][y].Contains[1] = nil
 	}
+	GameMap.Fields[x][y].addExplosion(&e)
 	BuildAbstractGameMap()
 	time.Sleep(900 * time.Millisecond)
 	for i := 0; i < len(e.ExpFields); i++ {

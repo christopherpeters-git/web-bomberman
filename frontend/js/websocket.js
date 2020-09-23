@@ -92,11 +92,10 @@ socket.onmessage = (ev) => {
         searchForUser(incomingPackage.Players)
         updateUserInfo()
 
-
+        drawPlayerPosClient();
         for(let i = 0; i < incomingPackage.Players.length; i++){
             if (incomingPackage.Players[i] != null){
                 if (!incomingPackage.Players[i].GhostActive){
-                    drawPlayerPosClient();
                     drawPlayerChar(incomingPackage.Players[i], counter)
                 }
             }
@@ -112,7 +111,6 @@ socket.onmessage = (ev) => {
         drawImageFromEnum(bomb2Img, gamemap, 11);
         drawImageFromEnum(explosionImg, gamemap, 9)
 
-
         for(let i = 0; i < incomingPackage.Players.length; i++){
             ctx.font = "normal 8px 'Press Start 2P'";
             ctx.textAlign= "center";
@@ -120,7 +118,6 @@ socket.onmessage = (ev) => {
             ctx.fillText(incomingPackage.Players[i].Name,incomingPackage.Players[i].PositionX + 25,incomingPackage.Players[i].PositionY - 5, 100);
             if(incomingPackage.Players[i] != null){
                 if (incomingPackage.Players[i].GhostActive){
-                    drawPlayerPosClient();
                     ctx.globalAlpha = 0.5
                     drawPlayerChar(incomingPackage.Players[i], counter)
                     ctx.globalAlpha = 1
