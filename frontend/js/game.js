@@ -1,11 +1,15 @@
 
 
 function gameLoop (map, players){
+    //Needed for movement Animation in display.js
     frameCounter++;
-    ctx.clearRect(0, 0, canvasSize, canvasSize);
-    background(grassImg, map);
+
+    //Updates user Information for logged in User
     searchForUser(players)
     updateUserInfo()
+
+    ctx.clearRect(0, 0, canvasSize, canvasSize);
+    background(grassImg, map);
     drawPlayerPosClient();
 
     //Every Player and their name is drawn on the canvas
@@ -20,6 +24,8 @@ function gameLoop (map, players){
             }
         }
     }
+
+    //FildObjects are Drawn onto the Canvas
     drawImageFromEnum(itemBoostImg, map, 6);
     drawImageFromEnum(itemSlowImg, map, 7);
     drawImageFromEnum(itemGhostImg, map, 8);
@@ -41,7 +47,7 @@ function gameLoop (map, players){
             }
         }
     }
-
+    //Needed for movement Animation in display.js
     if (frameCounter == frameLimit){
         frameCounter = 0;
     }

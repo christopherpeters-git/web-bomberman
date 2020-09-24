@@ -1,6 +1,5 @@
-
+//Fieldobject Images
 let playerCharSprite = new Image();
-
 let wallImg = new Image();
 let wallImg2 = new Image();
 let grassImg = new Image();

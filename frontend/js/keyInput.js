@@ -1,3 +1,4 @@
+
 let isBombLegal = true;
 let keyPresses = {};
 
@@ -11,7 +12,7 @@ function spaceKeyDownListener(event) {
         isBombLegal = false
         setTimeout(()=>{
             isBombLegal = true
-        },1000)
+        },bombTimeOutMS)
     }
 }
 
