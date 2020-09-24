@@ -1,39 +1,48 @@
-var stage = document.getElementById("matchfield"), // Get the canvas element by Id
-    ctx = stage.getContext("2d"),           // Canvas 2d rendering context
-    x = 10,                                         //intial horizontal position of Player Figure
-    y = 10,                                         //intial vertical position of of Player Figure
-    wid = 50,                                       //width of of Player Figure
-    hei = 50;                                       //height of of Player Figure
 
-var img = document.getElementById("testImg");
 
-//Draw Fig function
-function drawFigure(x, y, wid, hei) {
-    ctx.drawImage(img, x, y, wid, hei);
-}
+function gameLoop (map, players){
+    frameCounter++;
+    ctx.clearRect(0, 0, canvasSize, canvasSize);
+    background(grassImg, map);
+    searchForUser(players)
+    updateUserInfo()
+    drawPlayerPosClient();
 
-drawFigure(x, y, wid, hei); //Drawing of Player Figure on initial load
+    //Every Player and their name is drawn on the canvas
+    for(let i = 0; i < players.length; i++){
+        ctx.font = "normal 8px 'Press Start 2P'";
+        ctx.textAlign= "center";
+        ctx.fillStyle = "rgba(0,0,0,0.75)"
+        ctx.fillText(players[i].Name,players[i].PositionX + 25,players[i].PositionY - 5, 100);
+        if (players[i] != null){
+            if (!players[i].GhostActive){
+                drawPlayerChar(players[i], frameCounter)
+            }
+        }
+    }
+    drawImageFromEnum(itemBoostImg, map, 6);
+    drawImageFromEnum(itemSlowImg, map, 7);
+    drawImageFromEnum(itemGhostImg, map, 8);
+    drawImageFromEnum(portalImg, map, 12)
+    drawImageFromEnum(wallImg, map, 3);
+    drawImageFromEnum(wallImg2, map, 2);
+    drawImageFromEnum(bomb3Img, map, 1);
+    drawImageFromEnum(bombImg, map, 10);
+    drawImageFromEnum(bomb2Img, map, 11);
+    drawImageFromEnum(explosionImg, map, 9)
 
-window.onkeydown = function (event) {
-    var keyPr = event.keyCode; //Key code of key pressed
-
-    if (keyPr === 39 && x <= 460) {
-        x = x + 20; //right arrow add 20
-       // console.log("RIGHT")
-    } else if (keyPr === 37 && x > 10) {
-        x = x - 20; //left arrow subtract 20
-       // console.log("LEFT")
-    } else if (keyPr === 38 && y > 10) {
-        y = y - 20; //top arrow subtract 20
-       // console.log("TOP")
-    } else if (keyPr === 40 && y <= 460) {
-        y = y + 20; //down arrow add 20
-       // console.log("DOWN")
+    //When GhostActive is true, players are drawn after other objects, so that they "float" above them.
+    for(let i = 0; i < players; i++){
+        if(players[i] != null){
+            if (players[i].GhostActive){
+                ctx.globalAlpha = 0.5
+                drawPlayerChar(players[i], frameCounter)
+                ctx.globalAlpha = 1
+            }
+        }
     }
 
-
-    ctx.clearRect(0, 0, 500, 500);
-
-    //Drawing playerFig at new position
-    drawFigure(x, y, wid, hei);
-};
+    if (frameCounter == frameLimit){
+        frameCounter = 0;
+    }
+}
