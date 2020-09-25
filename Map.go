@@ -14,6 +14,7 @@ type ItemType int
 type FieldObject int
 
 var globalBombCount uint64 = 0
+var playerDied bool = false
 
 const bombStates = 3
 

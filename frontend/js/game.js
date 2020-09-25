@@ -25,6 +25,7 @@ function gameLoop (map, players){
         }
     }
 
+
     //FildObjects are Drawn onto the Canvas
     drawImageFromEnum(itemBoostImg, map, 6);
     drawImageFromEnum(itemSlowImg, map, 7);
@@ -38,7 +39,7 @@ function gameLoop (map, players){
     drawImageFromEnum(explosionImg, map, 9)
 
     //When GhostActive is true, players are drawn after other objects, so that they "float" above them.
-    for(let i = 0; i < players; i++){
+    for(let i = 0; i < players.length; i++){
         if(players[i] != null){
             if (players[i].GhostActive){
                 ctx.globalAlpha = 0.5
@@ -47,6 +48,8 @@ function gameLoop (map, players){
             }
         }
     }
+
+
     //Needed for movement Animation in display.js
     if (frameCounter == frameLimit){
         frameCounter = 0;
