@@ -16,6 +16,7 @@ type FieldObject int
 
 // -1 doesnt work
 var globalBombCount uint64 = 0
+var playerDied bool = false
 
 //var globalTestMap Map = NewMap(10)
 
@@ -234,7 +235,9 @@ func (b *Bomb) startBomb() {
 			}
 		}
 	}
-	if sessionRunning {
+	if sessionRunning && playerDied {
+		log.Println("check for remaining players")
+		playerDied = false
 		isOnePlayerAlive()
 	}
 	if GameMap.Fields[x][y].Contains[0] == b {
