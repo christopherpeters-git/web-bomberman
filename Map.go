@@ -113,6 +113,7 @@ type FieldType interface {
 	getType() FieldObject
 }
 
+
 type Explosion struct {
 	ExpFields []Position
 }
