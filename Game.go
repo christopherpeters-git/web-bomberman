@@ -640,6 +640,7 @@ func StartGameIfPlayersReady() {
 }
 
 func resetGame(s string) {
+	playerDied = false
 	clearMap(GameMap)
 	CreateMapFromImage(GameMap, s)
 	count := 0
@@ -680,6 +681,7 @@ func killAllPlayersOnField(list *list.List) {
 	element := list.Front()
 	if element != nil {
 		element.Value.(*Bomberman).Kill()
+		playerDied = true
 		for element.Next() != nil {
 			element = element.Next()
 			element.Value.(*Bomberman).Kill()
