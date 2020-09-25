@@ -46,15 +46,18 @@ func StartWebSocketConnection(w http.ResponseWriter, r *http.Request, db *sql.DB
 	rand.Seed(time.Now().UTC().UnixNano())
 	random := rand.Intn(4)
 	bomber := NewBomberman(user.UserID, 0, 0, user.Username)
+	if sessionRunning {
+		bomber.Kill()
+		isOnePlayerAlive()
+	}
+	GameMap.Fields[pixToArr(bomber.PositionX)][pixToArr(bomber.PositionY)].Player.PushBack(bomber)
 
 	if random == 0 {
-		bomber = NewBomberman(user.UserID, 948, 0, user.Username)
+		bomber.teleportTo(19, 0, pixToArr(bomber.PositionX), pixToArr(bomber.PositionY))
 	} else if random == 1 {
-		bomber = NewBomberman(user.UserID, 0, 948, user.Username)
+		bomber.teleportTo(0, 19, pixToArr(bomber.PositionX), pixToArr(bomber.PositionY))
 	} else if random == 2 {
-		bomber = NewBomberman(user.UserID, 948, 948, user.Username)
-	} else {
-		bomber = NewBomberman(user.UserID, 0, 0, user.Username)
+		bomber.teleportTo(19, 19, pixToArr(bomber.PositionX), pixToArr(bomber.PositionY))
 	}
 
 	StartPlayerLoop(NewSession(user, bomber, ws, time.Now()))

@@ -2,8 +2,12 @@ package main
 
 import (
 	"container/list"
+	"fmt"
+	"image"
+	"image/png"
+	"io"
 	"log"
-	"math/rand"
+	"os"
 	"time"
 )
 
@@ -12,7 +16,10 @@ type FieldObject int
 
 // -1 doesnt work
 var globalBombCount uint64 = 0
-var globalTestMap Map = NewMap(10)
+
+//var globalTestMap Map = NewMap(10)
+
+const bombStates = 3
 
 const (
 	ItemTypeUpgrade    ItemType = 0
@@ -21,7 +28,10 @@ const (
 )
 
 const (
+	FieldObjectNull          FieldObject = 0
 	FieldObjectBomb          FieldObject = 1
+	FieldObjectBomb1         FieldObject = 10
+	FieldObjectBomb2         FieldObject = 11
 	FieldObjectWeakWall      FieldObject = 2
 	FieldObjectSolidWall     FieldObject = 3
 	FieldObjectItemUpgrade   FieldObject = 4
@@ -30,6 +40,7 @@ const (
 	FieldObjectItemSlow      FieldObject = 7
 	FieldObjectItemGhost     FieldObject = 8
 	FieldObjectExplosion     FieldObject = 9
+	FieldObjectPortal        FieldObject = 12
 )
 
 type Map struct {
@@ -44,7 +55,7 @@ func NewMap(size int) Map {
 			m.Fields[i][j] = NewField()
 		}
 	}
-	FillTestMap(m)
+	CreateMapFromImage(m, "images/map.png")
 	return m
 }
 
@@ -85,6 +96,11 @@ func (f *Field) addItem(i *Item) {
 	}
 }
 
+func (m *Map) addPortal(p *Portal) {
+	m.Fields[p.portalOne.x][p.portalOne.y].Contains[1] = p
+	m.Fields[p.portalTwo.x][p.portalTwo.y].Contains[1] = p
+}
+
 func (f *Field) addExplosion(e *Explosion) {
 	if f.Contains[0] != nil {
 		f.Contains[1] = e
@@ -94,18 +110,7 @@ func (f *Field) addExplosion(e *Explosion) {
 }
 
 func (f *Field) explosion() bool {
-	element := f.Player.Front()
-	if element != nil {
-		element.Value.(*Bomberman).IsAlive = false
-		element.Value.(*Bomberman).GhostActive = true
-		element.Value.(*Bomberman).stepMult = 0.5
-		for element.Next() != nil {
-			element = element.Next()
-			element.Value.(*Bomberman).IsAlive = false
-			element.Value.(*Bomberman).GhostActive = true
-			element.Value.(*Bomberman).stepMult = 0.5
-		}
-	}
+	killAllPlayersOnField(f.Player)
 	for i := 0; i < 2; i++ {
 		if f.Contains[i] != nil {
 			if f.Contains[i].isDestructible() {
@@ -133,6 +138,7 @@ type Bomb struct {
 	PositionY int
 	Time      int
 	Radius    int
+	state     int
 }
 
 func NewBomb(b *Bomberman) Bomb {
@@ -140,10 +146,11 @@ func NewBomb(b *Bomberman) Bomb {
 	return Bomb{
 		ID:        globalBombCount,
 		Owner:     b,
-		PositionX: (b.PositionX + FIELD_SIZE/2) / FIELD_SIZE,
-		PositionY: (b.PositionY + FIELD_SIZE/2) / FIELD_SIZE,
+		PositionX: pixToArr(b.PositionX),
+		PositionY: pixToArr(b.PositionY),
 		Time:      b.bombTime,
 		Radius:    b.BombRadius,
+		state:     0,
 	}
 }
 
@@ -157,18 +164,34 @@ func (b *Bomb) isDestructible() bool {
 	return false
 }
 func (b *Bomb) getType() FieldObject {
-	return FieldObjectBomb
+	if b.state == 0 {
+		return FieldObjectBomb1
+	} else if b.state == 1 {
+		return FieldObjectBomb2
+	} else {
+		return FieldObjectBomb
+	}
+
 }
 
 func (b *Bomb) startBomb() {
-	time.Sleep(time.Duration(b.Time) * time.Second)
+	//Change to Loop
+	time.Sleep((time.Duration(b.Time) / bombStates) * time.Second)
+	b.state++
+	BuildAbstractGameMap()
+	time.Sleep((time.Duration(b.Time) / bombStates) * time.Second)
+	b.state++
+	BuildAbstractGameMap()
+
+	time.Sleep((time.Duration(b.Time) / bombStates) * time.Second)
+	b.state = 0
+
 	e := newExplosion()
 	x := b.PositionX
 	y := b.PositionY
 	xPosHitSolidWall, xNegHitSolidWall, yPosHitSolidWall, yNegHitSolidWall := false, false, false, false
 	GameMap.Fields[x][y].explosion()
 	e.ExpFields = append(e.ExpFields, newPosition(x, y))
-	GameMap.Fields[x][y].addExplosion(&e)
 	for i := 1; i < b.Radius; i++ {
 		xPos := x + i
 		xNeg := x - i
@@ -211,11 +234,15 @@ func (b *Bomb) startBomb() {
 			}
 		}
 	}
+	if sessionRunning {
+		isOnePlayerAlive()
+	}
 	if GameMap.Fields[x][y].Contains[0] == b {
 		GameMap.Fields[x][y].Contains[0] = nil
 	} else if GameMap.Fields[x][y].Contains[1] == b {
 		GameMap.Fields[x][y].Contains[1] = nil
 	}
+	GameMap.Fields[x][y].addExplosion(&e)
 	BuildAbstractGameMap()
 	time.Sleep(900 * time.Millisecond)
 	for i := 0; i < len(e.ExpFields); i++ {
@@ -271,13 +298,43 @@ func (i *Item) isAccessible() bool {
 	return true
 }
 func (i *Item) startEvent() {
-
 }
+
 func (i *Item) isDestructible() bool {
 	return false
 }
 func (i *Item) getType() FieldObject {
 	return i.Type
+}
+
+type Portal struct {
+	iFeelUsed bool
+	portalOne Position
+	portalTwo Position
+}
+
+func NewPortal(portalOne Position, portalTwo Position) Portal {
+	return Portal{
+		iFeelUsed: false,
+		portalOne: portalOne,
+		portalTwo: portalTwo,
+	}
+}
+
+func (p *Portal) isAccessible() bool {
+	return true
+}
+
+func (p *Portal) startEvent() {
+
+}
+
+func (p *Portal) isDestructible() bool {
+	return false
+}
+
+func (p *Portal) getType() FieldObject {
+	return FieldObjectPortal
 }
 
 type Wall struct {
@@ -305,88 +362,115 @@ func (w *Wall) getType() FieldObject {
 	}
 }
 
-func FillTestMap(m Map) {
-	//w0 := NewWall(true)
-	//w1 := NewWall(true)
-	//w2 := NewWall(true)
-	//w3 := NewWall(true)
-	//w4 := NewWall(true)
-	//w5 := NewWall(true)
-	//w6 := NewWall(true)
-	//w7 := NewWall(true)
-	//w8 := NewWall(true)
-	//w9 := NewWall(true)
-	//w10 := NewWall(false)
-	//w11 := NewWall(false)
-	//w12 := NewWall(false)
-	//w13 := NewWall(false)
-	//w14 := NewWall(false)
-	//w15 := NewWall(false)
-	//w16 := NewWall(false)
-	//w17 := NewWall(false)
-	//w18 := NewWall(false)
-	//w19 := NewWall(false)
-	//i0 := NewItem(FieldObjectItemBoost)
-	//i1 := NewItem(FieldObjectItemSlow)
-	//i2 := NewItem(FieldObjectItemGhost)
-	//m.Fields[3][0].addWall(w0)
-	//m.Fields[5][0].addWall(w1)
-	//m.Fields[2][1].addWall(w10)
-	//m.Fields[3][1].addWall(w11)
-	//m.Fields[4][1].addWall(w12)
-	//m.Fields[6][1].addWall(w13)
-	//m.Fields[1][2].addWall(w14)
-	//m.Fields[2][2].addWall(w2)
-	//m.Fields[4][2].addWall(w15)
-	//m.Fields[5][2].addWall(w3)
-	//m.Fields[6][2].addWall(w16)
-	//m.Fields[1][3].addWall(w4)
-	//m.Fields[2][3].addWall(w5)
-	//m.Fields[3][3].addWall(w6)
-	//m.Fields[0][4].addWall(w7)
-	//m.Fields[1][4].addWall(w17)
-	//m.Fields[2][4].addWall(w8)
-	//m.Fields[4][4].addWall(w9)
-	//m.Fields[1][5].addWall(w18)
-	//m.Fields[2][5].addWall(w19)
-	//m.Fields[8][8].addItem(&i0)
-	//m.Fields[8][6].addItem(&i1)
-	//m.Fields[8][5].addItem(&i2)
+func CreateMapFromImage(m Map, imagePfad string) {
 
+	image.RegisterFormat("png", "png", png.Decode, png.DecodeConfig)
+
+	file, err := os.Open(imagePfad)
+
+	if err != nil {
+		fmt.Println("Error: File could not be opened")
+		os.Exit(1)
+	}
+
+	defer file.Close()
+
+	pixels, err := getPixels(file)
+
+	if err != nil {
+		fmt.Println("Error: Image could not be decoded")
+		os.Exit(1)
+	}
 	wSolid := NewWall(false)
 	wWeak := NewWall(true)
 	i0 := NewItem(FieldObjectItemBoost)
 	i1 := NewItem(FieldObjectItemSlow)
 	i2 := NewItem(FieldObjectItemGhost)
-	rand.Seed(time.Now().UTC().UnixNano())
-	// (i != 0 || j != 0) && (i != 19 || j != 19) && (i != 0 || j != 19) && (i != 19 || j != 0)
-	for i := 0; i < len(m.Fields); i++ {
-		for j := 0; j < len(m.Fields[i]); j++ {
-			if i != 0 && j != 0 && i != 19 && j != 19 {
-				random := rand.Intn(5)
-				if random == 1 {
-					m.Fields[i][j].addWall(wSolid)
-				} else if random == 2 {
-					m.Fields[i][j].addWall(wWeak)
-				}
+	p0 := NewPortal(newPosition(9, 3), newPosition(8, 8))
+	p1 := NewPortal(newPosition(10, 3), newPosition(11, 8))
+	p2 := NewPortal(newPosition(8, 11), newPosition(9, 16))
+	p3 := NewPortal(newPosition(11, 11), newPosition(10, 16))
+	m.addPortal(&p0)
+	m.addPortal(&p1)
+	m.addPortal(&p2)
+	m.addPortal(&p3)
+	//fmt.Println(pixels)
+
+	wallPixel := newPixel(0, 0, 0, 255)
+
+	//j und i vertauscht?
+	for i := 0; i < len(pixels); i++ {
+		for j := 0; j < len(pixels[i]); j++ {
+			if pixels[i][j] == wallPixel {
+				m.Fields[j][i].addWall(wSolid)
+			}
+			if pixels[i][j].R == 66 && pixels[i][j].G == 65 && pixels[i][j].B == 66 && pixels[i][j].A == 255 {
+				m.Fields[j][i].addWall(wWeak)
+			}
+			if pixels[i][j].R == 255 && pixels[i][j].G == 115 && pixels[i][j].B == 0 && pixels[i][j].A == 255 {
+				m.Fields[j][i].addItem(&i1)
+			}
+			if pixels[i][j].R == 0 && pixels[i][j].G == 230 && pixels[i][j].B == 255 && pixels[i][j].A == 255 {
+				m.Fields[j][i].addItem(&i0)
+			}
+			if pixels[i][j].R == 0 && pixels[i][j].G == 26 && pixels[i][j].B == 255 && pixels[i][j].A == 255 {
+				m.Fields[j][i].addItem(&i2)
 			}
 		}
 	}
+}
 
-	for i := 0; i < len(m.Fields); i++ {
-		for j := 0; j < len(m.Fields[i]); j++ {
-			if i != 0 && j != 0 && i != 19 && j != 19 {
-				random := rand.Intn(45) + 1
+// Get the bi-dimensional pixel array
+func getPixels(file io.Reader) ([][]Pixel, error) {
+	img, _, err := image.Decode(file)
 
-				if random == 15 {
-					m.Fields[i][j].addItem(&i0)
-				} else if random == 30 {
-					m.Fields[i][j].addItem(&i1)
-				} else if random == 45 {
-					m.Fields[i][j].addItem(&i2)
-				}
-			}
-		}
+	if err != nil {
+		return nil, err
 	}
 
+	bounds := img.Bounds()
+	width, height := bounds.Max.X, bounds.Max.Y
+
+	//Überprüfen ob Bild größe der Mapsize entspricht
+
+	var pixels [][]Pixel
+	for y := 0; y < height; y++ {
+		var row []Pixel
+		for x := 0; x < width; x++ {
+			row = append(row, rgbaToPixel(img.At(x, y).RGBA()))
+		}
+		pixels = append(pixels, row)
+	}
+
+	return pixels, nil
+}
+
+// img.At(x, y).RGBA() returns four uint32 values; we want a Pixel
+func rgbaToPixel(r uint32, g uint32, b uint32, a uint32) Pixel {
+	return Pixel{int(r / 257), int(g / 257), int(b / 257), int(a / 257)}
+}
+
+// Pixel struct example
+type Pixel struct {
+	R int
+	G int
+	B int
+	A int
+}
+
+func newPixel(r int, g int, b int, a int) Pixel {
+	return Pixel{
+		R: r,
+		G: g,
+		B: b,
+		A: a,
+	}
+}
+
+func clearMap(m Map) {
+	for i := 0; i < len(m.Fields); i++ {
+		for j := 0; j < len(m.Fields[0]); j++ {
+			m.Fields[i][j] = NewField()
+		}
+	}
 }
