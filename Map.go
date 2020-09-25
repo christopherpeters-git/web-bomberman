@@ -234,6 +234,9 @@ func (b *Bomb) startBomb() {
 			}
 		}
 	}
+	if sessionRunning {
+		isOnePlayerAlive()
+	}
 	if GameMap.Fields[x][y].Contains[0] == b {
 		GameMap.Fields[x][y].Contains[0] = nil
 	} else if GameMap.Fields[x][y].Contains[1] == b {

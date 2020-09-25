@@ -685,9 +685,6 @@ func killAllPlayersOnField(list *list.List) {
 			element.Value.(*Bomberman).Kill()
 		}
 	}
-	if sessionRunning {
-		isOnePlayerAlive()
-	}
 }
 
 func isOnePlayerAlive() {

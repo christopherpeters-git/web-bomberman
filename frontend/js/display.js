@@ -92,8 +92,7 @@ function drawPlayerChar (player, count) {
         }else {
             drawImgXY(playerCharSprite, 1, 1, playerImgWidth, playerImgHeight,player.PositionX, player.PositionY, fieldSize, fieldSize)
         }
-    }
-    else {
+    } else {
         ctx.drawImage(playerGhostImg, player.PositionX, player.PositionY, fieldSize, fieldSize);
     }
 }
