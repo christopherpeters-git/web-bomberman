@@ -39,28 +39,13 @@ func (b *Bomb) isDestructible() bool {
 }
 func (b *Bomb) getType() FieldObject {
 	if b.state == 0 {
-		return FieldObjectBomb1
+		return FieldObjectBombState1
 	} else if b.state == 1 {
-		return FieldObjectBomb2
+		return FieldObjectBombState2
 	} else {
 		return FieldObjectBomb
 	}
 
-}
-
-func (f *Field) explosion() bool {
-	killAllPlayersOnField(f.Player)
-	for i := 0; i < 2; i++ {
-		if f.Contains[i] != nil {
-			if f.Contains[i].isDestructible() {
-				f.Contains[i] = nil
-
-			} else {
-				return true
-			}
-		}
-	}
-	return false
 }
 
 func (b *Bomb) startBomb() {
