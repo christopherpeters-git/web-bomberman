@@ -1,4 +1,4 @@
-package global
+package main
 
 //Type of error that has enough information to answer a http request
 type DetailedHttpError struct {
