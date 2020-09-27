@@ -1,7 +1,6 @@
 package main
 
 import (
-	global "./global"
 	"database/sql"
 	"golang.org/x/crypto/bcrypt"
 	"log"
@@ -30,60 +29,60 @@ func (r *User) String() string {
 	return "User: {" + strconv.FormatUint(r.UserID, 10) + " | " + r.Username + "}"
 }
 
-func GetUserFromDB(db *sql.DB, username string, password string) (*User, *global.DetailedHttpError) {
+func GetUserFromDB(db *sql.DB, username string, password string) (*User, *DetailedHttpError) {
 	var user User
 	if err := db.Ping(); err != nil {
-		return nil, global.NewDetailedHttpError(http.StatusInternalServerError, global.INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
+		return nil, NewDetailedHttpError(http.StatusInternalServerError, INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
 	}
 	rows, err := db.Query("select * from users where username = ?", username)
 	if err != nil {
-		return nil, global.NewDetailedHttpError(http.StatusInternalServerError, global.INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
+		return nil, NewDetailedHttpError(http.StatusInternalServerError, INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
 	}
 	if rows.Next() {
 		if err = rows.Scan(&user.UserID, &user.Username, &user.passwordHash, &user.sessionID); err != nil {
-			return nil, global.NewDetailedHttpError(http.StatusInternalServerError, global.INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
+			return nil, NewDetailedHttpError(http.StatusInternalServerError, INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
 		}
 	} else {
-		return nil, global.NewDetailedHttpError(http.StatusNotFound, "User not found", "User not found: "+username)
+		return nil, NewDetailedHttpError(http.StatusNotFound, "User not found", "User not found: "+username)
 	}
 	if err = bcrypt.CompareHashAndPassword([]byte(user.passwordHash), []byte(password)); err != nil {
-		return nil, global.NewDetailedHttpError(http.StatusBadRequest, "wrong password", "wrong password")
+		return nil, NewDetailedHttpError(http.StatusBadRequest, "wrong password", "wrong password")
 	}
 	return &user, nil
 }
 
-func GetUserFromSessionCookie(db *sql.DB, sessionId string) (*User, *global.DetailedHttpError) {
+func GetUserFromSessionCookie(db *sql.DB, sessionId string) (*User, *DetailedHttpError) {
 	var user User
 	if err := db.Ping(); err != nil {
-		return nil, global.NewDetailedHttpError(http.StatusInternalServerError, global.INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
+		return nil, NewDetailedHttpError(http.StatusInternalServerError, INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
 	}
 	rows, err := db.Query("select * from users where session_id = ?", sessionId)
 	if err != nil {
-		return nil, global.NewDetailedHttpError(http.StatusInternalServerError, global.INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
+		return nil, NewDetailedHttpError(http.StatusInternalServerError, INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
 	}
 	if rows.Next() {
 		if err = rows.Scan(&user.UserID, &user.Username, &user.passwordHash, &user.sessionID); err != nil {
-			return nil, global.NewDetailedHttpError(http.StatusInternalServerError, global.INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
+			return nil, NewDetailedHttpError(http.StatusInternalServerError, INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
 		}
 		return &user, nil
 
 	}
-	return nil, global.NewDetailedHttpError(http.StatusNotFound, "No user found for this Session-ID", "No user found for this Session-ID")
+	return nil, NewDetailedHttpError(http.StatusNotFound, "No user found for this Session-ID", "No user found for this Session-ID")
 }
 
-func UsernameExists(db *sql.DB, username string) *global.DetailedHttpError {
+func UsernameExists(db *sql.DB, username string) *DetailedHttpError {
 	err := db.Ping()
 	if err != nil {
 		log.Println("Database connection failed" + err.Error())
-		return global.NewDetailedHttpError(http.StatusInternalServerError, global.INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
+		return NewDetailedHttpError(http.StatusInternalServerError, INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
 	}
 	rows, err := db.Query("select * from users where username = ?", username)
 	if err != nil {
 		log.Println("Something went wrong on sql.Query" + err.Error())
-		return global.NewDetailedHttpError(http.StatusInternalServerError, global.INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
+		return NewDetailedHttpError(http.StatusInternalServerError, INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
 	}
 	if rows.Next() {
-		return global.NewDetailedHttpError(http.StatusInternalServerError, "Username is already taken", err.Error())
+		return NewDetailedHttpError(http.StatusInternalServerError, "Username is already taken", err.Error())
 	}
 	return nil
 }
@@ -133,19 +132,19 @@ func PlaceCookie(w http.ResponseWriter, db *sql.DB, username string) error {
 	return nil
 }
 
-func CheckCookie(r *http.Request, db *sql.DB, user *User) *global.DetailedHttpError {
+func CheckCookie(r *http.Request, db *sql.DB, user *User) *DetailedHttpError {
 	cookie, err := r.Cookie(COOKIE_NAME)
 	if err != nil {
-		return global.NewDetailedHttpError(http.StatusNotFound, "No cookie found", err.Error())
+		return NewDetailedHttpError(http.StatusNotFound, "No cookie found", err.Error())
 	}
 	rows, err := db.Query("select * from users where session_id = ?", cookie.Value)
 	if err != nil {
-		return global.NewDetailedHttpError(http.StatusNotFound, "Session_Id doesnt exists", err.Error())
+		return NewDetailedHttpError(http.StatusNotFound, "Session_Id doesnt exists", err.Error())
 	}
 	if rows.Next() {
 		err = rows.Scan(&user.UserID, &user.Username, &user.passwordHash, &user.sessionID)
 		if err != nil {
-			return global.NewDetailedHttpError(http.StatusInternalServerError, global.INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
+			return NewDetailedHttpError(http.StatusInternalServerError, INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
 		}
 	}
 	return nil

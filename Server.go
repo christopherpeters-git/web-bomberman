@@ -1,7 +1,6 @@
 package main
 
 import (
-	glo "./global"
 	"database/sql"
 	"encoding/json"
 	_ "github.com/go-sql-driver/mysql"
@@ -147,7 +146,7 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 	log.Println("Receiving Loginrequest...")
 	err := r.ParseForm()
 	if err != nil {
-		http.Error(w, glo.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
+		http.Error(w, INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
 		log.Println("Parsing Form failed for some reason" + err.Error())
 		return
 	}
@@ -176,7 +175,7 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 	err = PlaceCookie(w, db, username)
 	if err != nil {
-		http.Error(w, glo.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
+		http.Error(w, INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
 		log.Println(err.Error())
 	}
 	w.WriteHeader(http.StatusOK)
@@ -189,7 +188,7 @@ func handleRegister(w http.ResponseWriter, r *http.Request) {
 	log.Println("Receiving Registerrequest...")
 	err := r.ParseForm()
 	if err != nil {
-		http.Error(w, glo.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
+		http.Error(w, INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
 		log.Println("Parsing Form failed for some reason" + err.Error())
 		return
 	}
@@ -198,12 +197,12 @@ func handleRegister(w http.ResponseWriter, r *http.Request) {
 
 	if !IsStringLegal(username) {
 		log.Println("Parsed username contains illegal chars or is empty")
-		http.Error(w, glo.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
+		http.Error(w, INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
 		return
 	}
 	if !IsStringLegal(password) {
 		log.Println("Parsed password contains illegal chars or is empty")
-		http.Error(w, glo.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
+		http.Error(w, INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
 		return
 	}
 	httpErr := UsernameExists(db, username)
@@ -215,7 +214,7 @@ func handleRegister(w http.ResponseWriter, r *http.Request) {
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
 	if err != nil {
 		log.Println("encrypting password failed" + err.Error())
-		http.Error(w, glo.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
+		http.Error(w, INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
 		return
 	}
 	log.Printf("User created: username: %s passwordhash: %s", username, string(passwordHash))
@@ -223,12 +222,12 @@ func handleRegister(w http.ResponseWriter, r *http.Request) {
 	_, err = db.Exec("INSERT INTO users (Username,PasswordHash)\nValues(?,?)", username, string(passwordHash))
 	if err != nil {
 		log.Println("Creating entry in database failed" + err.Error())
-		http.Error(w, glo.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
+		http.Error(w, INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
 		return
 	}
 	err = PlaceCookie(w, db, username)
 	if err != nil {
-		http.Error(w, glo.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
+		http.Error(w, INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
 		log.Println(err.Error())
 	}
 	w.WriteHeader(http.StatusOK)
@@ -248,7 +247,7 @@ func handleCookie(w http.ResponseWriter, r *http.Request) {
 	userAsJson, err := json.MarshalIndent(user, "", "    ")
 	if err != nil {
 		log.Println("Marshaling failed" + err.Error())
-		http.Error(w, glo.INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
+		http.Error(w, INTERNAL_SERVER_ERROR_RESPONSE, http.StatusInternalServerError)
 		return
 	}
 	w.Write(userAsJson)
