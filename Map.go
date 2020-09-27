@@ -343,7 +343,7 @@ func newPixel(r int, g int, b int, a int) Pixel {
 	}
 }
 
-func (m *Map) clearMap() {
+func (m *Map) clear() {
 	for i := 0; i < len(m.Fields); i++ {
 		for j := 0; j < len(m.Fields[0]); j++ {
 			m.Fields[i][j] = NewField()

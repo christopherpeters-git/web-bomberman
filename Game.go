@@ -272,7 +272,7 @@ func StartGameIfPlayersReady() {
 
 func resetGame(s string) {
 	playerDied = false
-	clearMap(GameMap)
+	GameMap.clear()
 	CreateMapFromImage(GameMap, s)
 	count := 0
 	for _, v := range Connections {
