@@ -106,13 +106,14 @@ func (f *Field) addExplosion(e *Explosion) {
 	}
 }
 
+type eventFunction func(i interface{})
+
 type FieldType interface {
 	isAccessible() bool
-	startEvent()
+	startEvent(f eventFunction)
 	isDestructible() bool
 	getType() FieldObject
 }
-
 
 type Explosion struct {
 	ExpFields []Position
@@ -128,7 +129,7 @@ func (e *Explosion) isAccessible() bool {
 	return true
 }
 
-func (e *Explosion) startEvent() {
+func (e *Explosion) startEvent(f eventFunction) {
 
 }
 
@@ -151,7 +152,7 @@ func NewItem(t FieldObject) Item {
 func (i *Item) isAccessible() bool {
 	return true
 }
-func (i *Item) startEvent() {
+func (i *Item) startEvent(f eventFunction) {
 }
 
 func (i *Item) isDestructible() bool {
@@ -179,7 +180,7 @@ func (p *Portal) isAccessible() bool {
 	return true
 }
 
-func (p *Portal) startEvent() {
+func (p *Portal) startEvent(f eventFunction) {
 
 }
 
@@ -202,7 +203,7 @@ func NewWall(destructible bool) *Wall {
 func (w *Wall) isAccessible() bool {
 	return false
 }
-func (w *Wall) startEvent() {
+func (w *Wall) startEvent(f eventFunction) {
 
 }
 func (w *Wall) isDestructible() bool {
@@ -342,7 +343,7 @@ func newPixel(r int, g int, b int, a int) Pixel {
 	}
 }
 
-func clearMap(m Map) {
+func (m *Map) clearMap() {
 	for i := 0; i < len(m.Fields); i++ {
 		for j := 0; j < len(m.Fields[0]); j++ {
 			m.Fields[i][j] = NewField()

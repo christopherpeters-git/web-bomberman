@@ -31,7 +31,7 @@ func NewBomb(b *Bomberman) Bomb {
 func (b *Bomb) isAccessible() bool {
 	return false
 }
-func (b *Bomb) startEvent() {
+func (b *Bomb) startEvent(f eventFunction) {
 
 }
 func (b *Bomb) isDestructible() bool {
