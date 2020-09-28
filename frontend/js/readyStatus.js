@@ -1,4 +1,7 @@
 function sendGetReady(){
+
+
+
     fetch("/setReady")
         .then(response => {
             if(response.status === 200){
@@ -9,8 +12,12 @@ function sendGetReady(){
         .then(text => {
             if(text === "nrdy"){
                 readyButton.style.backgroundColor = 'red'
+                console.log("RDY clicked RED");
+                console.log(readyButton)
             }else {
                 readyButton.style.backgroundColor = 'green'
+                console.log("RDY clicked GREEN");
+                console.log(readyButton)
             }
         })
         .catch((reason => {

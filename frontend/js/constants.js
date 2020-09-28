@@ -2,6 +2,7 @@
 const nameLabel = document.createElement("p");
 const posXLabel = document.createElement("p");
 const posYLabel = document.createElement("p");
+const readyInfo = document.querySelector(".noShake")
 const info = document.querySelector('#stats')
 const ctx = document.querySelector('#matchfield').getContext("2d")
 const readyButton = document.querySelector("#readyButton")

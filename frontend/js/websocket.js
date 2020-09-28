@@ -2,7 +2,7 @@
 let socket = new WebSocket("ws://localhost:2100/ws-test/")
 let ticker;
 let userId;
-
+let exec = false;
 initGame();
 
 console.log("Attempting Websocket connection")
@@ -25,6 +25,7 @@ socket.onopen = () => {
             console.log(reason)
         }))
     console.log("Connected")
+    frameCounter = 0;
 }
 
 socket.onclose = (event) => {
@@ -39,9 +40,21 @@ socket.onmessage = (ev) => {
     const incomingPackage = JSON.parse(ev.data);
     const gamemap = incomingPackage.GameMap;
     const players = incomingPackage.Players;
+    let sessionRunning = incomingPackage.SessionRunning;
+
+    if (sessionRunning && !exec) {
+        exec = true;
+        readyInfo.innerHTML = "Session is running.";
+        console.log("session started");
+    }
+    if (!sessionRunning && exec) {
+        exec = false;
+        readyInfo.innerHTML = "<button id='readyButton' onclick='sendGetReady()'>Ready?</button>";
+        console.log("session stopped")
+    }
 
     if (ctx !== null && incomingPackage !== null){
-       gameLoop(gamemap, players)
+       gameLoop(gamemap, players);
     }
 }
 

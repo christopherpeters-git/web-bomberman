@@ -72,9 +72,9 @@ type KeyInput struct {
 }
 
 type ClientPackage struct {
-	Players []Bomberman
-	GameMap [][][]FieldObject
-	//TestPlayer [][]int
+	Players        []Bomberman
+	GameMap        [][][]FieldObject
+	SessionRunning bool
 }
 
 //Wrapper for the user
@@ -227,9 +227,9 @@ func sendDataToClients() error {
 
 	var err error
 	clientPackageAsJson, err = json.Marshal(ClientPackage{
-		Players: bombermanArray,
-		GameMap: abstractGameMap,
-		//TestPlayer: testToSend,
+		Players:        bombermanArray,
+		GameMap:        abstractGameMap,
+		SessionRunning: sessionRunning,
 	})
 	if err != nil {
 		log.Println(err)
