@@ -18,7 +18,9 @@ function spaceKeyDownListener(event) {
 
 
 function keyDownListener(event) {
-    if(event.key !== " "){keyPresses[event.key] = true;}
+    if(event.key !== " "){
+        keyPresses[event.key] = true;
+    }
 }
 
 function keyUpListener(event) {
