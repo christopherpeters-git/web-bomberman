@@ -24,8 +24,6 @@ function gameLoop (map, players){
             }
         }
     }
-
-
     //FildObjects are Drawn onto the Canvas
     drawImageFromEnum(itemBoostImg, map, 6);
     drawImageFromEnum(itemSlowImg, map, 7);
@@ -48,10 +46,9 @@ function gameLoop (map, players){
             }
         }
     }
-
-
     //Needed for movement Animation in display.js
     if (frameCounter == frameLimit){
         frameCounter = 0;
     }
 }
+

@@ -133,3 +133,41 @@ function drawPlayerPosClient() {
     const y = Math.floor((currentUser.PositionY + fieldSize/2)/fieldSize) * fieldSize
     ctx.fillRect(x,y , fieldSize , fieldSize)
 }
+
+function updateUI (sessionRunning) {
+    if (sessionRunning && !exec) {
+        exec = true;
+        readyInfo.innerHTML = "Session is running.";
+        startCountdown(countDown);
+        console.log("session started");
+    }
+    if (!sessionRunning && exec) {
+        clearInterval(intervall)
+        exec = false;
+        countDown.innerHTML = ""
+        readyInfo.innerHTML = "<button id='readyButton' onclick='sendGetReady()'>Ready?</button>";
+        readyButton = document.querySelector("#readyButton")
+        console.log("session stopped")
+    }
+}
+
+function startCountdown (container){
+    let dateStart = new Date();
+    let timeEnd = new Date().setMinutes(dateStart.getMinutes() + suddenDeathTimer)
+
+    intervall = setInterval( function () {
+        let timeNow = new Date().getTime();
+
+        let timeDiff = timeEnd - timeNow;
+
+        let minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+        let seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+
+        container.innerHTML = minutes + "m " + seconds + "s ";
+
+        if (timeDiff < 0) {
+            container.innerHTML =  "SUDDEN DEATH!";
+        }
+
+    })
+}

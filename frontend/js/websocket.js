@@ -3,6 +3,7 @@ let socket = new WebSocket("ws://localhost:2100/ws-test/")
 let ticker;
 let userId;
 let exec = false;
+let intervall;
 initGame();
 
 console.log("Attempting Websocket connection")
@@ -42,22 +43,12 @@ socket.onmessage = (ev) => {
     const players = incomingPackage.Players;
     let sessionRunning = incomingPackage.SessionRunning;
 
-    if (sessionRunning && !exec) {
-        exec = true;
-        readyInfo.innerHTML = "Session is running.";
-        console.log("session started");
-    }
-    if (!sessionRunning && exec) {
-        exec = false;
-        readyInfo.innerHTML = "<button id='readyButton' onclick='sendGetReady()'>Ready?</button>";
-        console.log("session stopped")
-    }
+    updateUI(sessionRunning);
 
     if (ctx !== null && incomingPackage !== null){
        gameLoop(gamemap, players);
     }
 }
-
 
 
 

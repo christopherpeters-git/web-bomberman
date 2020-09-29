@@ -1,7 +1,5 @@
 function sendGetReady(){
 
-
-
     fetch("/setReady")
         .then(response => {
             if(response.status === 200){
@@ -24,3 +22,4 @@ function sendGetReady(){
             console.log(reason)
         }))
 }
+

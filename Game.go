@@ -314,6 +314,6 @@ func isOnePlayerAlive() {
 		log.Println("has Won")
 	}
 	//todo send message
-	resetGame("images/map.png")
+	resetGame("images/map3.png")
 	sessionRunning = false
 }
