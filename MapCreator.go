@@ -32,6 +32,11 @@ func CreateMapFromImage(m Map, imagePath string) error {
 		return errors.New("Creating map from image failed: png needs to have the height " + strconv.Itoa(MAP_SIZE) + " and width " + strconv.Itoa(MAP_SIZE))
 	}
 
+	file, err = os.Open(imagePath)
+	if err != nil {
+		return err
+	}
+
 	pixels, err := getPixels(file)
 	if err != nil {
 		return err
