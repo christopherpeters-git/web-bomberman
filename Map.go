@@ -40,7 +40,10 @@ func NewMap(size int) Map {
 			m.Fields[i][j] = NewField()
 		}
 	}
-	CreateMapFromImage(m, "images/map3.png")
+
+	if err := CreateMapFromImage(m, "images/map3.png"); err != nil {
+		log.Fatal(err)
+	}
 	return m
 }
 
