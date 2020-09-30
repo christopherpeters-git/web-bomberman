@@ -17,9 +17,10 @@ const (
 	STANDARD_BOMB_TIME          = 3
 	STANDARD_STEP_MULTIPLICATOR = 1
 	DEATH_STEP_MULTIPLICATOR    = 0.5
+	MAP_SIZE                    = CANVAS_SIZE / FIELD_SIZE
 )
 
-var GameMap = NewMap(CANVAS_SIZE / FIELD_SIZE)
+var GameMap = NewMap(MAP_SIZE)
 var Connections = make(map[uint64]*Session, 0)
 var ticker = time.NewTicker(16 * time.Millisecond)
 var spawnPositions = [][]int{{0, 0}, {0, 10}, {0, 19}, {10, 0}, {10, 19}, {19, 0}, {19, 10}, {19, 19}}
@@ -273,7 +274,10 @@ func StartGameIfPlayersReady() {
 func resetGame(s string) {
 	playerDied = false
 	GameMap.clear()
-	CreateMapFromImage(GameMap, s)
+	if err := CreateMapFromImage(GameMap, s); err != nil {
+		log.Fatal(err)
+	}
+
 	count := 0
 	for _, v := range Connections {
 		if count > 7 {

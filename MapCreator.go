@@ -1,31 +1,40 @@
 package main
 
 import (
-	"fmt"
+	"errors"
 	"image"
 	"image/png"
 	"io"
 	"os"
+	"strconv"
 )
 
-func CreateMapFromImage(m Map, imagePath string) {
+//RGBA color : FieldObject
+var PIXEL_WALL_SOLID = newPixel(0, 0, 0, 255)
+var PIXEL_WALL_WEAK = newPixel(66, 65, 66, 255)
+var PIXEL_ITEM_BOOST = newPixel(0, 230, 255, 255)
+var PIXEL_ITEM_SLOW = newPixel(255, 115, 0, 255)
+var PIXEL_ITEM_GHOST = newPixel(0, 26, 255, 255)
 
+func CreateMapFromImage(m Map, imagePath string) error {
 	image.RegisterFormat("png", "png", png.Decode, png.DecodeConfig)
-
 	file, err := os.Open(imagePath)
-
 	if err != nil {
-		fmt.Println("Error: File could not be opened")
-		os.Exit(1)
+		return err
 	}
-
 	defer file.Close()
 
-	pixels, err := getPixels(file)
-
+	image, err := png.Decode(file)
 	if err != nil {
-		fmt.Println("Error: Image could not be decoded")
-		os.Exit(1)
+		return err
+	}
+	if image.Bounds().Dx() != MAP_SIZE || image.Bounds().Dy() != MAP_SIZE {
+		return errors.New("Creating map from image failed: png needs to have the height " + strconv.Itoa(MAP_SIZE) + " and width " + strconv.Itoa(MAP_SIZE))
+	}
+
+	pixels, err := getPixels(file)
+	if err != nil {
+		return err
 	}
 	wSolid := NewWall(false)
 	wWeak := NewWall(true)
@@ -40,30 +49,28 @@ func CreateMapFromImage(m Map, imagePath string) {
 	m.addPortal(&p1)
 	m.addPortal(&p2)
 	m.addPortal(&p3)
-	//fmt.Println(pixels)
-
-	wallPixel := newPixel(0, 0, 0, 255)
 
 	//j und i vertauscht?
 	for i := 0; i < len(pixels); i++ {
 		for j := 0; j < len(pixels[i]); j++ {
-			if pixels[i][j] == wallPixel {
+			if pixels[i][j] == PIXEL_WALL_SOLID {
 				m.Fields[j][i].addWall(wSolid)
 			}
-			if pixels[i][j].R == 66 && pixels[i][j].G == 65 && pixels[i][j].B == 66 && pixels[i][j].A == 255 {
+			if pixels[i][j] == PIXEL_WALL_WEAK {
 				m.Fields[j][i].addWall(wWeak)
 			}
-			if pixels[i][j].R == 255 && pixels[i][j].G == 115 && pixels[i][j].B == 0 && pixels[i][j].A == 255 {
-				m.Fields[j][i].addItem(&i1)
-			}
-			if pixels[i][j].R == 0 && pixels[i][j].G == 230 && pixels[i][j].B == 255 && pixels[i][j].A == 255 {
+			if pixels[i][j] == PIXEL_ITEM_BOOST {
 				m.Fields[j][i].addItem(&i0)
 			}
-			if pixels[i][j].R == 0 && pixels[i][j].G == 26 && pixels[i][j].B == 255 && pixels[i][j].A == 255 {
+			if pixels[i][j] == PIXEL_ITEM_SLOW {
+				m.Fields[j][i].addItem(&i1)
+			}
+			if pixels[i][j] == PIXEL_ITEM_GHOST {
 				m.Fields[j][i].addItem(&i2)
 			}
 		}
 	}
+	return nil
 }
 
 // Get the bi-dimensional pixel array
