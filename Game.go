@@ -17,6 +17,13 @@ const (
 	STANDARD_BOMB_TIME          = 3
 	STANDARD_STEP_MULTIPLICATOR = 1
 	DEATH_STEP_MULTIPLICATOR    = 0.5
+	SUDDEN_DEATH_START_TIME     = 1
+
+	//10 is equal to full map, 10 is MAX!!!
+	SUDDEN_DEATH_MAX_AREA = 7
+
+	//in seconds, higher number means more time between the increase of the area
+	SUDDEN_INCREASE_TIME = 5
 )
 
 var GameMap = NewMap(CANVAS_SIZE / FIELD_SIZE)
@@ -26,6 +33,7 @@ var spawnPositions = [][]int{{0, 0}, {0, 10}, {0, 19}, {10, 0}, {10, 19}, {19, 0
 
 //var incomingTicker = time.NewTicker(1 * time.Millisecond)
 var sessionRunning = false
+var suddenDeathRunning = false
 
 //Things send to the clients
 var bombermanArray = make([]Bomberman, 0)
@@ -266,6 +274,24 @@ func StartGameIfPlayersReady() {
 	sessionRunning = true
 	for _, v := range Connections {
 		v.Bomber.PlayerReady = false
+	}
+	time.AfterFunc(time.Minute*SUDDEN_DEATH_START_TIME, startSuddenDeath)
+}
+
+func startSuddenDeath() {
+	e := newExplosion()
+
+	for t := 0; t < SUDDEN_DEATH_MAX_AREA; t++ {
+		for i := 0; i < len(GameMap.Fields); i++ {
+			for j := 0; j < len(GameMap.Fields[i]); j++ {
+				if (i == t && j == j) || (j == t && i == i) || (i == 19-t && j == j) || (i == i && j == 19-t) {
+					GameMap.Fields[i][j].addExplosion(&e)
+
+				}
+			}
+		}
+		BuildAbstractGameMap()
+		time.Sleep(time.Second * SUDDEN_INCREASE_TIME)
 	}
 
 }

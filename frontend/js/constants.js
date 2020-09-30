@@ -20,4 +20,4 @@ const playerImgWidth = 32;
 //Time in which no Bomb can be placed after placing a Bomb
 const bombTimeOutMS = 1000;
 
-const suddenDeathTimer = 3;
+const suddenDeathTimer = 1;
