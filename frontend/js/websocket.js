@@ -1,4 +1,3 @@
-
 let socket = new WebSocket("ws://localhost:2100/ws-test/")
 let ticker;
 let userId;
