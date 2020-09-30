@@ -299,7 +299,10 @@ func startSuddenDeath() {
 func resetGame(s string) {
 	playerDied = false
 	GameMap.clear()
-	CreateMapFromImage(GameMap, s)
+	if err := CreateMapFromImage(GameMap, s); err != nil {
+		log.Fatal(err)
+	}
+
 	count := 0
 	for _, v := range Connections {
 		if count > 7 {
@@ -340,6 +343,6 @@ func isOnePlayerAlive() {
 		log.Println("has Won")
 	}
 	//todo send message
-	resetGame("images/map3.png")
+	resetGame("images/map.png")
 	sessionRunning = false
 }
