@@ -18,6 +18,7 @@ const (
 	STANDARD_STEP_MULTIPLICATOR = 1
 	DEATH_STEP_MULTIPLICATOR    = 0.5
 	SUDDEN_DEATH_START_TIME     = 1
+	MAP_SIZE                    = CANVAS_SIZE / FIELD_SIZE
 
 	//10 is equal to full map, 10 is MAX!!!
 	SUDDEN_DEATH_MAX_AREA = 7
@@ -26,7 +27,7 @@ const (
 	SUDDEN_INCREASE_TIME = 5
 )
 
-var GameMap = NewMap(CANVAS_SIZE / FIELD_SIZE)
+var GameMap = NewMap(MAP_SIZE)
 var Connections = make(map[uint64]*Session, 0)
 var ticker = time.NewTicker(16 * time.Millisecond)
 var spawnPositions = [][]int{{0, 0}, {0, 10}, {0, 19}, {10, 0}, {10, 19}, {19, 0}, {19, 10}, {19, 19}}
@@ -270,7 +271,7 @@ func StartGameIfPlayersReady() {
 			return
 		}
 	}
-	resetGame("images/map2.png")
+	resetGame("images/map3.png")
 	sessionRunning = true
 	for _, v := range Connections {
 		v.Bomber.PlayerReady = false
@@ -343,6 +344,6 @@ func isOnePlayerAlive() {
 		log.Println("has Won")
 	}
 	//todo send message
-	resetGame("images/map.png")
+	resetGame("images/map3.png")
 	sessionRunning = false
 }
