@@ -280,24 +280,54 @@ func StartGameIfPlayersReady() {
 }
 
 func startSuddenDeath() {
-	e := newExplosion()
-
+	suddenDeathRunning = true
+	p := newPoison()
+	go checkForPoison()
 	for t := 0; t < SUDDEN_DEATH_MAX_AREA; t++ {
 		for i := 0; i < len(GameMap.Fields); i++ {
 			for j := 0; j < len(GameMap.Fields[i]); j++ {
 				if (i == t && j == j) || (j == t && i == i) || (i == 19-t && j == j) || (i == i && j == 19-t) {
-					GameMap.Fields[i][j].addExplosion(&e)
+					GameMap.Fields[i][j].addPoison(&p)
 
 				}
 			}
 		}
+		if !suddenDeathRunning {
+			break
+		}
 		BuildAbstractGameMap()
 		time.Sleep(time.Second * SUDDEN_INCREASE_TIME)
 	}
+}
 
+func checkForPoison() {
+	for suddenDeathRunning {
+		for i := 0; i < len(GameMap.Fields); i++ {
+			for j := 0; j < len(GameMap.Fields[i]); j++ {
+				if GameMap.Fields[i][j].Contains[0] != nil {
+					if GameMap.Fields[i][j].Contains[0].getType() == 13 {
+						if GameMap.Fields[i][j].Player != nil {
+							//TO DO: Dont insta kill
+							killAllPlayersOnField(GameMap.Fields[i][j].Player)
+							isOnePlayerAlive()
+						}
+					}
+				}
+				if GameMap.Fields[i][j].Contains[1] != nil {
+					if GameMap.Fields[i][j].Contains[1].getType() == 13 {
+						if GameMap.Fields[i][j].Player != nil {
+							killAllPlayersOnField(GameMap.Fields[i][j].Player)
+							isOnePlayerAlive()
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 func resetGame(s string) {
+	suddenDeathRunning = false
 	playerDied = false
 	GameMap.clear()
 	if err := CreateMapFromImage(GameMap, s); err != nil {

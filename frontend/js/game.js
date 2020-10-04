@@ -35,6 +35,7 @@ function gameLoop (map, players){
     drawImageFromEnum(bombImg, map, 10);
     drawImageFromEnum(bomb2Img, map, 11);
     drawImageFromEnum(explosionImg, map, 9)
+    drawImageFromEnum(poisonImg, map, 13)
 
     //When GhostActive is true, players are drawn after other objects, so that they "float" above them.
     for(let i = 0; i < players.length; i++){
