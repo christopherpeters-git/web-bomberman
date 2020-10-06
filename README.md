@@ -11,7 +11,7 @@ Für die erfolgreiche Ausführung ist es notwendig, im root-Verzeichnis des Proj
 + "DB_USERNAME": Username des Users des Datenbankservers
 + "DB_PASSWORD": Passwort des Users des Datenbankservers
 
-###Der sql-Skript, um die Datenbank aufzubauen, ist in "databse.sql" zu finden.
+### Das SQL-Skript, um die Datenbank aufzubauen, ist in "databse.sql" zu finden.
 
 
 
