@@ -284,22 +284,35 @@ func startSuddenDeath() {
 	p := newPoison()
 	go checkForPoison()
 	for t := 0; t < SUDDEN_DEATH_MAX_AREA; t++ {
-		for i := 0; i < len(GameMap.Fields); i++ {
-			for j := 0; j < len(GameMap.Fields[i]); j++ {
-				if (i == t && j == j) || (j == t && i == i) || (i == 19-t && j == j) || (i == i && j == 19-t) {
-					GameMap.Fields[i][j].addPoison(&p)
-
-				}
-			}
-		}
 		if !suddenDeathRunning {
 			break
+		}
+		for i := 0; i < len(GameMap.Fields); i++ {
+			for j := 0; j < len(GameMap.Fields[i]); j++ {
+				if (i == t) || (j == t) || (i == 19-t) || (j == 19-t) {
+
+					if GameMap.Fields[i][j].Contains[0] != nil {
+						if GameMap.Fields[i][j].Contains[0].getType() == 13 {
+							continue
+						}
+					}
+
+					if GameMap.Fields[i][j].Contains[1] != nil {
+						if GameMap.Fields[i][j].Contains[1].getType() == 13 {
+							continue
+						}
+					}
+
+					GameMap.Fields[i][j].addPoison(&p)
+				}
+			}
 		}
 		BuildAbstractGameMap()
 		time.Sleep(time.Second * SUDDEN_INCREASE_TIME)
 	}
 }
 
+//inefficient!
 func checkForPoison() {
 	for suddenDeathRunning {
 		for i := 0; i < len(GameMap.Fields); i++ {
