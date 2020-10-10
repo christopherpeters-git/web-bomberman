@@ -289,8 +289,8 @@ func startSuddenDeath() {
 		}
 		for i := 0; i < len(GameMap.Fields); i++ {
 			for j := 0; j < len(GameMap.Fields[i]); j++ {
-				if (i == t) || (j == t) || (i == 19-t) || (j == 19-t) {
 
+				if (i == t) || (j == t) || (i == 19-t) || (j == 19-t) {
 					if GameMap.Fields[i][j].Contains[0] != nil {
 						if GameMap.Fields[i][j].Contains[0].getType() == 13 {
 							continue
@@ -302,7 +302,6 @@ func startSuddenDeath() {
 							continue
 						}
 					}
-
 					GameMap.Fields[i][j].addPoison(&p)
 				}
 			}
