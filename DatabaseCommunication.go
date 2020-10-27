@@ -16,6 +16,7 @@ type User struct {
 	Username     string
 	passwordHash string
 	sessionID    string
+	Games_won    uint64
 }
 
 const LETTER_BYTES = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789?!"
@@ -39,7 +40,7 @@ func GetUserFromDB(db *sql.DB, username string, password string) (*User, *Detail
 		return nil, NewDetailedHttpError(http.StatusInternalServerError, INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
 	}
 	if rows.Next() {
-		if err = rows.Scan(&user.UserID, &user.Username, &user.passwordHash, &user.sessionID); err != nil {
+		if err = rows.Scan(&user.UserID, &user.Username, &user.passwordHash, &user.sessionID, &user.Games_won); err != nil {
 			return nil, NewDetailedHttpError(http.StatusInternalServerError, INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
 		}
 	} else {
@@ -61,7 +62,7 @@ func GetUserFromSessionCookie(db *sql.DB, sessionId string) (*User, *DetailedHtt
 		return nil, NewDetailedHttpError(http.StatusInternalServerError, INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
 	}
 	if rows.Next() {
-		if err = rows.Scan(&user.UserID, &user.Username, &user.passwordHash, &user.sessionID); err != nil {
+		if err = rows.Scan(&user.UserID, &user.Username, &user.passwordHash, &user.sessionID, &user.Games_won); err != nil {
 			return nil, NewDetailedHttpError(http.StatusInternalServerError, INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
 		}
 		return &user, nil
@@ -142,7 +143,7 @@ func CheckCookie(r *http.Request, db *sql.DB, user *User) *DetailedHttpError {
 		return NewDetailedHttpError(http.StatusNotFound, "Session_Id doesnt exists", err.Error())
 	}
 	if rows.Next() {
-		err = rows.Scan(&user.UserID, &user.Username, &user.passwordHash, &user.sessionID)
+		err = rows.Scan(&user.UserID, &user.Username, &user.passwordHash, &user.sessionID, &user.Games_won)
 		if err != nil {
 			return NewDetailedHttpError(http.StatusInternalServerError, INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
 		}
@@ -168,4 +169,48 @@ func generateSessionId(n int) string {
 		b[i] = LETTER_BYTES[rand.Intn(len(LETTER_BYTES))]
 	}
 	return string(b)
+}
+
+func getUserByID(db *sql.DB, userID uint64) (*User, *DetailedHttpError) {
+	var user User
+	if err := db.Ping(); err != nil {
+		return nil, NewDetailedHttpError(http.StatusInternalServerError, INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
+	}
+	rows, err := db.Query("select * from users where Id = ?", userID)
+	if err != nil {
+		return nil, NewDetailedHttpError(http.StatusInternalServerError, INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
+	}
+	if rows.Next() {
+		if err = rows.Scan(&user.UserID, &user.Username, &user.passwordHash, &user.sessionID, &user.Games_won); err != nil {
+			return nil, NewDetailedHttpError(http.StatusInternalServerError, INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
+		}
+		return &user, nil
+
+	}
+	return nil, NewDetailedHttpError(http.StatusNotFound, "No user found for this Session-ID", "No user found for this Session-ID")
+}
+
+func updatePlayerStats(db *sql.DB, userID uint64) *DetailedHttpError {
+	err := db.Ping()
+	if err != nil {
+		log.Println("Database connection failed" + err.Error())
+		return NewDetailedHttpError(http.StatusInternalServerError, INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
+	}
+
+	rows, err := db.Query("select * from users where Id = ?", userID)
+	if err != nil {
+		return NewDetailedHttpError(http.StatusInternalServerError, INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
+	}
+
+	user, err := getUserByID(db, userID)
+	gamesWon := user.Games_won
+
+	if rows.Next() {
+		_, err = db.Exec("UPDATE  users set Games_won = ? where ID = ?", gamesWon+1, userID)
+		if err != nil {
+			return NewDetailedHttpError(http.StatusInternalServerError, INTERNAL_SERVER_ERROR_RESPONSE, err.Error())
+		}
+	}
+
+	return nil
 }
