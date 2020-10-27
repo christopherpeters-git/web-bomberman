@@ -384,6 +384,7 @@ func isOnePlayerAlive() {
 	} else if counter == 1 {
 		log.Println(lastBomberAlive.Name)
 		log.Println("has Won")
+		updatePlayerStats(db, lastBomberAlive.UserID)
 	}
 	//todo send message
 	resetGame("images/map3.png")
