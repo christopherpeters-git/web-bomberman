@@ -26,6 +26,7 @@ const (
 	FieldObjectBombState1    FieldObject = 10
 	FieldObjectBombState2    FieldObject = 11
 	FieldObjectPortal        FieldObject = 12
+	FieldObjectPoison        FieldObject = 13
 )
 
 type Map struct {
@@ -40,7 +41,7 @@ func NewMap(size int) Map {
 			m.Fields[i][j] = NewField()
 		}
 	}
-	if err := CreateMapFromImage(m, "images/map.png"); err != nil {
+	if err := CreateMapFromImage(m, "images/map3.png"); err != nil {
 		log.Fatal(err)
 	}
 	return m
@@ -119,6 +120,14 @@ func (f *Field) addExplosion(e *Explosion) {
 	}
 }
 
+func (f *Field) addPoison(p *Poison) {
+	if f.Contains[0] != nil {
+		f.Contains[1] = p
+	} else {
+		f.Contains[0] = p
+	}
+}
+
 type eventFunction func(i interface{})
 
 type FieldType interface {
@@ -126,6 +135,28 @@ type FieldType interface {
 	startEvent(f eventFunction)
 	isDestructible() bool
 	getType() FieldObject
+}
+
+type Poison struct {
+}
+
+func newPoison() Poison {
+	return Poison{}
+}
+
+func (p *Poison) isAccessible() bool {
+	return true
+}
+
+func (p *Poison) startEvent(f eventFunction) {
+}
+
+func (p *Poison) isDestructible() bool {
+	return false
+}
+
+func (p *Poison) getType() FieldObject {
+	return FieldObjectPoison
 }
 
 type Explosion struct {

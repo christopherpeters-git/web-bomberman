@@ -17,7 +17,14 @@ const (
 	STANDARD_BOMB_TIME          = 3
 	STANDARD_STEP_MULTIPLICATOR = 1
 	DEATH_STEP_MULTIPLICATOR    = 0.5
+	SUDDEN_DEATH_START_TIME     = 1
 	MAP_SIZE                    = CANVAS_SIZE / FIELD_SIZE
+
+	//10 is equal to full map, 10 is MAX!!!
+	SUDDEN_DEATH_MAX_AREA = 7
+
+	//in seconds, higher number means more time between the increase of the area
+	SUDDEN_INCREASE_TIME = 5
 )
 
 var GameMap = NewMap(MAP_SIZE)
@@ -27,6 +34,7 @@ var spawnPositions = [][]int{{0, 0}, {0, 10}, {0, 19}, {10, 0}, {10, 19}, {19, 0
 
 //var incomingTicker = time.NewTicker(1 * time.Millisecond)
 var sessionRunning = false
+var suddenDeathRunning = false
 
 //Things send to the clients
 var bombermanArray = make([]Bomberman, 0)
@@ -73,9 +81,9 @@ type KeyInput struct {
 }
 
 type ClientPackage struct {
-	Players []Bomberman
-	GameMap [][][]FieldObject
-	//TestPlayer [][]int
+	Players        []Bomberman
+	GameMap        [][][]FieldObject
+	SessionRunning bool
 }
 
 //Wrapper for the user
@@ -228,9 +236,9 @@ func sendDataToClients() error {
 
 	var err error
 	clientPackageAsJson, err = json.Marshal(ClientPackage{
-		Players: bombermanArray,
-		GameMap: abstractGameMap,
-		//TestPlayer: testToSend,
+		Players:        bombermanArray,
+		GameMap:        abstractGameMap,
+		SessionRunning: sessionRunning,
 	})
 	if err != nil {
 		log.Println(err)
@@ -263,15 +271,75 @@ func StartGameIfPlayersReady() {
 			return
 		}
 	}
-	resetGame("images/map2.png")
+	resetGame("images/map3.png")
 	sessionRunning = true
 	for _, v := range Connections {
 		v.Bomber.PlayerReady = false
 	}
+	time.AfterFunc(time.Minute*SUDDEN_DEATH_START_TIME, startSuddenDeath)
+}
 
+func startSuddenDeath() {
+	suddenDeathRunning = true
+	p := newPoison()
+	go checkForPoison()
+	for t := 0; t < SUDDEN_DEATH_MAX_AREA; t++ {
+		if !suddenDeathRunning {
+			break
+		}
+		for i := 0; i < len(GameMap.Fields); i++ {
+			for j := 0; j < len(GameMap.Fields[i]); j++ {
+
+				if (i == t) || (j == t) || (i == 19-t) || (j == 19-t) {
+					if GameMap.Fields[i][j].Contains[0] != nil {
+						if GameMap.Fields[i][j].Contains[0].getType() == 13 {
+							continue
+						}
+					}
+
+					if GameMap.Fields[i][j].Contains[1] != nil {
+						if GameMap.Fields[i][j].Contains[1].getType() == 13 {
+							continue
+						}
+					}
+					GameMap.Fields[i][j].addPoison(&p)
+				}
+			}
+		}
+		BuildAbstractGameMap()
+		time.Sleep(time.Second * SUDDEN_INCREASE_TIME)
+	}
+}
+
+//inefficient!
+func checkForPoison() {
+	for suddenDeathRunning {
+		for i := 0; i < len(GameMap.Fields); i++ {
+			for j := 0; j < len(GameMap.Fields[i]); j++ {
+				if GameMap.Fields[i][j].Contains[0] != nil {
+					if GameMap.Fields[i][j].Contains[0].getType() == 13 {
+						if GameMap.Fields[i][j].Player != nil {
+							//TO DO: Dont insta kill
+							killAllPlayersOnField(GameMap.Fields[i][j].Player)
+							isOnePlayerAlive()
+						}
+					}
+				}
+				if GameMap.Fields[i][j].Contains[1] != nil {
+					if GameMap.Fields[i][j].Contains[1].getType() == 13 {
+						if GameMap.Fields[i][j].Player != nil {
+							killAllPlayersOnField(GameMap.Fields[i][j].Player)
+							isOnePlayerAlive()
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 func resetGame(s string) {
+	suddenDeathRunning = false
 	playerDied = false
 	GameMap.clear()
 	if err := CreateMapFromImage(GameMap, s); err != nil {
@@ -318,6 +386,6 @@ func isOnePlayerAlive() {
 		log.Println("has Won")
 	}
 	//todo send message
-	resetGame("images/map.png")
+	resetGame("images/map3.png")
 	sessionRunning = false
 }

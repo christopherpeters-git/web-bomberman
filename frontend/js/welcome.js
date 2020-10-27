@@ -1,3 +1,9 @@
+let loginActive = false;
+let registerActive = false;
+
+let loginButton = document.querySelector("#loginBtn");
+let registerButton = document.querySelector("#regBtn");
+
 function createAjaxRequest() {
     let request;
     if (window.XMLHttpRequest) {
@@ -11,6 +17,14 @@ function openTab(evt, tabName) {
     let reg = document.querySelector("#regForm");
     let log = document.querySelector("#logForm");
     let todo = document.querySelector("#" + tabName);
+
+    if (tabName == "regForm") {
+        registerActive =true;
+        loginActive = false;
+    } else {
+        registerActive = false;
+        loginActive = true;
+    }
 
     reg.style.display = "none";
     log.style.display = "none";
@@ -56,4 +70,17 @@ function sendPostRegisterRequest() {
     request.open("POST","/register",true);
     request.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
     request.send("usernameInput="+username+"&"+"passwordInput="+password);
+}
+
+document.addEventListener('keypress', submitOnEnter, false);
+
+function submitOnEnter (event) {
+    if (event.keyCode === 13) {
+        if (loginActive) {
+            loginButton.click();
+        }
+        else if (registerActive) {
+            registerButton.click();
+        }
+    }
 }

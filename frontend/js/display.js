@@ -6,12 +6,13 @@ let grassImg = new Image();
 let bombImg = new Image();
 let bomb2Img = new Image();
 let bomb3Img = new Image();
-let itemBoostImg = new Image()
-let itemSlowImg = new Image()
-let itemGhostImg = new Image()
-let playerGhostImg = new Image()
-let explosionImg = new Image()
-let portalImg = new Image()
+let itemBoostImg = new Image();
+let itemSlowImg = new Image();
+let itemGhostImg = new Image();
+let playerGhostImg = new Image();
+let explosionImg = new Image();
+let portalImg = new Image();
+let poisonImg = new Image();
 
 let frameCounter = 0;
 let imgIndex = 0;
@@ -31,6 +32,7 @@ function initGame(){
     playerGhostImg.src = "media/ghostPlayer.png"
     explosionImg.src = "media/explosion2.png"
     portalImg.src = "media/portal2.png"
+    poisonImg.src = "media/poisonTest.png"
     info.append(nameLabel);
     info.append(posXLabel);
     info.append(posYLabel);
@@ -132,4 +134,42 @@ function drawPlayerPosClient() {
     const x = Math.floor((currentUser.PositionX + fieldSize/2)/fieldSize) * fieldSize
     const y = Math.floor((currentUser.PositionY + fieldSize/2)/fieldSize) * fieldSize
     ctx.fillRect(x,y , fieldSize , fieldSize)
+}
+
+function updateUI (sessionRunning) {
+    if (sessionRunning && !exec) {
+        exec = true;
+        readyInfo.innerHTML = "Session is running.";
+        startCountdown(countDown);
+        console.log("session started");
+    }
+    if (!sessionRunning && exec) {
+        clearInterval(intervall)
+        exec = false;
+        countDown.innerHTML = ""
+        readyInfo.innerHTML = "<button id='readyButton' onclick='sendGetReady()'>Ready?</button>";
+        readyButton = document.querySelector("#readyButton")
+        console.log("session stopped")
+    }
+}
+
+function startCountdown (container){
+    let dateStart = new Date();
+    let timeEnd = new Date().setMinutes(dateStart.getMinutes() + suddenDeathTimer)
+
+    intervall = setInterval( function () {
+        let timeNow = new Date().getTime();
+
+        let timeDiff = timeEnd - timeNow;
+
+        let minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+        let seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+
+        container.innerHTML = minutes + "m " + seconds + "s ";
+
+        if (timeDiff < 0) {
+            container.innerHTML =  "SUDDEN DEATH!";
+        }
+
+    })
 }
