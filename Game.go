@@ -27,19 +27,43 @@ const (
 	SUDDEN_INCREASE_TIME = 5
 )
 
-var GameMap = NewMap(MAP_SIZE)
-var Connections = make(map[uint64]*Session, 0)
-var ticker = time.NewTicker(16 * time.Millisecond)
-var spawnPositions = [][]int{{0, 0}, {0, 10}, {0, 19}, {10, 0}, {10, 19}, {19, 0}, {19, 10}, {19, 19}}
+var GameMap Map
+var Connections map[uint64]*Session
+var ticker *time.Ticker
+var spawnPositions [][]int
 
 //var incomingTicker = time.NewTicker(1 * time.Millisecond)
-var sessionRunning = false
-var suddenDeathRunning = false
+var sessionRunning bool
+var suddenDeathRunning bool
 
 //Things send to the clients
 var bombermanArray = make([]Bomberman, 0)
-var abstractGameMap = make([][][]FieldObject, 0)
+
+//var abstractGameMap = make([][][]FieldObject, 0)
+var abstractGameMapChannel = make(chan [][][]FieldObject, 8)
 var clientPackageAsJson = make([]byte, 0)
+
+//Called before any connection is possible
+func initGame() {
+	//Global variables
+	GameMap = NewMap(MAP_SIZE)
+	Connections = make(map[uint64]*Session, 0)
+	ticker = time.NewTicker(16 * time.Millisecond)
+	spawnPositions = [][]int{{0, 0}, {0, 10}, {0, 19}, {10, 0}, {10, 19}, {19, 0}, {19, 10}, {19, 19}}
+	sessionRunning = false
+	suddenDeathRunning = false
+	bombermanArray = make([]Bomberman, 0)
+	abstractGameMapChannel = make(chan [][][]FieldObject, 2)
+	clientPackageAsJson = make([]byte, 0)
+
+	//Routines
+	go UpdateClients()
+	go func(abstractGameMapChannel chan [][][]FieldObject) {
+		for {
+			abstractGameMapChannel <- BuildAbstractGameMap()
+		}
+	}(abstractGameMapChannel)
+}
 
 type Position struct {
 	x int
@@ -115,7 +139,7 @@ func AllConnectionsAsString() string {
 //Starts the interaction loop
 func StartPlayerLoop(session *Session) {
 	//Add the infos to the connection map
-	BuildAbstractGameMap()
+	////BuildAbstractGameMap()
 	Connections[session.User.UserID] = session
 	playerWebsocketLoop(session)
 	//Remove player from list at his last array position
@@ -237,7 +261,7 @@ func sendDataToClients() error {
 	var err error
 	clientPackageAsJson, err = json.Marshal(ClientPackage{
 		Players:        bombermanArray,
-		GameMap:        abstractGameMap,
+		GameMap:        <-abstractGameMapChannel,
 		SessionRunning: sessionRunning,
 	})
 	if err != nil {
@@ -306,7 +330,7 @@ func startSuddenDeath() {
 				}
 			}
 		}
-		BuildAbstractGameMap()
+		////BuildAbstractGameMap()
 		time.Sleep(time.Second * SUDDEN_INCREASE_TIME)
 	}
 }
@@ -384,7 +408,10 @@ func isOnePlayerAlive() {
 	} else if counter == 1 {
 		log.Println(lastBomberAlive.Name)
 		log.Println("has Won")
-		updatePlayerStats(db, lastBomberAlive.UserID)
+		err := updatePlayerStats(db, lastBomberAlive.UserID)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 	//todo send message
 	resetGame("images/map3.png")

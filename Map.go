@@ -79,7 +79,7 @@ func (f *Field) addBomb(b *Bomb) {
 	} else {
 		f.Contains[0] = b
 	}
-	BuildAbstractGameMap()
+	//////BuildAbstractGameMap()
 }
 
 func (f *Field) addWall(w *Wall) {
@@ -261,9 +261,9 @@ func (w *Wall) getType() FieldObject {
 	}
 }
 
-func BuildAbstractGameMap() {
+func BuildAbstractGameMap() [][][]FieldObject {
 	//Create map to send
-	abstractGameMap = make([][][]FieldObject, len(GameMap.Fields))
+	abstractGameMap := make([][][]FieldObject, len(GameMap.Fields))
 	//testToSend := make([][]int, len(GameMap.Fields))
 	for i, _ := range GameMap.Fields {
 		abstractGameMap[i] = make([][]FieldObject, len(GameMap.Fields[i]))
@@ -280,4 +280,5 @@ func BuildAbstractGameMap() {
 			}
 		}
 	}
+	return abstractGameMap
 }

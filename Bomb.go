@@ -52,10 +52,10 @@ func (b *Bomb) startBomb() {
 	//Change to Loop
 	time.Sleep((time.Duration(b.Time) / bombStates) * time.Second)
 	b.state++
-	BuildAbstractGameMap()
+	//BuildAbstractGameMap()
 	time.Sleep((time.Duration(b.Time) / bombStates) * time.Second)
 	b.state++
-	BuildAbstractGameMap()
+	//BuildAbstractGameMap()
 
 	time.Sleep((time.Duration(b.Time) / bombStates) * time.Second)
 	b.state = 0
@@ -121,7 +121,7 @@ func (b *Bomb) startBomb() {
 		GameMap.Fields[x][y].Contains[1] = nil
 	}
 	GameMap.Fields[x][y].addExplosion(&e)
-	BuildAbstractGameMap()
+	//BuildAbstractGameMap()
 	time.Sleep(900 * time.Millisecond)
 	for i := 0; i < len(e.ExpFields); i++ {
 		if GameMap.Fields[e.ExpFields[i].x][e.ExpFields[i].y].Contains[0] != nil {
@@ -135,5 +135,5 @@ func (b *Bomb) startBomb() {
 			}
 		}
 	}
-	BuildAbstractGameMap()
+	//BuildAbstractGameMap()
 }
