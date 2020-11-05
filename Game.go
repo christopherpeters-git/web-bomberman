@@ -121,7 +121,6 @@ type Session struct {
 	Bomber            *Bomberman      //Bomber of the connected user
 	Connection        *websocket.Conn //Websocket connection
 	ConnectionStarted time.Time       //point when player joined
-	inputTimer        *time.Timer
 }
 
 func NewSession(user *User, character *Bomberman, connection *websocket.Conn, connectionStarted time.Time) *Session {
@@ -159,25 +158,7 @@ func StartPlayerLoop(session *Session) {
 //interaction loop
 func playerWebsocketLoop(session *Session) {
 	for {
-		var wg *sync.WaitGroup
-		if session.Bomber.IsMoving {
-			wg = &sync.WaitGroup{}
-			go func() {
-				for session.Bomber.IsMoving {
-					wg.Add(1)
-					_, _, _ = session.Connection.ReadMessage()
-					wg.Done()
-				}
-			}()
-			session.inputTimer = time.NewTimer(32 * time.Millisecond)
-
-			//Waiting for the timer to finish
-			<-session.inputTimer.C
-		}
 		session.Bomber.IsMoving = false
-		if wg != nil {
-			wg.Wait()
-		}
 		_, p, err := session.Connection.ReadMessage()
 		if err != nil {
 			log.Println(err)
