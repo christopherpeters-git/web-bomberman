@@ -121,7 +121,7 @@ type Session struct {
 	Bomber            *Bomberman      //Bomber of the connected user
 	Connection        *websocket.Conn //Websocket connection
 	ConnectionStarted time.Time       //point when player joined
-
+	inputTimer        *time.Timer
 }
 
 func NewSession(user *User, character *Bomberman, connection *websocket.Conn, connectionStarted time.Time) *Session {
@@ -159,6 +159,25 @@ func StartPlayerLoop(session *Session) {
 //interaction loop
 func playerWebsocketLoop(session *Session) {
 	for {
+		var wg *sync.WaitGroup
+		if session.Bomber.IsMoving {
+			wg = &sync.WaitGroup{}
+			go func() {
+				for session.Bomber.IsMoving {
+					wg.Add(1)
+					_, _, _ = session.Connection.ReadMessage()
+					wg.Done()
+				}
+			}()
+			session.inputTimer = time.NewTimer(32 * time.Millisecond)
+
+			//Waiting for the timer to finish
+			<-session.inputTimer.C
+		}
+		session.Bomber.IsMoving = false
+		if wg != nil {
+			wg.Wait()
+		}
 		_, p, err := session.Connection.ReadMessage()
 		if err != nil {
 			log.Println(err)
@@ -169,7 +188,7 @@ func playerWebsocketLoop(session *Session) {
 			log.Println(err)
 			continue
 		}
-		session.Bomber.IsMoving = false
+
 		realStepSize := STEP_SIZE * session.Bomber.stepMult
 		if keys.Wpressed {
 			session.Bomber.DirUp, session.Bomber.DirDown, session.Bomber.DirLeft, session.Bomber.DirRight = true, false, false, false
@@ -236,9 +255,6 @@ func playerWebsocketLoop(session *Session) {
 				go session.Bomber.placeBomb()
 			}
 		}
-		//if session.Bomber.IsAlive && !itemActive {
-		//	checkItem(session)
-		//}
 	}
 
 }
