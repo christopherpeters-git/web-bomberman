@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/gorilla/websocket"
 	"log"
+	"sync"
 	"time"
 )
 
@@ -37,11 +38,10 @@ var sessionRunning bool
 var suddenDeathRunning bool
 
 //Things send to the clients
-var bombermanArray = make([]Bomberman, 0)
+var bombermanArray []Bomberman
 
-//var abstractGameMap = make([][][]FieldObject, 0)
-var abstractGameMapChannel = make(chan [][][]FieldObject, 8)
-var clientPackageAsJson = make([]byte, 0)
+var abstractGameMap [][][]FieldObject
+var clientPackageAsJson []byte
 
 //Called before any connection is possible
 func initGame() {
@@ -53,16 +53,21 @@ func initGame() {
 	sessionRunning = false
 	suddenDeathRunning = false
 	bombermanArray = make([]Bomberman, 0)
-	abstractGameMapChannel = make(chan [][][]FieldObject)
+	//abstractGameMap = make([][][]FieldObject,0)
+	abstractGameMap = make([][][]FieldObject, 0)
 	clientPackageAsJson = make([]byte, 0)
 
 	//Routines
 	go UpdateClients()
-	go func(abstractGameMapChannel chan [][][]FieldObject) {
-		for {
-			abstractGameMapChannel <- BuildAbstractGameMap()
-		}
-	}(abstractGameMapChannel)
+	//go func() {
+	//	for {
+	//		abstractGameMap<-BuildAbstractGameMap()
+	//	}
+	//}()
+}
+
+func MapChanged() {
+	go BuildAbstractGameMap()
 }
 
 type Position struct {
@@ -116,6 +121,7 @@ type Session struct {
 	Bomber            *Bomberman      //Bomber of the connected user
 	Connection        *websocket.Conn //Websocket connection
 	ConnectionStarted time.Time       //point when player joined
+
 }
 
 func NewSession(user *User, character *Bomberman, connection *websocket.Conn, connectionStarted time.Time) *Session {
@@ -139,7 +145,7 @@ func AllConnectionsAsString() string {
 //Starts the interaction loop
 func StartPlayerLoop(session *Session) {
 	//Add the infos to the connection map
-	////BuildAbstractGameMap()
+	MapChanged()
 	Connections[session.User.UserID] = session
 	playerWebsocketLoop(session)
 	//Remove player from list at his last array position
@@ -250,18 +256,26 @@ func UpdateClients() {
 
 func sendDataToClients() error {
 	//Create array from all connected Bombermen
-	bombermanArray = make([]Bomberman, len(Connections))
+	connectionLength := len(Connections)
+	bombermanArray = make([]Bomberman, connectionLength)
 	count := 0
 
+	wg := &sync.WaitGroup{}
+	wg.Add(connectionLength)
 	for _, v := range Connections {
-		bombermanArray[count] = *v.Bomber
+		session := v
+		go func(count int) {
+			bombermanArray[count] = *session.Bomber
+			wg.Done()
+		}(count)
 		count++
 	}
+	wg.Wait()
 
 	var err error
 	clientPackageAsJson, err = json.Marshal(ClientPackage{
 		Players:        bombermanArray,
-		GameMap:        <-abstractGameMapChannel,
+		GameMap:        abstractGameMap,
 		SessionRunning: sessionRunning,
 	})
 	if err != nil {
@@ -330,7 +344,7 @@ func startSuddenDeath() {
 				}
 			}
 		}
-		////BuildAbstractGameMap()
+		MapChanged()
 		time.Sleep(time.Second * SUDDEN_INCREASE_TIME)
 	}
 }

@@ -79,7 +79,7 @@ func (f *Field) addBomb(b *Bomb) {
 	} else {
 		f.Contains[0] = b
 	}
-	//////BuildAbstractGameMap()
+	MapChanged()
 }
 
 func (f *Field) addWall(w *Wall) {
@@ -261,24 +261,24 @@ func (w *Wall) getType() FieldObject {
 	}
 }
 
-func BuildAbstractGameMap() [][][]FieldObject {
+func BuildAbstractGameMap() {
 	//Create map to send
-	abstractGameMap := make([][][]FieldObject, len(GameMap.Fields))
+	newAbstractMap := make([][][]FieldObject, len(GameMap.Fields))
 	//testToSend := make([][]int, len(GameMap.Fields))
 	for i, _ := range GameMap.Fields {
-		abstractGameMap[i] = make([][]FieldObject, len(GameMap.Fields[i]))
+		newAbstractMap[i] = make([][]FieldObject, len(GameMap.Fields[i]))
 		//testToSend[i] = make([]int, len(GameMap.Fields[i]))
 		for j, _ := range GameMap.Fields[i] {
-			abstractGameMap[i][j] = make([]FieldObject, len(GameMap.Fields[i][j].Contains))
+			newAbstractMap[i][j] = make([]FieldObject, len(GameMap.Fields[i][j].Contains))
 			if GameMap.Fields[i][j].Player.Front() != nil {
 				//testToSend[i][j] = 1
 			}
 			for k, _ := range GameMap.Fields[i][j].Contains {
 				if GameMap.Fields[i][j].Contains[k] != nil {
-					abstractGameMap[i][j][k] = GameMap.Fields[i][j].Contains[k].getType()
+					newAbstractMap[i][j][k] = GameMap.Fields[i][j].Contains[k].getType()
 				}
 			}
 		}
 	}
-	return abstractGameMap
+	abstractGameMap = newAbstractMap
 }
