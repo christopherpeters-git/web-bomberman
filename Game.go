@@ -53,7 +53,7 @@ func initGame() {
 	sessionRunning = false
 	suddenDeathRunning = false
 	bombermanArray = make([]Bomberman, 0)
-	abstractGameMapChannel = make(chan [][][]FieldObject, 2)
+	abstractGameMapChannel = make(chan [][][]FieldObject)
 	clientPackageAsJson = make([]byte, 0)
 
 	//Routines
