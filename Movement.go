@@ -5,6 +5,10 @@ import (
 	"log"
 )
 
+/*
+Checks if a Field on the Map can be accessed by the Player.
+If a Field is accessible or the Player is in Ghost-Mode, the Old-Position gets updated and true gets returned.
+*/
 func (b *Bomberman) isFieldAccessible(x int, y int) bool {
 	isAccessNull := true
 	isAccessOne := true
@@ -25,6 +29,9 @@ func (b *Bomberman) isFieldAccessible(x int, y int) bool {
 	return isAccessible
 }
 
+/*
+Removes a Bomberman from the List.
+*/
 func removePlayerFromList(l *list.List, b *Bomberman) {
 	element := l.Front()
 	if element != nil {
@@ -46,6 +53,10 @@ func removePlayerFromList(l *list.List, b *Bomberman) {
 	log.Println("Player not found in list")
 }
 
+/*
+Checks if the Movement is in Bounds of the Map. If and Array Position needs to be updated, checks if Field is Accessible and
+updates the Player-Position if so.
+*/
 func (r *Bomberman) isMovementLegal(x int, y int) bool {
 	if x < 0 || y < 0 || x > (len(GameMap.Fields)-1)*FIELD_SIZE || y > (len(GameMap.Fields[x/FIELD_SIZE])-1)*FIELD_SIZE {
 		return false
@@ -58,6 +69,9 @@ func (r *Bomberman) isMovementLegal(x int, y int) bool {
 	if inBounds {
 		if oldPosX != arrayPosX {
 			if r.isFieldAccessible(x, y) || r.GhostActive {
+				/*
+					On Teleport the Player Position already gets updated.
+				*/
 				if r.hasTeleported {
 					r.hasTeleported = false
 					return false
@@ -92,6 +106,9 @@ func (r *Bomberman) isMovementLegal(x int, y int) bool {
 	return false
 }
 
+/*
+???
+*/
 func outerEdges(x int, y int) bool {
 	if x < 0 || y < 0 || x > (len(GameMap.Fields))*FIELD_SIZE || y > (len(GameMap.Fields[x/FIELD_SIZE]))*FIELD_SIZE {
 		return true
@@ -115,12 +132,16 @@ func outerEdges(x int, y int) bool {
 	return isAccessible
 }
 
+/*
+???
+*/
 func (b *Bomberman) collisionWithSurroundings(xOffset int, yOffset int) bool {
 	topRight := outerEdges(b.topRightPos.x+xOffset, b.topRightPos.y+yOffset)
 	topLeft := outerEdges(b.topLeftPos.x+xOffset, b.topLeftPos.y+yOffset)
 	bottomRight := outerEdges(b.bottomRightPos.x+xOffset, b.bottomRightPos.y+yOffset)
 	bottomLeft := outerEdges(b.bottomLeftPos.x+xOffset, b.bottomLeftPos.y+yOffset)
 	legal := topRight && topLeft && bottomRight && bottomLeft
+	//check a start  of method?
 	if b.GhostActive {
 		return true
 	} else {
