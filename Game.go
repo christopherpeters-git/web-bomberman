@@ -325,7 +325,7 @@ func StartGameIfPlayersReady() {
 			return
 		}
 	}
-	resetGame("images/map3.png")
+	resetGame("images/testMap.png")
 	sessionRunning = true
 	for _, v := range Connections {
 		v.Bomber.PlayerReady = false
@@ -444,6 +444,6 @@ func isOnePlayerAlive() {
 		}
 	}
 	//todo send message
-	resetGame("images/map3.png")
+	resetGame("images/testMap.png")
 	sessionRunning = false
 }
