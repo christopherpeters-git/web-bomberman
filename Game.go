@@ -21,10 +21,14 @@ const (
 	SUDDEN_DEATH_START_TIME     = 1
 	MAP_SIZE                    = CANVAS_SIZE / FIELD_SIZE
 
-	//10 is equal to full map, 10 is MAX!!!
+	/*
+		10 is equal to full map, 10 is MAX!!!
+	*/
 	SUDDEN_DEATH_MAX_AREA = 7
 
-	//in seconds, higher number means more time between the increase of the area
+	/*
+		In seconds, higher number means more time between the increase of the area
+	*/
 	SUDDEN_INCREASE_TIME = 5
 )
 

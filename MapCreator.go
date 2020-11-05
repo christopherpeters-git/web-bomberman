@@ -9,13 +9,20 @@ import (
 	"strconv"
 )
 
-//RGBA color : FieldObject
+/*
+Maps a FieldObject to a RGBA color.
+*/
 var PIXEL_WALL_SOLID = newPixel(0, 0, 0, 255)
 var PIXEL_WALL_WEAK = newPixel(66, 65, 66, 255)
 var PIXEL_ITEM_BOOST = newPixel(0, 230, 255, 255)
 var PIXEL_ITEM_SLOW = newPixel(255, 115, 0, 255)
 var PIXEL_ITEM_GHOST = newPixel(0, 26, 255, 255)
 
+/*
+Gets a Map and a Path to an Image, which has the same Pixel-Dimensions as the Field-Array.
+
+Loops over all Pixels and adds a FieldObject to the Map according to the RGBA-Value of the Color.
+*/
 func CreateMapFromImage(m Map, imagePath string) error {
 	image.RegisterFormat("png", "png", png.Decode, png.DecodeConfig)
 	file, err := os.Open(imagePath)
@@ -78,7 +85,9 @@ func CreateMapFromImage(m Map, imagePath string) error {
 	return nil
 }
 
-// Get the bi-dimensional pixel array
+/*
+Converts a PNG to a two dimensional Pixel-Array.
+*/
 func getPixels(file io.Reader) ([][]Pixel, error) {
 	img, _, err := image.Decode(file)
 
@@ -88,8 +97,6 @@ func getPixels(file io.Reader) ([][]Pixel, error) {
 
 	bounds := img.Bounds()
 	width, height := bounds.Max.X, bounds.Max.Y
-
-	//Überprüfen ob Bild größe der Mapsize entspricht
 
 	var pixels [][]Pixel
 	for y := 0; y < height; y++ {
@@ -103,12 +110,17 @@ func getPixels(file io.Reader) ([][]Pixel, error) {
 	return pixels, nil
 }
 
-// img.At(x, y).RGBA() returns four uint32 values; we want a Pixel
+/*
+Converts "img.At(x, y).RGBA()" to a Pixel.
+"img.At(x, y).RGBA()" returns four uint32 values, we need a Pixel.
+*/
 func rgbaToPixel(r uint32, g uint32, b uint32, a uint32) Pixel {
 	return Pixel{int(r / 257), int(g / 257), int(b / 257), int(a / 257)}
 }
 
-// Pixel struct example
+/*
+Represents a Pixel with RGBA values.
+*/
 type Pixel struct {
 	R int
 	G int
