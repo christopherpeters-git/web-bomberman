@@ -1,5 +1,9 @@
 package main
 
+/*
+All Methods which belong to the Database Communication.
+*/
+
 import (
 	"database/sql"
 	"golang.org/x/crypto/bcrypt"
@@ -11,6 +15,9 @@ import (
 	"time"
 )
 
+/*
+Represents a User in the Database.
+*/
 type User struct {
 	UserID       uint64
 	Username     string
@@ -30,6 +37,9 @@ func (r *User) String() string {
 	return "User: {" + strconv.FormatUint(r.UserID, 10) + " | " + r.Username + "}"
 }
 
+/*
+Gets a User by its Username and Password.
+*/
 func GetUserFromDB(db *sql.DB, username string, password string) (*User, *DetailedHttpError) {
 	var user User
 	if err := db.Ping(); err != nil {
@@ -52,6 +62,9 @@ func GetUserFromDB(db *sql.DB, username string, password string) (*User, *Detail
 	return &user, nil
 }
 
+/*
+Gets a User by its SessionID.
+*/
 func GetUserFromSessionCookie(db *sql.DB, sessionId string) (*User, *DetailedHttpError) {
 	var user User
 	if err := db.Ping(); err != nil {
@@ -71,6 +84,9 @@ func GetUserFromSessionCookie(db *sql.DB, sessionId string) (*User, *DetailedHtt
 	return nil, NewDetailedHttpError(http.StatusNotFound, "No user found for this Session-ID", "No user found for this Session-ID")
 }
 
+/*
+Checks if a User with the Username-String passed already exists.
+*/
 func UsernameExists(db *sql.DB, username string) *DetailedHttpError {
 	err := db.Ping()
 	if err != nil {
@@ -100,6 +116,10 @@ func IsStringLegal(str string) bool {
 	return true
 }
 
+/*
+Generates a SessionID and places a Cookie with this ID.
+Placed Cookie lasts 2 days.
+*/
 func PlaceCookie(w http.ResponseWriter, db *sql.DB, username string) error {
 	rows, err := db.Query("select * from users where username = ?", username)
 	if err != nil {
@@ -133,6 +153,10 @@ func PlaceCookie(w http.ResponseWriter, db *sql.DB, username string) error {
 	return nil
 }
 
+/*
+Checks if a Cookie for the User is present.
+Returns nil if everything is alright.
+*/
 func CheckCookie(r *http.Request, db *sql.DB, user *User) *DetailedHttpError {
 	cookie, err := r.Cookie(COOKIE_NAME)
 	if err != nil {
@@ -151,6 +175,9 @@ func CheckCookie(r *http.Request, db *sql.DB, user *User) *DetailedHttpError {
 	return nil
 }
 
+/*
+Generates SessionID's until a unique one is found.
+*/
 func generateUniqueSessionId(db *sql.DB) (string, error) {
 	sessionId := generateSessionId(255)
 	rows, err := db.Query("select session_id from users where session_id = ?", sessionId)
@@ -163,6 +190,9 @@ func generateUniqueSessionId(db *sql.DB) (string, error) {
 	return sessionId, nil
 }
 
+/*
+Generates a SessionID.
+*/
 func generateSessionId(n int) string {
 	b := make([]byte, n)
 	for i := range b {
@@ -171,6 +201,9 @@ func generateSessionId(n int) string {
 	return string(b)
 }
 
+/*
+Gets a User by its ID.
+*/
 func getUserByID(db *sql.DB, userID uint64) (*User, *DetailedHttpError) {
 	var user User
 	if err := db.Ping(); err != nil {
@@ -190,6 +223,9 @@ func getUserByID(db *sql.DB, userID uint64) (*User, *DetailedHttpError) {
 	return nil, NewDetailedHttpError(http.StatusNotFound, "No user found for this Session-ID", "No user found for this Session-ID")
 }
 
+/*
+Updates the Player-Statistics in the Database.
+*/
 func updatePlayerStats(db *sql.DB, userID uint64) *DetailedHttpError {
 	err := db.Ping()
 	if err != nil {
