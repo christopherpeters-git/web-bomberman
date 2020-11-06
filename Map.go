@@ -12,6 +12,9 @@ var playerDied = false
 
 const bombStates = 3
 
+/*
+FieldObject "Enum"
+*/
 const (
 	FieldObjectNull          FieldObject = 0
 	FieldObjectBomb          FieldObject = 1
@@ -29,10 +32,17 @@ const (
 	FieldObjectPoison        FieldObject = 13
 )
 
+/*
+Represents the Gamemap through a two dimensional Array of Fields.
+*/
 type Map struct {
 	Fields [][]Field
 }
 
+/*
+Initialises the Map.
+Fills all Array-Positions with empty Field and then fills it with CreateMapFromImage.
+*/
 func NewMap(size int) Map {
 	m := Map{Fields: make([][]Field, size)}
 	for i := 0; i < len(m.Fields); i++ {
@@ -47,17 +57,15 @@ func NewMap(size int) Map {
 	return m
 }
 
+/*
+Fills the Map with empty Field
+*/
 func (m *Map) clear() {
 	for i := 0; i < len(m.Fields); i++ {
 		for j := 0; j < len(m.Fields[0]); j++ {
 			m.Fields[i][j] = NewField()
 		}
 	}
-}
-
-func (m *Map) addPortal(p *Portal) {
-	m.Fields[p.portalOne.x][p.portalOne.y].Contains[1] = p
-	m.Fields[p.portalTwo.x][p.portalTwo.y].Contains[1] = p
 }
 
 type Field struct {
@@ -72,6 +80,9 @@ func NewField() Field {
 	}
 }
 
+/*
+Adds a Bomb-Object to the Contains-Array of the Field.
+*/
 func (f *Field) addBomb(b *Bomb) {
 	log.Println("added bomb.")
 	if f.Contains[0] != nil {
@@ -82,6 +93,9 @@ func (f *Field) addBomb(b *Bomb) {
 	MapChanged()
 }
 
+/*
+Adds a Wall-Object to the Contains-Array of the Field.
+*/
 func (f *Field) addWall(w *Wall) {
 	if f.Contains[0] != nil {
 		f.Contains[1] = w
@@ -89,6 +103,10 @@ func (f *Field) addWall(w *Wall) {
 		f.Contains[0] = w
 	}
 }
+
+/*
+Adds a Item-Object to the Contains-Array of the Field.
+*/
 func (f *Field) addItem(i *Item) {
 	if f.Contains[0] != nil {
 		f.Contains[1] = i
@@ -97,6 +115,17 @@ func (f *Field) addItem(i *Item) {
 	}
 }
 
+/*
+Adds a Portal-Object to the Contains-Array of the Field.
+*/
+func (m *Map) addPortal(p *Portal) {
+	m.Fields[p.portalOne.x][p.portalOne.y].Contains[1] = p
+	m.Fields[p.portalTwo.x][p.portalTwo.y].Contains[1] = p
+}
+
+/*
+Casts an Explosion on a Field. The Explosion kills al Player on the Field and destroys destructible Walls.
+*/
 func (f *Field) explosion() bool {
 	killAllPlayersOnField(f.Player)
 	for i := 0; i < 2; i++ {
@@ -112,6 +141,9 @@ func (f *Field) explosion() bool {
 	return false
 }
 
+/*
+Adds a Explosion-Object to the Contains-Array of the Field.
+*/
 func (f *Field) addExplosion(e *Explosion) {
 	if f.Contains[0] != nil {
 		f.Contains[1] = e
@@ -120,6 +152,9 @@ func (f *Field) addExplosion(e *Explosion) {
 	}
 }
 
+/*
+Adds a Poison-Object to the Contains-Array of the Field.
+*/
 func (f *Field) addPoison(p *Poison) {
 	if f.Contains[0] != nil {
 		f.Contains[1] = p
@@ -130,6 +165,9 @@ func (f *Field) addPoison(p *Poison) {
 
 type eventFunction func(i interface{})
 
+/*
+Represents a FieldType.
+*/
 type FieldType interface {
 	isAccessible() bool
 	startEvent(f eventFunction)
@@ -261,6 +299,9 @@ func (w *Wall) getType() FieldObject {
 	}
 }
 
+/*
+Represents the Fields of the Map without Players, only FieldObjects.
+*/
 func BuildAbstractGameMap() {
 	//Create map to send
 	newAbstractMap := make([][][]FieldObject, len(GameMap.Fields))
