@@ -484,7 +484,15 @@ func isOnePlayerAlive() {
 	} else if counter == 1 {
 		log.Println(lastBomberAlive.Name)
 		log.Println("has Won")
-		err := updatePlayerStats(db, lastBomberAlive.UserID)
+		user, err := getUserByID(db, lastBomberAlive.UserID)
+
+		user.GamesWon = user.GamesWon + 1
+
+		if err != nil {
+			log.Println(err)
+		}
+
+		err = updatePlayerStats(db, *user)
 		if err != nil {
 			log.Println(err)
 		}
