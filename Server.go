@@ -45,7 +45,8 @@ func main() {
 	}
 	defer db.Close()
 
-	go UpdateClients()
+	//Initialize Game
+	initGame()
 
 	//handlers
 	http.HandleFunc(POST_REGISTER, handleRegister)

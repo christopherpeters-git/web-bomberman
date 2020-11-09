@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"github.com/gorilla/websocket"
 	"log"
+	"sync"
 	"time"
 )
 
-//commit comment
+//Constant
 const (
 	FIELD_SIZE                  = 50
 	STEP_SIZE                   = 3
@@ -20,32 +21,72 @@ const (
 	SUDDEN_DEATH_START_TIME     = 1
 	MAP_SIZE                    = CANVAS_SIZE / FIELD_SIZE
 
-	//10 is equal to full map, 10 is MAX!!!
+	/*
+		10 is equal to full map, 10 is MAX!!!
+	*/
 	SUDDEN_DEATH_MAX_AREA = 7
 
-	//in seconds, higher number means more time between the increase of the area
+	/*
+		In seconds, higher number means more time between the increase of the area
+	*/
 	SUDDEN_INCREASE_TIME = 5
 )
 
-var GameMap = NewMap(MAP_SIZE)
-var Connections = make(map[uint64]*Session, 0)
-var ticker = time.NewTicker(16 * time.Millisecond)
-var spawnPositions = [][]int{{0, 0}, {0, 10}, {0, 19}, {10, 0}, {10, 19}, {19, 0}, {19, 10}, {19, 19}}
+var GameMap Map
+var Connections map[uint64]*Session
+var ticker *time.Ticker
+var spawnPositions [][]int
 
 //var incomingTicker = time.NewTicker(1 * time.Millisecond)
-var sessionRunning = false
-var suddenDeathRunning = false
+var sessionRunning bool
+var suddenDeathRunning bool
 
-//Things send to the clients
-var bombermanArray = make([]Bomberman, 0)
-var abstractGameMap = make([][][]FieldObject, 0)
-var clientPackageAsJson = make([]byte, 0)
+/*Things send to the clients*/
+var bombermanArray []Bomberman
+var abstractGameMap [][][]FieldObject
+var clientPackageAsJson []byte
 
+//Called before any connection is possible
+func initGame() {
+	//Global variables
+	GameMap = NewMap(MAP_SIZE)
+	Connections = make(map[uint64]*Session, 0)
+	ticker = time.NewTicker(16 * time.Millisecond)
+	spawnPositions = [][]int{{0, 0}, {0, 10}, {0, 19}, {10, 0}, {10, 19}, {19, 0}, {19, 10}, {19, 19}}
+	sessionRunning = false
+	suddenDeathRunning = false
+	bombermanArray = make([]Bomberman, 0)
+	//abstractGameMap = make([][][]FieldObject,0)
+	abstractGameMap = make([][][]FieldObject, 0)
+	clientPackageAsJson = make([]byte, 0)
+
+	//Routines
+	go UpdateClients()
+	//go func() {
+	//	for {
+	//		abstractGameMap<-BuildAbstractGameMap()
+	//	}
+	//}()
+}
+
+/*
+Wrapper Function to Build the Map new.
+*/
+func MapChanged() {
+	go BuildAbstractGameMap()
+}
+
+/*
+Represents the Position of a Player.
+*/
 type Position struct {
 	x int
 	y int
 }
 
+/*
+Initialises a new Position with x and y.
+*/
 func newPosition(x int, y int) Position {
 	return Position{
 		x: x,
@@ -53,10 +94,16 @@ func newPosition(x int, y int) Position {
 	}
 }
 
+/*
+Converts a Pixelposition to an Arrayposition.
+*/
 func pixToArr(pixel int) int {
 	return (pixel + FIELD_SIZE/2) / FIELD_SIZE
 }
 
+/*
+Prints a list to the log.
+*/
 func printList(list *list.List) {
 	element := list.Front()
 	if element == nil {
@@ -72,6 +119,9 @@ func printList(list *list.List) {
 	log.Println("List ended...")
 }
 
+/*
+Represents the Keys pressed by the Player.
+*/
 type KeyInput struct {
 	Wpressed     bool `json:"w"`
 	Spressed     bool `json:"s"`
@@ -80,13 +130,19 @@ type KeyInput struct {
 	SpacePressed bool `json:" "`
 }
 
+/*
+Information which the Client needs.
+This things will be send to Client.
+*/
 type ClientPackage struct {
 	Players        []Bomberman
 	GameMap        [][][]FieldObject
 	SessionRunning bool
 }
 
-//Wrapper for the user
+/*
+Wrapper for the user
+*/
 type Session struct {
 	User              *User           //Connected user
 	Bomber            *Bomberman      //Bomber of the connected user
@@ -98,12 +154,16 @@ func NewSession(user *User, character *Bomberman, connection *websocket.Conn, co
 	return &Session{User: user, Bomber: character, Connection: connection, ConnectionStarted: connectionStarted}
 }
 
-//Returns the string representation of the connection
+/*
+Returns the string representation of the connection
+*/
 func (r *Session) String() string {
 	return "Session: { " + r.User.String() + "|" + r.Bomber.String() + "|" + r.Connection.RemoteAddr().String() + "|" + r.ConnectionStarted.String() + "}"
 }
 
-//Prints every active connection
+/*
+Prints every active connection
+*/
 func AllConnectionsAsString() string {
 	result := "Active Connections:"
 	for _, v := range Connections {
@@ -112,10 +172,12 @@ func AllConnectionsAsString() string {
 	return result
 }
 
-//Starts the interaction loop
+/*
+Starts the interaction loop.
+*/
 func StartPlayerLoop(session *Session) {
 	//Add the infos to the connection map
-	BuildAbstractGameMap()
+	MapChanged()
 	Connections[session.User.UserID] = session
 	playerWebsocketLoop(session)
 	//Remove player from list at his last array position
@@ -126,9 +188,13 @@ func StartPlayerLoop(session *Session) {
 	delete(Connections, session.User.UserID)
 }
 
-//interaction loop
+/*
+Interaction loop.
+The user input is received and the Player-Position is updated accordingly / Bombs get placed.
+*/
 func playerWebsocketLoop(session *Session) {
 	for {
+		session.Bomber.IsMoving = false
 		_, p, err := session.Connection.ReadMessage()
 		if err != nil {
 			log.Println(err)
@@ -139,7 +205,12 @@ func playerWebsocketLoop(session *Session) {
 			log.Println(err)
 			continue
 		}
-		session.Bomber.IsMoving = false
+
+		/*
+			Checks which Key got pressed and performs an Action accordingly. If a movement key was pressed, the Collision and "legalness" of the Movement
+			will be checked before updating the Player-Position.
+		*/
+
 		realStepSize := STEP_SIZE * session.Bomber.stepMult
 		if keys.Wpressed {
 			session.Bomber.DirUp, session.Bomber.DirDown, session.Bomber.DirLeft, session.Bomber.DirRight = true, false, false, false
@@ -206,13 +277,13 @@ func playerWebsocketLoop(session *Session) {
 				go session.Bomber.placeBomb()
 			}
 		}
-		//if session.Bomber.IsAlive && !itemActive {
-		//	checkItem(session)
-		//}
 	}
 
 }
 
+/*
+Updates the Client in an Interval.
+*/
 func UpdateClients() {
 	for _ = range ticker.C {
 		err := sendDataToClients()
@@ -224,15 +295,26 @@ func UpdateClients() {
 	log.Println("Updating Clients stopped.")
 }
 
+/*
+Sends the Data needed by the Client to the Client.
+*/
 func sendDataToClients() error {
 	//Create array from all connected Bombermen
-	bombermanArray = make([]Bomberman, len(Connections))
+	connectionLength := len(Connections)
+	bombermanArray = make([]Bomberman, connectionLength)
 	count := 0
 
+	wg := &sync.WaitGroup{}
+	wg.Add(connectionLength)
 	for _, v := range Connections {
-		bombermanArray[count] = *v.Bomber
+		session := v
+		go func(count int) {
+			bombermanArray[count] = *session.Bomber
+			wg.Done()
+		}(count)
 		count++
 	}
+	wg.Wait()
 
 	var err error
 	clientPackageAsJson, err = json.Marshal(ClientPackage{
@@ -262,6 +344,9 @@ func (p *Position) updatePosition(xOffset int, yOffset int) {
 	p.y += yOffset
 }
 
+/*
+Starts the a Game-Session, if more then one Player is connected and all are ready.
+*/
 func StartGameIfPlayersReady() {
 	if len(Connections) < 2 {
 		return
@@ -271,7 +356,7 @@ func StartGameIfPlayersReady() {
 			return
 		}
 	}
-	resetGame("images/map3.png")
+	resetGame("images/testMap.png")
 	sessionRunning = true
 	for _, v := range Connections {
 		v.Bomber.PlayerReady = false
@@ -279,6 +364,9 @@ func StartGameIfPlayersReady() {
 	time.AfterFunc(time.Minute*SUDDEN_DEATH_START_TIME, startSuddenDeath)
 }
 
+/*
+Starts the Suddendeath and Poison spreading.
+*/
 func startSuddenDeath() {
 	suddenDeathRunning = true
 	p := newPoison()
@@ -306,12 +394,15 @@ func startSuddenDeath() {
 				}
 			}
 		}
-		BuildAbstractGameMap()
+		MapChanged()
 		time.Sleep(time.Second * SUDDEN_INCREASE_TIME)
 	}
 }
 
-//inefficient!
+/*
+Inefficient! todo: Change!
+While Sudden Death is running, constantly loops to all Fields and, if a Poison-Field is found, kills all player on the Field.
+*/
 func checkForPoison() {
 	for suddenDeathRunning {
 		for i := 0; i < len(GameMap.Fields); i++ {
@@ -338,6 +429,9 @@ func checkForPoison() {
 	}
 }
 
+/*
+Resets the Game.
+*/
 func resetGame(s string) {
 	suddenDeathRunning = false
 	playerDied = false
@@ -356,6 +450,9 @@ func resetGame(s string) {
 	}
 }
 
+/*
+Kills all Players on a Field.
+*/
 func killAllPlayersOnField(list *list.List) {
 	element := list.Front()
 	if element != nil {
@@ -368,6 +465,9 @@ func killAllPlayersOnField(list *list.List) {
 	}
 }
 
+/*
+Checks if only one Player is alive and acts accordingly.
+*/
 func isOnePlayerAlive() {
 	counter := 0
 	var lastBomberAlive *Bomberman
@@ -384,9 +484,20 @@ func isOnePlayerAlive() {
 	} else if counter == 1 {
 		log.Println(lastBomberAlive.Name)
 		log.Println("has Won")
-		updatePlayerStats(db, lastBomberAlive.UserID)
+		user, err := getUserByID(db, lastBomberAlive.UserID)
+
+		user.GamesWon = user.GamesWon + 1
+
+		if err != nil {
+			log.Println(err)
+		}
+
+		err = updatePlayerStats(db, *user)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 	//todo send message
-	resetGame("images/map3.png")
+	resetGame("images/testMap.png")
 	sessionRunning = false
 }
