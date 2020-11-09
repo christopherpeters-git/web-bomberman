@@ -43,7 +43,7 @@ var suddenDeathRunning bool
 
 /*Things send to the clients*/
 var bombermanArray []Bomberman
-var abstractGameMap [][][]FieldObject
+var abstractGameMap chan [][][]FieldObject
 var clientPackageAsJson []byte
 
 //Called before any connection is possible
@@ -57,24 +57,24 @@ func initGame() {
 	suddenDeathRunning = false
 	bombermanArray = make([]Bomberman, 0)
 	//abstractGameMap = make([][][]FieldObject,0)
-	abstractGameMap = make([][][]FieldObject, 0)
+	abstractGameMap = make(chan [][][]FieldObject)
 	clientPackageAsJson = make([]byte, 0)
 
 	//Routines
 	go UpdateClients()
-	//go func() {
-	//	for {
-	//		abstractGameMap<-BuildAbstractGameMap()
-	//	}
-	//}()
+	go func() {
+		for {
+			abstractGameMap <- BuildAbstractGameMap()
+		}
+	}()
 }
 
 /*
 Wrapper Function to Build the Map new.
 */
-func MapChanged() {
-	go BuildAbstractGameMap()
-}
+//func //MapChanged() {
+//	go BuildAbstractGameMap()
+//}
 
 /*
 Represents the Position of a Player.
@@ -177,7 +177,7 @@ Starts the interaction loop.
 */
 func StartPlayerLoop(session *Session) {
 	//Add the infos to the connection map
-	MapChanged()
+	//MapChanged()
 	Connections[session.User.UserID] = session
 	playerWebsocketLoop(session)
 	//Remove player from list at his last array position
@@ -319,7 +319,7 @@ func sendDataToClients() error {
 	var err error
 	clientPackageAsJson, err = json.Marshal(ClientPackage{
 		Players:        bombermanArray,
-		GameMap:        abstractGameMap,
+		GameMap:        <-abstractGameMap,
 		SessionRunning: sessionRunning,
 	})
 	if err != nil {
@@ -394,7 +394,7 @@ func startSuddenDeath() {
 				}
 			}
 		}
-		MapChanged()
+		//MapChanged()
 		time.Sleep(time.Second * SUDDEN_INCREASE_TIME)
 	}
 }

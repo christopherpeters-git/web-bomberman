@@ -102,7 +102,7 @@ func (r *Bomberman) teleportTo(xDestination int, yDestination int, currentX int,
 		r.bottomRightPos.y = r.PositionY + 43
 		r.bottomLeftPos.x = r.PositionX + 43
 		r.bottomLeftPos.y = r.PositionY + 43
-		MapChanged()
+		//MapChanged()
 		r.hasTeleported = true
 	}
 }
@@ -173,7 +173,7 @@ func (r *Bomberman) checkFieldForItem(x int, y int) {
 		return
 
 	}
-	MapChanged()
+	//MapChanged()
 }
 
 func (b *Bomberman) Reset(x int, y int) {
