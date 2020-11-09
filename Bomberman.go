@@ -104,6 +104,16 @@ func (r *Bomberman) teleportTo(xDestination int, yDestination int, currentX int,
 		r.bottomLeftPos.y = r.PositionY + 43
 		//MapChanged()
 		r.hasTeleported = true
+		//checking for poison
+		arrX := pixToArr(r.PositionX)
+		arrY := pixToArr(r.PositionY)
+		if GameMap.Fields[arrX][arrY].Contains != nil {
+			if GameMap.Fields[arrX][arrY].Contains[0] != nil && GameMap.Fields[arrX][arrY].Contains[0].getType() == FieldObjectPoison ||
+				GameMap.Fields[arrX][arrY].Contains[1] != nil && GameMap.Fields[arrX][arrY].Contains[1].getType() == FieldObjectPoison {
+				r.Kill()
+				findWinner()
+			}
+		}
 	}
 }
 
@@ -167,8 +177,9 @@ func (r *Bomberman) checkFieldForItem(x int, y int) {
 			}
 			r.ItemActive = false
 		})
-	case 12:
-
+	case 13:
+		r.Kill()
+		findWinner()
 	default:
 		return
 

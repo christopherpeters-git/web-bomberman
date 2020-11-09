@@ -47,7 +47,7 @@ func StartWebSocketConnection(w http.ResponseWriter, r *http.Request, db *sql.DB
 	bomber := NewBomberman(user.UserID, 0, 0, user.Username)
 	if sessionRunning {
 		bomber.Kill()
-		isOnePlayerAlive()
+		findWinner()
 	}
 	GameMap.Fields[pixToArr(bomber.PositionX)][pixToArr(bomber.PositionY)].Player.PushBack(bomber)
 

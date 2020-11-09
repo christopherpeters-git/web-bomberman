@@ -112,7 +112,7 @@ func (b *Bomb) startBomb() {
 	if sessionRunning && playerDied {
 		log.Println("check for remaining players")
 		playerDied = false
-		isOnePlayerAlive()
+		findWinner()
 	}
 
 	if GameMap.Fields[x][y].Contains[0] == b {
