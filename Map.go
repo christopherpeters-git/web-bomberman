@@ -90,7 +90,7 @@ func (f *Field) addBomb(b *Bomb) {
 	} else {
 		f.Contains[0] = b
 	}
-	MapChanged()
+	//MapChanged()
 }
 
 /*
@@ -302,7 +302,7 @@ func (w *Wall) getType() FieldObject {
 /*
 Represents the Fields of the Map without Players, only FieldObjects.
 */
-func BuildAbstractGameMap() {
+func BuildAbstractGameMap() [][][]FieldObject {
 	//Create map to send
 	newAbstractMap := make([][][]FieldObject, len(GameMap.Fields))
 	//testToSend := make([][]int, len(GameMap.Fields))
@@ -321,5 +321,5 @@ func BuildAbstractGameMap() {
 			}
 		}
 	}
-	abstractGameMap = newAbstractMap
+	return newAbstractMap
 }
