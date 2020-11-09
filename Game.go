@@ -94,6 +94,12 @@ func newPosition(x int, y int) Position {
 	}
 }
 
+//Updates a Position-object
+func (p *Position) updatePosition(xOffset int, yOffset int) {
+	p.x += xOffset
+	p.y += yOffset
+}
+
 /*
 Converts a Pixelposition to an Arrayposition.
 */
@@ -337,11 +343,6 @@ func sendDataToClients() error {
 
 func isLesserThan(a interface{}, b interface{}) bool {
 	return a.(*Session).User.UserID < b.(*Session).User.UserID
-}
-
-func (p *Position) updatePosition(xOffset int, yOffset int) {
-	p.x += xOffset
-	p.y += yOffset
 }
 
 /*
