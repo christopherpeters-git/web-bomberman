@@ -57,7 +57,7 @@ func removePlayerFromList(l *list.List, b *Bomberman) {
 Checks if the Movement is in Bounds of the Map. If and Array Position needs to be updated, checks if Field is Accessible and
 updates the Player-Position if so.
 */
-func (r *Bomberman) isMovementLegal(x int, y int) bool {
+func (r *Bomberman) moveIfLegal(x int, y int) bool {
 	if x < 0 || y < 0 || x > (len(GameMap.Fields)-1)*FIELD_SIZE || y > (len(GameMap.Fields[x/FIELD_SIZE])-1)*FIELD_SIZE {
 		return false
 	}

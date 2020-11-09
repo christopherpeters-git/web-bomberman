@@ -5,27 +5,29 @@ import (
 	"encoding/json"
 	_ "github.com/go-sql-driver/mysql"
 	"golang.org/x/crypto/bcrypt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
+	"time"
 )
 
 //database
 
 //handler url's
 const (
-	POST_SAVEPICTURE             = "/uploadImage"
 	WEBSOCKET_TEST               = "/ws-test/"
 	GET_FETCH_ACTIVE_CONNECTIONS = "/fetchConnections/"
 	POST_LOGIN                   = "/login"
 	POST_REGISTER                = "/register"
 	GET_FETCH_USER_ID            = "/fetchUserId"
 	GET_SET_READY                = "/setReady"
+	REQUEST_TIMEOUT_MILLIS       = 500
 )
 
 var db *sql.DB
+var ipTimers map[uint64]bool = make(map[uint64]bool)
 
 func main() {
 	//Creates a log file
@@ -51,7 +53,6 @@ func main() {
 	//handlers
 	http.HandleFunc(POST_REGISTER, handleRegister)
 	http.HandleFunc(POST_LOGIN, handleLogin)
-	http.HandleFunc(POST_SAVEPICTURE, handleUploadImage)
 	http.HandleFunc(WEBSOCKET_TEST, handleWebsocketEndpoint)
 	http.HandleFunc(GET_FETCH_ACTIVE_CONNECTIONS, handleFetchActiveConnections)
 	http.HandleFunc(GET_FETCH_USER_ID, handleGetUserID)
@@ -63,8 +64,51 @@ func main() {
 	}
 }
 
+/*
+converts ip to uint64, returns on err a 0 and an error from ParseUint
+*/
+func ipToInt(ip string) (uint64, error) {
+	log.Println(ip)
+	ipString := strings.Split(strings.ReplaceAll(ip, ".", ""), ":")[0]
+	log.Println(ipString)
+	ipInt, err := strconv.ParseUint(ipString, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	return ipInt, nil
+}
+
+/*
+Checks if ip is allowed to do another request and starts a timer if allowed
+*/
+func checkIpTimer(ip string) bool {
+	if strings.HasPrefix(ip, "[::1]") { //For a local connection
+		ip = "127.0.0.1"
+	}
+	ipInt, err := ipToInt(ip)
+	if err != nil {
+		log.Println(err)
+		return false
+	}
+	if !ipTimers[ipInt] {
+		//Starts the timer for the ip
+		go func() {
+			ipTimers[ipInt] = true
+			time.Sleep(time.Millisecond * REQUEST_TIMEOUT_MILLIS)
+			ipTimers[ipInt] = false
+		}()
+		return true
+	}
+	return false
+}
+
 func handleGetSetReady(w http.ResponseWriter, r *http.Request) {
 	log.Println("handling handleGetSetReady request started...")
+	if !checkIpTimer(r.RemoteAddr) {
+		log.Println("not allowed")
+		w.WriteHeader(http.StatusTooManyRequests)
+		return
+	}
 	var user User
 	if dErr := CheckCookie(r, db, &user); dErr != nil {
 		log.Println(dErr.Error())
@@ -103,44 +147,6 @@ func handleWebsocketEndpoint(w http.ResponseWriter, r *http.Request) {
 	log.Println("handling websocket started...")
 	StartWebSocketConnection(w, r, db)
 	log.Println("handling websocket ended...")
-}
-
-func handleUploadImage(w http.ResponseWriter, r *http.Request) {
-	log.Println("Upload started...")
-	//Parsing ??? Maxsize = 10mb
-	if err := r.ParseMultipartForm(10 << 20); err != nil {
-		log.Println("Parsing failed: " + err.Error())
-	}
-	//Retrieving
-	file, handler, err := r.FormFile("imageFile")
-	if err != nil {
-		log.Println("Retrieving failed: " + err.Error())
-		return
-	}
-	defer file.Close()
-
-	log.Println("Uploaded File: ", handler.Filename)
-	log.Println("File size: ", handler.Size)
-	log.Println("MIME Header: ", handler.Header)
-
-	//Writing
-	//TO-DO: Change TempFile func
-	tempFile, err := ioutil.TempFile("temp-images", "upload-*.png")
-	if err != nil {
-		log.Println("Writing failed: " + err.Error())
-		return
-	}
-
-	defer tempFile.Close()
-
-	fileBytes, err := ioutil.ReadAll(file)
-	if err != nil {
-		log.Println(err.Error())
-	}
-
-	tempFile.Write(fileBytes)
-
-	log.Println(w, "Successfully Uploaded!")
 }
 
 func handleLogin(w http.ResponseWriter, r *http.Request) {

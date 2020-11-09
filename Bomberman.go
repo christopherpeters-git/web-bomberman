@@ -167,8 +167,9 @@ func (r *Bomberman) checkFieldForItem(x int, y int) {
 			}
 			r.ItemActive = false
 		})
-	case 12:
-
+	case 13:
+		r.Kill()
+		findWinner()
 	default:
 		return
 

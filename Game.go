@@ -18,7 +18,7 @@ const (
 	STANDARD_BOMB_TIME          = 3
 	STANDARD_STEP_MULTIPLICATOR = 1
 	DEATH_STEP_MULTIPLICATOR    = 0.5
-	SUDDEN_DEATH_START_TIME     = 1
+	SUDDEN_DEATH_START_TIME     = 10
 	MAP_SIZE                    = CANVAS_SIZE / FIELD_SIZE
 
 	/*
@@ -222,7 +222,7 @@ func playerWebsocketLoop(session *Session) {
 			session.Bomber.DirUp, session.Bomber.DirDown, session.Bomber.DirLeft, session.Bomber.DirRight = true, false, false, false
 			session.Bomber.IsMoving = true
 			if session.Bomber.collisionWithSurroundings(0, -int(realStepSize)) {
-				if session.Bomber.isMovementLegal(session.Bomber.PositionX, session.Bomber.PositionY-int(realStepSize)) {
+				if session.Bomber.moveIfLegal(session.Bomber.PositionX, session.Bomber.PositionY-int(realStepSize)) {
 
 					session.Bomber.topRightPos.updatePosition(0, -int(realStepSize))
 					session.Bomber.topLeftPos.updatePosition(0, -int(realStepSize))
@@ -237,7 +237,7 @@ func playerWebsocketLoop(session *Session) {
 			session.Bomber.DirUp, session.Bomber.DirDown, session.Bomber.DirLeft, session.Bomber.DirRight = false, true, false, false
 			session.Bomber.IsMoving = true
 			if session.Bomber.collisionWithSurroundings(0, int(realStepSize)) {
-				if session.Bomber.isMovementLegal(session.Bomber.PositionX, session.Bomber.PositionY+int(realStepSize)) {
+				if session.Bomber.moveIfLegal(session.Bomber.PositionX, session.Bomber.PositionY+int(realStepSize)) {
 
 					session.Bomber.topRightPos.updatePosition(0, int(realStepSize))
 					session.Bomber.topLeftPos.updatePosition(0, int(realStepSize))
@@ -252,7 +252,7 @@ func playerWebsocketLoop(session *Session) {
 			session.Bomber.DirUp, session.Bomber.DirDown, session.Bomber.DirLeft, session.Bomber.DirRight = false, false, true, false
 			session.Bomber.IsMoving = true
 			if session.Bomber.collisionWithSurroundings(-int(realStepSize), 0) {
-				if session.Bomber.isMovementLegal(session.Bomber.PositionX-int(realStepSize), session.Bomber.PositionY) {
+				if session.Bomber.moveIfLegal(session.Bomber.PositionX-int(realStepSize), session.Bomber.PositionY) {
 
 					session.Bomber.topRightPos.updatePosition(-int(realStepSize), 0)
 					session.Bomber.topLeftPos.updatePosition(-int(realStepSize), 0)
@@ -267,7 +267,7 @@ func playerWebsocketLoop(session *Session) {
 			session.Bomber.DirUp, session.Bomber.DirDown, session.Bomber.DirLeft, session.Bomber.DirRight = false, false, false, true
 			session.Bomber.IsMoving = true
 			if session.Bomber.collisionWithSurroundings(int(realStepSize), 0) {
-				if session.Bomber.isMovementLegal(session.Bomber.PositionX+int(realStepSize), session.Bomber.PositionY) {
+				if session.Bomber.moveIfLegal(session.Bomber.PositionX+int(realStepSize), session.Bomber.PositionY) {
 
 					session.Bomber.topRightPos.updatePosition(int(realStepSize), 0)
 					session.Bomber.topLeftPos.updatePosition(int(realStepSize), 0)
@@ -362,7 +362,7 @@ func StartGameIfPlayersReady() {
 	for _, v := range Connections {
 		v.Bomber.PlayerReady = false
 	}
-	time.AfterFunc(time.Minute*SUDDEN_DEATH_START_TIME, startSuddenDeath)
+	time.AfterFunc(time.Second*SUDDEN_DEATH_START_TIME, startSuddenDeath)
 }
 
 /*
@@ -371,31 +371,30 @@ Starts the Suddendeath and Poison spreading.
 func startSuddenDeath() {
 	suddenDeathRunning = true
 	p := newPoison()
-	go checkForPoison()
+	//go checkForPoison()
 	for t := 0; t < SUDDEN_DEATH_MAX_AREA; t++ {
 		if !suddenDeathRunning {
 			break
 		}
 		for i := 0; i < len(GameMap.Fields); i++ {
 			for j := 0; j < len(GameMap.Fields[i]); j++ {
-
 				if (i == t) || (j == t) || (i == 19-t) || (j == 19-t) {
 					if GameMap.Fields[i][j].Contains[0] != nil {
 						if GameMap.Fields[i][j].Contains[0].getType() == 13 {
 							continue
 						}
 					}
-
 					if GameMap.Fields[i][j].Contains[1] != nil {
 						if GameMap.Fields[i][j].Contains[1].getType() == 13 {
 							continue
 						}
 					}
 					GameMap.Fields[i][j].addPoison(&p)
+					killAllPlayersOnField(GameMap.Fields[i][j].Player)
 				}
 			}
 		}
-		//MapChanged()
+		findWinner()
 		time.Sleep(time.Second * SUDDEN_INCREASE_TIME)
 	}
 }
@@ -404,31 +403,23 @@ func startSuddenDeath() {
 Inefficient! todo: Change!
 While Sudden Death is running, constantly loops to all Fields and, if a Poison-Field is found, kills all player on the Field.
 */
-func checkForPoison() {
-	for suddenDeathRunning {
-		for i := 0; i < len(GameMap.Fields); i++ {
-			for j := 0; j < len(GameMap.Fields[i]); j++ {
-				if GameMap.Fields[i][j].Contains[0] != nil {
-					if GameMap.Fields[i][j].Contains[0].getType() == 13 {
-						if GameMap.Fields[i][j].Player != nil {
-							//TO DO: Dont insta kill
-							killAllPlayersOnField(GameMap.Fields[i][j].Player)
-							isOnePlayerAlive()
-						}
-					}
-				}
-				if GameMap.Fields[i][j].Contains[1] != nil {
-					if GameMap.Fields[i][j].Contains[1].getType() == 13 {
-						if GameMap.Fields[i][j].Player != nil {
-							killAllPlayersOnField(GameMap.Fields[i][j].Player)
-							isOnePlayerAlive()
-						}
-					}
-				}
-			}
-		}
-	}
-}
+//func checkForPoison() {
+//	for suddenDeathRunning {
+//		for i := 0; i < len(GameMap.Fields); i++ {
+//			for j := 0; j < len(GameMap.Fields[i]); j++ {
+//				if GameMap.Fields[i][j].Contains[0] != nil || GameMap.Fields[i][j].Contains[1] != nil{
+//					if GameMap.Fields[i][j].Contains[0].getType() == 13 || GameMap.Fields[i][j].Contains[1].getType() == 13 {
+//						if GameMap.Fields[i][j].Player != nil {
+//							//TO DO: Dont insta kill
+//							killAllPlayersOnField(GameMap.Fields[i][j].Player)
+//							findWinner()
+//						}
+//					}
+//				}
+//			}
+//		}
+//	}
+//}
 
 /*
 Resets the Game.
@@ -469,7 +460,7 @@ func killAllPlayersOnField(list *list.List) {
 /*
 Checks if only one Player is alive and acts accordingly.
 */
-func isOnePlayerAlive() {
+func findWinner() {
 	counter := 0
 	var lastBomberAlive *Bomberman
 	for _, v := range Connections {
@@ -483,15 +474,12 @@ func isOnePlayerAlive() {
 	} else if counter == 0 {
 		log.Println("Draw")
 	} else if counter == 1 {
-		log.Println(lastBomberAlive.Name)
-		log.Println("has Won")
+		log.Println(lastBomberAlive.Name + "has Won")
 		user, err := getUserByID(db, lastBomberAlive.UserID)
-
-		user.GamesWon = user.GamesWon + 1
-
 		if err != nil {
 			log.Println(err)
 		}
+		user.GamesWon = user.GamesWon + 1
 
 		err = updatePlayerStats(db, *user)
 		if err != nil {
