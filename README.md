@@ -15,5 +15,10 @@ Für die erfolgreiche Ausführung ist es notwendig, im root-Verzeichnis des Proj
 
 Nach dem Start des Servers ist der Webclient auf Port http://localhost:2100/ zu erreichen.
 
+![Ingame Screenshot](images/bombermanIngame.png)
+
+
+
+![Explsion Screenshot](images/explosion.png)
 
 
